@@ -7,8 +7,7 @@ export interface HelloOptions {
 
 /**
  * Scaffold plugin: proves plugin mounting, service reflection, and disposal
- * wiring work end to end. Replaced by the real seam plugins in Phase 1
- * (docs/TS_PORT_PLAN.md §5).
+ * wiring work end to end.
  */
 export default function hello(ctx: Context, options: HelloOptions = {}) {
   const name = options.name ?? "tseer";
