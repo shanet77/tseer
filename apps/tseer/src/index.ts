@@ -26,6 +26,6 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     },
   });
 
-  await ctx.plugin(hello, { name: options.name ?? "nitter" });
+  await ctx.plugin(hello, { name: options.name ?? "tseer" });
   return ctx;
 }

@@ -1,12 +1,12 @@
 {
-  "name": "@tseer/nitter",
+  "name": "@tseer/tseer",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "license": "AGPL-3.0-only",
-  "description": "nitter-ts composition root: boots the cordis context and mounts the plugin list. Licensed AGPL-3.0.",
+  "description": "tseer composition root: boots the cordis context and mounts the plugin list. A TypeScript port of nitter (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
   "bin": {
-    "nitter": "./dist/cli.js"
+    "tseer": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsdown",

@@ -11,7 +11,7 @@ export interface HelloOptions {
  * (docs/TS_PORT_PLAN.md §5).
  */
 export default function hello(ctx: Context, options: HelloOptions = {}) {
-  const name = options.name ?? "nitter";
+  const name = options.name ?? "tseer";
   const dispose = ctx.provide("hello", name);
   ctx.logger.info(`hello from ${name}`);
   return () => {

@@ -7,7 +7,7 @@ describe("scaffold boot", () => {
   it("mounts the scaffold plugin list on a cordis context", async () => {
     const ctx = await createApp();
     expect(ctx.registry.has(hello)).toBe(true);
-    expect(ctx.get("hello")).toBe("nitter");
+    expect(ctx.get("hello")).toBe("tseer");
   });
 
   it("passes options through to plugins", async () => {

@@ -182,7 +182,7 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@26.6.3)(vite@8.3.1(@types/node@26.6.3))
 
-  apps/nitter:
+  apps/tseer:
     dependencies:
       cordis:
         specifier: 4.0.0-rc.10

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "license": "AGPL-3.0-only",
-  "description": "tseer (nitter-ts): TypeScript port of nitter with an everything-is-a-plugin architecture, built on cordis. Licensed AGPL-3.0.",
+  "description": "tseer: TypeScript port of nitter (https://github.com/zedeus/nitter) with an everything-is-a-plugin architecture, built on cordis. Licensed AGPL-3.0.",
   "packageManager": "pnpm@12.8.1",
   "engines": {
     "node": ">=26.0.0"
@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && pnpm -r typecheck",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "start": "pnpm --filter @tseer/nitter start"
+    "start": "pnpm --filter @tseer/tseer start"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
