@@ -1,0 +1,27 @@
+{
+  "name": "@tseer/root",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "tseer (nitter-ts): TypeScript port of nitter with an everything-is-a-plugin architecture, built on cordis. Licensed AGPL-3.0.",
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=26.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json && pnpm -r typecheck",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "start": "pnpm --filter @tseer/nitter start"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "@types/node": "^26.6.3",
+    "tsdown": "^0.23.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.11"
+  }
+}
