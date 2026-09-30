@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@tseer/kernel": "workspace:*",
     "cordis": "4.0.0-rc.10"
   }
 }

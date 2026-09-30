@@ -9,7 +9,7 @@ with an *everything-is-a-plugin* architecture, built on
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 | Scaffold: workspace, tooling, CI, hello-cordis app | **done** |
-| 1 | Kernel + types + config service (`tseer web`) | not started |
+| 1 | Kernel + types + config service (`tseer web`) | **done** |
 | 2 | Platform seams (http-client, cache, sessions, server, media) | not started |
 | 3 | Provider + parsers (`twitter-api`, `twitter-parser`) | not started |
 | 4 | Web parity, core routes (views, prefs, render) | not started |
@@ -24,8 +24,12 @@ Requirements: **Node.js 26+**, **pnpm 12+**.
 pnpm install
 pnpm build
 pnpm test
-pnpm start    # boots the scaffold app (apps/tseer)
+pnpm start    # `tseer web` — reads nitter.conf, serves GET /about
 ```
+
+`tseer web [--config=<path>] [--port=<n>]`: config defaults to
+`TSEER_CONF_FILE` / `NITTER_CONF_FILE`, then `./nitter.conf` — any missing file
+falls back to built-in defaults with a warning-free boot.
 
 Other scripts: `pnpm lint` / `pnpm lint:fix` (biome), `pnpm typecheck` (tsc).
 

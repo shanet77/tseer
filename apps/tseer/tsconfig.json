@@ -1,4 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "paths": {
+      "@tseer/kernel": ["../../packages/kernel/src/index.ts"]
+    }
+  },
   "include": ["src", "tests", "tsdown.config.ts"]
 }

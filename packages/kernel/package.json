@@ -1,0 +1,26 @@
+{
+  "name": "@tseer/kernel",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "tseer kernel: cordis boot (createApp), zod-validated config service with nitter.conf INI compat, and the pino logger plugin. A TypeScript port of nitter (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "cordis": "4.0.0-rc.10",
+    "pino": "^10.3.1",
+    "zod": "^4.6.5"
+  }
+}

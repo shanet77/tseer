@@ -1,4 +1,4 @@
-# nitter-ts: Conversion Plan
+# tseer: Conversion Plan
 
 Plan for re-implementing nitter as a new TypeScript project with an
 **everything-is-a-plugin** architecture, modeled on deepseek-harness (dsh).
@@ -112,7 +112,7 @@ composition** (one package may export several plugins).
 
 ```
 apps/
-  nitter/                  # bin: `nitter web` — reads config, mounts plugin list, starts
+  tseer/                   # bin: `tseer web` — reads config, mounts plugin list, starts
 packages/
   kernel/                  # createApp(): cordis boot, config service, plugin loader (file paths + npm names)
   types/                   # domain model: User, Tweet, Conversation, Timeline, Query, Account, Prefs — pure types + zod schemas where input crosses a boundary
@@ -154,7 +154,7 @@ further is cheap later if a provider forks.
 
 | Nim source | Destination | Notes |
 |---|---|---|
-| `nitter.nim` | `apps/nitter` | boot only; no route definitions inline |
+| `nitter.nim` | `apps/tseer` | boot only; no route definitions inline |
 | `config.nim`, `nitter.conf` | `kernel` config service | zod schema; keep nitter.conf ini keys readable for drop-in migration |
 | `http_pool.nim`, `apiutils.nim` (fetch/retry/CF) | `http-client` | undici Agent; keep `isCloudflareHtml` check + retry/backoff |
 | `auth.nim`, `sessions.jsonl`, `experimental/parser/session.nim` | `twitter-sessions` | pool semantics: per-session concurrency cap, per-API rate limits from response headers, limited/unlimited state, `getSessionPoolHealth` → `account/health` event for debug route |
@@ -245,12 +245,12 @@ commit per phase.
 
 ### Phase 0 — Scaffold (half day)
 pnpm workspace, tsconfig.base, tsdown, biome, vitest, CI, AGENTS.md, LICENSE
-(AGPL-3.0). Hello-cordis app boots under `apps/nitter`.
+(AGPL-3.0). Hello-cordis app boots under `apps/tseer`.
 **Accept:** `pnpm i && pnpm build && pnpm test` green in CI.
 
 ### Phase 1 — Kernel + types (1 day)
 `kernel/createApp(config)`, config service (zod + nitter.conf ini reader),
-`types` package, `logger`. `nitter web` starts an empty server serving
+`types` package, `logger`. `tseer web` starts an empty server serving
 `/about` (static HTML stub).
 **Accept:** `nitter.conf` from original repo parses; unknown-key warnings work.
 
@@ -266,7 +266,7 @@ original repo loads; debug route `/debug health` renders pool health.
 `twitter-api` (endpoints.ts, dual-URL mapping, fetchers, search-query compiler)
 and `twitter-parser` (registry + ported parsers) with **golden fixtures**:
 capture real GraphQL responses per kind into `tests/fixtures/*.json`, assert
-parsed output. Debug CLI: `nitter debug user/<name>` prints parsed JSON.
+parsed output. Debug CLI: `tseer debug user/<name>` prints parsed JSON.
 **Accept:** fixture suite green; live smoke test (with a real session) for
 user/timeline/tweet/search.
 

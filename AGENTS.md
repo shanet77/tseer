@@ -4,7 +4,7 @@ Guidance for coding agents (and humans) working in this repository.
 
 ## What this is
 
-tseer ("nitter-ts") is a greenfield TypeScript port of
+tseer is a greenfield TypeScript port of
 [nitter](https://github.com/zedeus/nitter) with an everything-is-a-plugin
 architecture on [cordis](https://www.npmjs.com/package/cordis). The authoritative
 spec is [docs/TS_PORT_PLAN.md](docs/TS_PORT_PLAN.md) — read it (especially §0 ground
@@ -15,7 +15,7 @@ plan-vs-reality deltas discovered during implementation.
 ## Phase status
 
 - [x] Phase 0 — scaffold: pnpm workspace, tsconfig, biome, vitest, CI, hello-cordis app
-- [ ] Phase 1 — `kernel/createApp(config)`, config service (zod + nitter.conf ini), `types`, `logger`, `nitter web` serving `/about`
+- [x] Phase 1 — `kernel/createApp(config)`, config service (zod + nitter.conf ini), `types`, `logger`, `tseer web` serving `/about`
 - [ ] Phase 2 — platform seams: `http-client`, `cache`, `twitter-sessions`, `server`, `media`
 - [ ] Phase 3 — `twitter-api` + `twitter-parser` with golden fixtures
 - [ ] Phase 4 — `views`, `prefs`, `ctx.render`, core route plugins
@@ -33,7 +33,7 @@ Update this checklist as phases land.
 | `pnpm test` | run the vitest suite (root config, `*/tests/**/*.spec.ts`) |
 | `pnpm typecheck` | `tsc --noEmit` for the root config + every package |
 | `pnpm lint` / `pnpm lint:fix` | biome check (lint + format + import sort), `--write` to fix |
-| `pnpm start` | run the built `apps/nitter` entry (`dist/cli.js`) |
+| `pnpm start` | run the built `apps/tseer` entry (`dist/cli.js`) |
 
 ## Conventions
 
@@ -48,7 +48,7 @@ Update this checklist as phases land.
 - **Import boundaries are seams:** a package may consume another package's public
   entry only — never reach into its `src/` internals (plan §1).
 - **Behavior lives in plugins:** app features are plugins mounted with
-  `ctx.plugin(...)`; `apps/nitter` is only the composition root (the plugin list
+  `ctx.plugin(...)`; `apps/tseer` is only the composition root (the plugin list
   comes from config in Phase 1).
 - **Tests:** vitest, one `tests/` directory per package, fixtures over live network
   calls — CI never talks to X (plan §6).
@@ -90,7 +90,7 @@ runtime:
 ## Repo layout today (Phase 0)
 
 ```
-apps/nitter/          # bin `nitter`; src/index.ts (createApp), src/cli.ts (boot),
+apps/tseer/          # bin `tseer`; src/index.ts (createApp), src/cli.ts (boot),
                       # src/plugins/hello.ts (scaffold plugin), tests/
 packages/             # empty — seam packages arrive in Phase 1
 docs/TS_PORT_PLAN.md  # the spec
