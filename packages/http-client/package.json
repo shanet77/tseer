@@ -1,0 +1,26 @@
+{
+  "name": "@tseer/http-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "tseer http-client seam: undici pool, proxy, retry, Cloudflare-HTML detection, and rate-limit header parsing. A TypeScript port of nitter (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tseer/types": "workspace:*",
+    "cordis": "4.0.0-rc.10",
+    "undici": "^8.11.2"
+  }
+}

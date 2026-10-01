@@ -1,3 +1,4 @@
+import { httpClientPlugin } from "@tseer/http-client";
 import {
   aboutRoutePlugin,
   createApp as createKernelApp,
@@ -31,6 +32,14 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
   await ctx.plugin(serverPlugin, {
     address: ctx.config.address,
     port: ctx.config.port,
+  });
+  await ctx.plugin(httpClientPlugin, {
+    maxConns: ctx.config.httpMaxConns,
+    proxy: ctx.config.proxy,
+    proxyAuth: ctx.config.proxyAuth,
+    apiProxy: ctx.config.apiProxy,
+    maxRetries: ctx.config.maxRetries,
+    retryDelayMs: ctx.config.retryDelayMs,
   });
   await ctx.plugin(aboutRoutePlugin, { title: ctx.config.title });
   await ctx.plugin(healthRoutePlugin);

@@ -17,6 +17,7 @@ plan-vs-reality deltas discovered during implementation.
 - [x] Phase 0 — scaffold: pnpm workspace, tsconfig, biome, vitest, CI, hello-cordis app
 - [x] Phase 1 — `kernel/createApp(config)`, config service (zod + nitter.conf ini), `types`, `logger`, `tseer web` serving `/about`
 - [ ] Phase 2 — platform seams: `http-client`, `cache`, `twitter-sessions`, `server`, `media`
+      — partial: `server` and `http-client` have landed.
 - [ ] Phase 3 — `twitter-api` + `twitter-parser` with golden fixtures
 - [ ] Phase 4 — `views`, `prefs`, `ctx.render`, core route plugins
 - [ ] Phase 5 — long-tail route plugins
@@ -92,6 +93,6 @@ runtime:
 ```
 apps/tseer/          # bin `tseer`; src/index.ts (createApp), src/cli.ts (boot),
                       # src/plugins/hello.ts (scaffold plugin), tests/
-packages/             # empty — seam packages arrive in Phase 1
+packages/             # kernel, types, server, http-client — more seams per plan §2
 docs/TS_PORT_PLAN.md  # the spec
 ```

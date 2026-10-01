@@ -3,6 +3,7 @@
   "compilerOptions": {
     "types": ["node"],
     "paths": {
+      "@tseer/http-client": ["../../packages/http-client/src/index.ts"],
       "@tseer/kernel": ["../../packages/kernel/src/index.ts"],
       "@tseer/server": ["../../packages/server/src/index.ts"]
     }

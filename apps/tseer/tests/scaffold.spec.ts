@@ -10,6 +10,7 @@ describe("scaffold boot", () => {
     expect(ctx.get("hello")).toBe("tseer");
     expect(ctx.config.port).toBe(8080);
     expect(ctx.server).toBeDefined();
+    expect(ctx.http).toBeDefined();
     const about = await ctx.server.inject({ url: "/about" });
     expect(about.status).toBe(200);
     expect(about.body).toContain("<h1>About Nitter</h1>");
