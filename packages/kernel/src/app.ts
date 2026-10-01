@@ -1,8 +1,4 @@
-/**
- * `createApp`: kernel boot — fresh cordis context + logger/config plugins.
- * Phase 1 keeps the composition root minimal: pino logging, validated config,
- * and the `/about` stub live behind the same seam packages Phase 2+ extend.
- */
+/** Kernel boot: fresh cordis context + logger and config plugins. */
 import { Context } from "cordis";
 import { readConfigFile } from "./files.ts";
 import { parseIni } from "./ini.ts";

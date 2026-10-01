@@ -1,4 +1,7 @@
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serverPlugin } from "@tseer/server";
 import { describe, expect, it } from "vitest";
@@ -6,9 +9,12 @@ import {
   aboutPlugin,
   aboutRoutePlugin,
   createApp,
+  emptySessionHealth,
+  healthRoutePlugin,
   parseConfigText,
   parseIni,
   readConfigFile,
+  staticRoutePlugin,
 } from "../src/index.ts";
 
 function fixtureUrl(name: string): URL {
@@ -142,5 +148,91 @@ describe("kernel boot", () => {
     expect(about.body).toContain("<h1>About seam</h1>");
     await fiber.dispose();
     expect((await ctx.server.inject({ url: "/about" })).status).toBe(404);
+  });
+
+  it("serves /.health with nitter's empty-pool JSON shape", async () => {
+    const ctx = await createApp({ configText: "" });
+    await ctx.plugin(serverPlugin, { port: 0 });
+    const fiber = await ctx.plugin(healthRoutePlugin);
+    const res = await ctx.server.inject({ url: "/.health" });
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toContain("application/json");
+    expect(res.json()).toEqual(emptySessionHealth());
+    // Byte-order parity with nitter's respJson(getSessionPoolHealth()).
+    expect(res.body).toBe(
+      '{"sessions":{"total":0,"limited":0,"oauth":{"total":0,"limited":0},' +
+        '"cookie":{"total":0,"limited":0},"oldest":"1970-01-01T00:00:00Z",' +
+        '"newest":"1970-01-01T00:00:00Z","average":"1970-01-01T00:00:00Z"},' +
+        '"requests":{"total":0,"apis":{}}}',
+    );
+    await fiber.dispose();
+    expect((await ctx.server.inject({ url: "/.health" })).status).toBe(404);
+  });
+
+  it("uses a sessionHealth provider when one is supplied", async () => {
+    const ctx = await createApp({ configText: "" });
+    await ctx.plugin(serverPlugin, { port: 0 });
+    const fiber = await ctx.plugin(healthRoutePlugin, {
+      sessionHealth: () => ({
+        sessions: {
+          total: 2,
+          limited: 1,
+          oauth: { total: 1, limited: 1 },
+          cookie: { total: 1, limited: 0 },
+          oldest: "2026-01-01T00:00:00Z",
+          newest: "2026-01-02T00:00:00Z",
+          average: "2026-01-01T12:00:00Z",
+        },
+        requests: { total: 7, apis: { GraphUser: 7 } },
+      }),
+    });
+    const res = await ctx.server.inject({ url: "/.health" });
+    expect(res.json()).toEqual({
+      sessions: {
+        total: 2,
+        limited: 1,
+        oauth: { total: 1, limited: 1 },
+        cookie: { total: 1, limited: 0 },
+        oldest: "2026-01-01T00:00:00Z",
+        newest: "2026-01-02T00:00:00Z",
+        average: "2026-01-01T12:00:00Z",
+      },
+      requests: { total: 7, apis: { GraphUser: 7 } },
+    });
+    await fiber.dispose();
+  });
+
+  it("serves config.staticDir at the URL root with routes taking precedence", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "tseer-static-"));
+    writeFileSync(join(dir, "robots.txt"), "User-agent: *");
+    writeFileSync(join(dir, "about"), "static about");
+    const ctx = await createApp({ configText: `[Server]\nstaticDir = "${dir}"\n` });
+    await ctx.plugin(serverPlugin, { port: 0 });
+    const aboutFiber = await ctx.plugin(aboutRoutePlugin, { title: "t" });
+    const staticFiber = await ctx.plugin(staticRoutePlugin);
+    expect(ctx.config.staticDir).toBe(dir);
+
+    const file = await ctx.server.inject({ url: "/robots.txt" });
+    expect(file.status).toBe(200);
+    expect(file.body).toBe("User-agent: *");
+
+    // The /about route beats a same-named file in staticDir.
+    const route = await ctx.server.inject({ url: "/about" });
+    expect(route.status).toBe(200);
+    expect(route.body).toContain("<h1>About t</h1>");
+
+    await staticFiber.dispose();
+    expect((await ctx.server.inject({ url: "/robots.txt" })).status).toBe(404);
+    await aboutFiber.dispose();
+  });
+
+  it("does not mount static when staticDir is empty (never expose CWD)", async () => {
+    const ctx = await createApp({ configText: "" });
+    ctx.config.staticDir = ""; // pathological value the INI loader can't produce
+    await ctx.plugin(serverPlugin, { port: 0 });
+    const fiber = await ctx.plugin(staticRoutePlugin);
+    const res = await ctx.server.inject({ url: "/package.json" });
+    expect(res.status).toBe(404);
+    await fiber.dispose();
   });
 });

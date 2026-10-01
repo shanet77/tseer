@@ -1,8 +1,4 @@
-/**
- * Merge raw INI values over the zod defaults from ./schema.ts.
- * Unknown sections/keys warn (never fail); invalid values warn and fall back
- * to defaults; out-of-range numbers fail with the zod error detail.
- */
+/** Merge raw INI values over the zod defaults: unknown/invalid warn, out-of-range fails. */
 import type { IniDocument } from "./ini.ts";
 import { extractPreferences, finalizeConfig } from "./preferences.ts";
 import type { ConfigWarning, LoadedConfig } from "./schema.ts";
@@ -121,7 +117,7 @@ export function loadConfigFromIni(doc: IniDocument): LoadedConfig {
     }
     if (!stored) continue;
     consumed.add(`${lower(section.name)} ${lower(stored.name)}`);
-    if (stored.value === "") continue; // Nim `get`: empty falls back to default.
+    if (stored.value === "") continue;
     const coerced = coerce(stored.value, source.kind);
     if (coerced.ok) raw[field] = coerced.value;
     else {

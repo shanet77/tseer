@@ -13,6 +13,12 @@ describe("scaffold boot", () => {
     const about = await ctx.server.inject({ url: "/about" });
     expect(about.status).toBe(200);
     expect(about.body).toContain("<h1>About Nitter</h1>");
+    const health = await ctx.server.inject({ url: "/.health" });
+    expect(health.status).toBe(200);
+    expect(health.json()).toMatchObject({
+      sessions: { total: 0, limited: 0 },
+      requests: { total: 0, apis: {} },
+    });
   });
 
   it("passes options through to plugins", async () => {

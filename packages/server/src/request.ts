@@ -1,4 +1,3 @@
-/** Validate a route path (`/about`, `/user/:name`, never empty/relative). */
 import type { FastifyRequest } from "fastify";
 import type { AppRequest, HttpMethod } from "./types.ts";
 
@@ -27,11 +26,15 @@ export function normalizePath(path: string): string {
   return path;
 }
 
-/** Normalize a static prefix (`/static`); the root prefix `/` is rejected. */
+/**
+ * Normalize a static prefix (`/static`, or `/` to serve at the URL root like
+ * nitter's Jester `staticDir`); trailing slashes are trimmed.
+ */
 export function normalizePrefix(prefix: string): string {
-  if (!prefix.startsWith("/") || prefix === "/") {
-    throw new Error(`server: static prefix must start with "/" and not be "/", got "${prefix}"`);
+  if (!prefix.startsWith("/")) {
+    throw new Error(`server: static prefix must start with "/", got "${prefix}"`);
   }
+  if (prefix === "/") return "/";
   return prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
 }
 

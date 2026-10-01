@@ -1,13 +1,4 @@
-/**
- * `ctx.config` contract: zod schema for the tseer configuration.
- * Ports `src/config.nim` (+ `[Preferences]` defaults from `src/prefs_impl.nim`).
- *
- * Flat output shape matching the Nim `Config` tuple, with `preferences`
- * nested as the only sub-object. The INI reader (./ini.ts) handles syntax;
- * the loader (./load.ts) merges raw values over these defaults, warning on
- * unknown sections/keys instead of failing so drop-in `nitter.conf`
- * migration keeps working.
- */
+/** `ctx.config` contract: zod schema ported from `config.nim` (+ `prefs_impl.nim` prefs). */
 import { z } from "zod";
 
 export const themeOptions = ["Nitter", "Twitter", "Mastodon", "Auto"] as const;

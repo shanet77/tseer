@@ -1,9 +1,4 @@
-/**
- * Fastify-backed `HttpServer` (the default `ctx.server` provider).
- * Fastify types never cross the seam: handlers see `AppRequest`/`AppReply`,
- * and route removal is logical (a disposed route answers 404) because
- * fastify has no route-removal API.
- */
+/** Fastify-backed `HttpServer` (default provider); disposed routes answer 404 (fastify can't unregister). */
 import Fastify, { type FastifyInstance } from "fastify";
 import { toAppReply } from "./reply.ts";
 import { normalizeMethod, normalizePath, normalizePrefix, toAppRequest } from "./request.ts";
@@ -129,8 +124,11 @@ export class FastifyHttpServer {
     const directory = typeof prefixOrSpec === "string" ? dir : prefixOrSpec.dir;
     if (directory === undefined) throw new Error("server: static() requires a directory");
     const clean = normalizePrefix(prefix);
+    // Root prefix (`/`) becomes a `/*` wildcard: fastify's radix router gives
+    // specific routes precedence, so registered routes always beat static.
+    const routeUrl = clean === "/" ? "/*" : `${clean}/*`;
     let active = true;
-    this.fastify.get(`${clean}/*`, async (request, reply) => {
+    this.fastify.get(routeUrl, async (request, reply) => {
       if (!active) {
         notFound(reply);
         return;

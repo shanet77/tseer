@@ -1,11 +1,4 @@
-/**
- * `about` route plugin: serves `GET /about` through `ctx.server`.
- * Phase 2 moves the Phase 1 `node:http` stub onto the server seam without
- * changing the response contract (static HTML stub; plain-text 404s come
- * from the server package). Phase 4 replaces `renderAbout` with the real
- * themed view; the route registration stays the same.
- */
-
+/** `GET /about` route plugin served through `ctx.server`; static HTML stub. */
 import type { HttpServer } from "@tseer/server";
 import type { Context } from "cordis";
 import { renderAbout } from "./about.ts";
@@ -24,9 +17,6 @@ export default function aboutRoute(ctx: Context, options: AboutRouteOptions = {}
       reply.html(renderAbout(options.title ?? "tseer"));
     },
   });
-  // Keep route removal tied to this fiber's scope (cordis unwinds the
-  // callback's return value on unload) rather than only the returned
-  // disposer — `fiber.dispose()` must remove the route either way.
   const disposeEffect = ctx.effect(() => disposeRoute);
   return () => {
     disposeRoute();
@@ -34,5 +24,4 @@ export default function aboutRoute(ctx: Context, options: AboutRouteOptions = {}
   };
 }
 
-// Cordis inject metadata: this plugin requires `ctx.server`.
 aboutRoute.inject = ["server"];

@@ -1,9 +1,4 @@
-/**
- * `serverPlugin`: default `ctx.server` provider (fastify behind the seam).
- * Owns the listener lifecycle: `start()` idempotently binds on first use and
- * the plugin disposer closes it, so unloading `serverPlugin` unwinds every
- * route, static mapping, and socket it created.
- */
+/** Default `ctx.server` provider (fastify); owns the listener lifecycle. */
 import type { Context } from "cordis";
 import { FastifyHttpServer } from "./server.ts";
 import type { HttpServer, ServerAddress, ServerPluginOptions, StaticSpec } from "./types.ts";
@@ -15,7 +10,7 @@ declare module "cordis" {
   }
 
   interface Events {
-    /** Fired after the server binds (plan §1 extension point). */
+    /** Fired after the server binds. */
     "server/listening": (info: ServerAddress) => void;
   }
 }

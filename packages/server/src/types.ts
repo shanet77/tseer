@@ -1,9 +1,4 @@
-/**
- * `ctx.server` contract: framework-agnostic HTTP route seam.
- * Ported from nitter's Jester route layer (`nitter.nim` + `routes/*.nim`):
- * routes register handlers against this interface, never fastify directly,
- * so the listener stays replaceable and unload removes routes cleanly.
- */
+/** `ctx.server` contract: framework-agnostic route seam ported from nitter's Jester layer. */
 
 /** HTTP methods accepted by `HttpServer.route()`. Uppercase canonical form. */
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS";
@@ -65,7 +60,10 @@ export interface RouteSpec {
 
 /** Static-file mapping accepted by `HttpServer.static()`. */
 export interface StaticSpec {
-  /** URL prefix (must start with `/`, e.g. `/static`). */
+  /**
+   * URL prefix: `/static` serves at `<prefix>/<file>`, `/` at the URL root
+   * (nitter's Jester `staticDir` behavior — registered routes always win).
+   */
   prefix: string;
   /** Directory served from disk. */
   dir: string;
@@ -101,10 +99,7 @@ export interface ServerAddress {
   port: number;
 }
 
-/**
- * The `ctx.server` seam. Routes call `route()`/`static()`; the composition
- * root calls `start()`/`close()`; tests use `inject()` instead of sockets.
- */
+/** The `ctx.server` seam: `route()`/`static()` register, `start()`/`close()` bind, `inject()` tests. */
 export interface HttpServer {
   /** Register a route; returns a disposer that unregisters it. */
   route(spec: RouteSpec): () => void;

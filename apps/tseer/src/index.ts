@@ -1,4 +1,9 @@
-import { aboutRoutePlugin, createApp as createKernelApp } from "@tseer/kernel";
+import {
+  aboutRoutePlugin,
+  createApp as createKernelApp,
+  healthRoutePlugin,
+  staticRoutePlugin,
+} from "@tseer/kernel";
 import { serverPlugin } from "@tseer/server";
 import type { Context } from "cordis";
 import hello from "./plugins/hello.ts";
@@ -28,5 +33,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     port: ctx.config.port,
   });
   await ctx.plugin(aboutRoutePlugin, { title: ctx.config.title });
+  await ctx.plugin(healthRoutePlugin);
+  await ctx.plugin(staticRoutePlugin);
   return ctx;
 }

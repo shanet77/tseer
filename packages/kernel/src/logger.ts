@@ -1,9 +1,4 @@
-/**
- * Pino-backed `ctx.logger` exporter (the `ctx.logger` seam for Phase 1).
- * Cordis buffers log messages until an exporter attaches; this plugin
- * forwards them to pino (pretty-printed when `enableDebug` is on, JSON
- * otherwise) and unwraps the exporter on dispose.
- */
+/** Pino-backed `ctx.logger` exporter; cordis buffers logs until an exporter attaches. */
 import type { Context } from "cordis";
 import pino, { type Logger as PinoLogger } from "pino";
 

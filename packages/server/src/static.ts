@@ -1,10 +1,4 @@
-/**
- * Minimal static-file sender behind `HttpServer.static()`.
- * No directory indexes and no range requests in Phase 2 — just safe file
- * reads with traversal protection and a small MIME map. Route plugins that
- * need richer static behavior can add their own routes later.
- */
-
+/** Minimal static-file sender behind `HttpServer.static()`: safe reads, no indexes or ranges. */
 import { readFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 import type { FastifyReply } from "fastify";
@@ -41,7 +35,7 @@ export function resolveWithin(dir: string, splat: string): string | undefined {
   return resolved;
 }
 
-/** Plain-text 404 matching the Phase 1 `/about` stub contract. */
+/** Plain-text 404 response. */
 export function notFound(reply: FastifyReply): void {
   reply.code(404);
   reply.header("content-type", "text/plain; charset=utf-8");

@@ -1,9 +1,4 @@
-/**
- * Minimal Phase 1 web plugin: serves `GET /about` as a static HTML stub.
- * Implemented on `node:http` so Phase 1 needs no server framework; Phase 2
- * replaces this with the `ctx.server` (fastify) seam without changing the
- * route contract.
- */
+/** Minimal `GET /about` web plugin on `node:http` (superseded by `ctx.server`). */
 import { createServer, type Server } from "node:http";
 import type { Context } from "cordis";
 
@@ -15,7 +10,7 @@ export interface AboutPluginOptions {
 
 declare module "cordis" {
   interface Context {
-    /** Phase 1 HTTP listener handle (replaced by `ctx.server` in Phase 2). */
+    /** Legacy `node:http` listener handle (superseded by `ctx.server`). */
     aboutServer?: Server | undefined;
   }
 }
