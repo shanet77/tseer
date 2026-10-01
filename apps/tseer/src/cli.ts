@@ -22,9 +22,5 @@ if (portOverride !== undefined && !Number.isInteger(portOverride)) {
 const ctx = await createApp(
   configPath ? { configPath, port: portOverride } : { configText: "", port: portOverride },
 );
-const server = ctx.aboutServer;
-if (!server) throw new Error("about server did not start");
-await new Promise<void>((resolve) => server.once("listening", resolve));
-const address = server.address();
-const where = typeof address === "object" && address ? `${address.address}:${address.port}` : "?";
-console.log(`tseer web listening on http://${where} (GET /about)`);
+const bound = await ctx.server.start();
+console.log(`tseer web listening on http://${bound.address}:${bound.port} (GET /about)`);

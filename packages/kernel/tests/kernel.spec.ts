@@ -1,7 +1,15 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { serverPlugin } from "@tseer/server";
 import { describe, expect, it } from "vitest";
-import { aboutPlugin, createApp, parseConfigText, parseIni, readConfigFile } from "../src/index.ts";
+import {
+  aboutPlugin,
+  aboutRoutePlugin,
+  createApp,
+  parseConfigText,
+  parseIni,
+  readConfigFile,
+} from "../src/index.ts";
 
 function fixtureUrl(name: string): URL {
   return new URL(`./fixtures/${name}`, import.meta.url);
@@ -123,5 +131,16 @@ describe("kernel boot", () => {
     const missing = await fetch(`http://127.0.0.1:${port}/nope`);
     expect(missing.status).toBe(404);
     await fiber.dispose();
+  });
+
+  it("serves /about through ctx.server without touching node:http", async () => {
+    const ctx = await createApp({ configText: "" });
+    await ctx.plugin(serverPlugin, { port: 0 });
+    const fiber = await ctx.plugin(aboutRoutePlugin, { title: "seam" });
+    const about = await ctx.server.inject({ url: "/about" });
+    expect(about.status).toBe(200);
+    expect(about.body).toContain("<h1>About seam</h1>");
+    await fiber.dispose();
+    expect((await ctx.server.inject({ url: "/about" })).status).toBe(404);
   });
 });

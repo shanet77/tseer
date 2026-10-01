@@ -9,6 +9,10 @@ describe("scaffold boot", () => {
     expect(ctx.registry.has(hello)).toBe(true);
     expect(ctx.get("hello")).toBe("tseer");
     expect(ctx.config.port).toBe(8080);
+    expect(ctx.server).toBeDefined();
+    const about = await ctx.server.inject({ url: "/about" });
+    expect(about.status).toBe(200);
+    expect(about.body).toContain("<h1>About Nitter</h1>");
   });
 
   it("passes options through to plugins", async () => {

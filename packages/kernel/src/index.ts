@@ -2,6 +2,8 @@
 
 export type { AboutPluginOptions } from "./about.ts";
 export { default as aboutPlugin, renderAbout } from "./about.ts";
+export type { AboutRouteOptions } from "./about-route.ts";
+export { default as aboutRoutePlugin } from "./about-route.ts";
 export type { CreateAppOptions } from "./app.ts";
 export { createApp } from "./app.ts";
 export { parseConfigText, readConfigFile } from "./files.ts";
