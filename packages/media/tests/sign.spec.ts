@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import { describe, expect, it } from "vitest";
 import {
   decodeSegment,
+  decodeUrl,
   decodeUrlSafeBase64,
   encodeUrl,
   encodeUrlSafeBase64,
@@ -71,7 +72,9 @@ describe("segment encodings", () => {
     const encoded = encodeUrl(url);
     expect(encoded).not.toContain("/");
     expect(encoded).not.toContain("?");
-    expect(decodeSegment(encoded, "percent")).toBe(url);
+    // The router hands the handler `encoded` already decoded, which is why
+    // `decodeSegment` is a no-op here — see the test below.
+    expect(decodeUrl(encoded)).toBe(url);
   });
 
   it("uses URL-safe base64 in the enc variant, padding included", () => {
@@ -98,7 +101,25 @@ describe("segment encodings", () => {
     // back as a space under Nim's `usePlus` rules.
     const encoded = encodeUrl(url);
     expect(encoded).toContain("%2B");
-    expect(decodeSegment(encoded, "percent")).toBe(url);
+    expect(decodeUrl(encoded)).toBe(url);
+  });
+
+  it("leaves % escapes alone for the percent variant (params arrive decoded)", () => {
+    // `decodeSegment` takes a *fastify param*, which is already percent-decoded.
+    // Decoding again would silently rewrite the path of a URL the HMAC and the
+    // ETag were computed over.
+    for (const url of [
+      "https://pbs.twimg.com/media/a%2Fb.jpg",
+      "https://pbs.twimg.com/media/a%20b.jpg",
+      "https://pbs.twimg.com/media/%E4%B8%AD%E6%96%87.jpg",
+    ]) {
+      expect(decodeSegment(url, "percent")).toBe(url);
+    }
+  });
+
+  it("still base64-decodes the enc variant", () => {
+    const url = "https://pbs.twimg.com/media/a%2Fb.jpg";
+    expect(decodeSegment(encodeUrlSafeBase64(url), "enc")).toBe(url);
   });
 });
 

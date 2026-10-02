@@ -173,6 +173,24 @@ describe("video routes", () => {
     expect(fetcher.calls).toEqual([]);
   });
 
+  it("serves a URL whose path contains a % escape without mangling it", async () => {
+    // Regression: fastify has already percent-decoded `:url` by the time the
+    // handler sees it, so decoding a second time corrupted these. The signature
+    // and the ETag are both computed over the *original* URL, so a mangled path
+    // would also 403 and cache under the wrong validator.
+    const escaped = "https://video.twimg.com/ext_tw_video/1/pu/pl/a%2Fb%20c.m4s";
+    const fetcher = new StubFetcher({
+      responses: { [escaped]: { headers: { "content-type": "video/mp4" }, body: "BYTES" } },
+    });
+    const { ctx } = await mount({ fetcher });
+    const res = await ctx.server.inject({ url: signer.vidUrl(escaped) });
+    expect(res.status).toBe(200);
+    expect(res.body).toBe("BYTES");
+    // Fetched verbatim: the `%2F` and `%20` reached the fetcher intact.
+    expect(fetcher.calls).toEqual([escaped]);
+    expect(res.headers["etag"]).toBe(mediaEtag(escaped));
+  });
+
   it("rewrites an m3u8 into signed segment links", async () => {
     const playlist = [
       "#EXTM3U",

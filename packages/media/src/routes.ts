@@ -57,7 +57,8 @@ function fail(reply: AppReply, status: number): void {
  * Read the encoded URL out of a matched route.
  *
  * `params.url` is already percent-decoded by fastify, so the `percent` case
- * needs no work; the `enc` case still has its base64 to undo.
+ * needs no work — and must not be decoded again (see `decodeSegment`). The
+ * `enc` case still has its base64 to undo.
  */
 function readUrl(req: AppRequest, encoding: SegmentEncoding): string {
   return decodeSegment(req.params["url"] ?? "", encoding);

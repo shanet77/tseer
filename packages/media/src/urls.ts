@@ -93,12 +93,13 @@ export function encodeUrl(value: string): string {
 }
 
 /**
- * Percent-decode a path segment (Nim's `uri.decodeUrl`).
+ * Percent-decode a raw (undecoded) path segment (Nim's `uri.decodeUrl`).
  *
- * This is the inverse of {@link encodeUrl}. The routes do *not* call it:
- * fastify already decodes `AppRequest.params`, so decoding a second time would
- * corrupt a media URL whose path legitimately contains `%`. Kept as the
- * documented inverse, and for callers holding a raw (undecoded) segment.
+ * This is the inverse of {@link encodeUrl}. It is deliberately **not** what the
+ * routes use: fastify has already percent-decoded `AppRequest.params`, so
+ * applying this a second time would corrupt any URL whose path legitimately
+ * contains a `%` escape — `…/a%2Fb.jpg` would come back as `…/a/b.jpg`. See
+ * {@link decodeSegment}, which is the decode the routes actually perform.
  */
 export function decodeUrl(value: string): string {
   try {
@@ -134,14 +135,23 @@ export function decodeUrlSafeBase64(value: string): string {
 export type SegmentEncoding = "enc" | "percent";
 
 /**
- * Decode a path segment according to the route that matched it.
+ * Recover the media URL from a matched route's `url` parameter.
+ *
+ * `segment` is a **fastify route param, and therefore already percent-decoded**
+ * (find-my-way decodes it on match). That makes the decode asymmetric, which is
+ * the whole point of this function:
+ * - `percent`: nothing left to do. Decoding again would be an *error*, not a
+ *   no-op — a URL whose path legitimately contains `%2F` or `%20` would come
+ *   back with a different path than the one we signed and cached an ETag for.
+ * - `enc`: base64 is not touched by the router, so this one genuinely does need
+ *   decoding.
  *
  * The route knows which encoding the link was built with (`/pic/enc/…` versus
  * `/pic/…`), which is strictly more reliable than re-deriving it the way nitter
  * does by inspecting whether its optional regex group happened to match.
  */
 export function decodeSegment(segment: string, encoding: SegmentEncoding): string {
-  return encoding === "enc" ? decodeUrlSafeBase64(segment) : decodeUrl(segment);
+  return encoding === "enc" ? decodeUrlSafeBase64(segment) : segment;
 }
 
 /** FNV-1a constants — the same hash `packages/cache` uses for stable buckets. */
