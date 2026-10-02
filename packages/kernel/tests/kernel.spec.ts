@@ -236,3 +236,70 @@ describe("kernel boot", () => {
     await fiber.dispose();
   });
 });
+
+describe("health routes", () => {
+  const HEALTH = {
+    sessions: {
+      total: 2,
+      limited: 1,
+      oauth: { total: 1, limited: 0 },
+      cookie: { total: 1, limited: 1 },
+      oldest: "2024-01-01T00:00:00Z",
+      newest: "2024-06-01T00:00:00Z",
+      average: "2024-03-01T00:00:00Z",
+    },
+    requests: { total: 7, apis: { "gql/cookie": 7 } },
+  };
+  const DEBUG = { "42": { kind: "cookie", apis: {}, pending: 1 } };
+
+  async function boot(enableDebug: boolean) {
+    const ctx = await createApp({ configText: "" });
+    await ctx.plugin(serverPlugin, { port: 0 });
+    await ctx.plugin(healthRoutePlugin, {
+      sessionHealth: () => HEALTH,
+      sessionDebug: () => DEBUG,
+      enableDebug,
+    });
+    return ctx;
+  }
+
+  it("serves the injected pool health on /.health", async () => {
+    const ctx = await boot(false);
+    const res = await ctx.server.inject({ url: "/.health" });
+    expect(res.status).toBe(200);
+    expect(res.json()).toEqual(HEALTH);
+  });
+
+  it("falls back to the empty-pool shape with no provider", async () => {
+    const ctx = await createApp({ configText: "" });
+    await ctx.plugin(serverPlugin, { port: 0 });
+    await ctx.plugin(healthRoutePlugin);
+    expect((await ctx.server.inject({ url: "/.health" })).json()).toEqual(emptySessionHealth());
+  });
+
+  it("hides /.sessions unless enableDebug is set", async () => {
+    const ctx = await boot(false);
+    expect((await ctx.server.inject({ url: "/.sessions" })).status).toBe(404);
+  });
+
+  it("serves /.sessions when enableDebug is set", async () => {
+    const ctx = await boot(true);
+    const res = await ctx.server.inject({ url: "/.sessions" });
+    expect(res.status).toBe(200);
+    expect(res.json()).toEqual(DEBUG);
+  });
+
+  it("unregisters both routes when the plugin unloads", async () => {
+    const ctx = await createApp({ configText: "" });
+    await ctx.plugin(serverPlugin, { port: 0 });
+    const fiber = await ctx.plugin(healthRoutePlugin, {
+      sessionHealth: () => HEALTH,
+      sessionDebug: () => DEBUG,
+      enableDebug: true,
+    });
+    expect((await ctx.server.inject({ url: "/.sessions" })).status).toBe(200);
+    await fiber.dispose();
+    expect((await ctx.server.inject({ url: "/.health" })).status).toBe(404);
+    expect((await ctx.server.inject({ url: "/.sessions" })).status).toBe(404);
+  });
+});

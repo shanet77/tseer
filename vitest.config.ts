@@ -6,6 +6,9 @@ const httpClientSrc = fileURLToPath(
 );
 const kernelSrc = fileURLToPath(new URL("./packages/kernel/src/index.ts", import.meta.url));
 const serverSrc = fileURLToPath(new URL("./packages/server/src/index.ts", import.meta.url));
+const sessionsSrc = fileURLToPath(
+  new URL("./packages/twitter-sessions/src/index.ts", import.meta.url),
+);
 const typesSrc = fileURLToPath(new URL("./packages/types/src/index.ts", import.meta.url));
 
 export default defineConfig({
@@ -14,6 +17,7 @@ export default defineConfig({
       "@tseer/http-client": httpClientSrc,
       "@tseer/kernel": kernelSrc,
       "@tseer/server": serverSrc,
+      "@tseer/twitter-sessions": sessionsSrc,
       "@tseer/types": typesSrc,
     },
   },

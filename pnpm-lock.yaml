@@ -193,6 +193,9 @@ importers:
       '@tseer/server':
         specifier: workspace:*
         version: link:../../packages/server
+      '@tseer/twitter-sessions':
+        specifier: workspace:*
+        version: link:../../packages/twitter-sessions
       cordis:
         specifier: 4.0.0-rc.10
         version: 4.0.0-rc.10
@@ -232,6 +235,15 @@ importers:
       fastify:
         specifier: ^5.6.0
         version: 5.12.5
+
+  packages/twitter-sessions:
+    dependencies:
+      '@tseer/types':
+        specifier: workspace:*
+        version: link:../types
+      cordis:
+        specifier: 4.0.0-rc.10
+        version: 4.0.0-rc.10
 
   packages/types: {}
 

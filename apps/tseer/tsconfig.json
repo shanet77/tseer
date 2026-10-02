@@ -5,7 +5,8 @@
     "paths": {
       "@tseer/http-client": ["../../packages/http-client/src/index.ts"],
       "@tseer/kernel": ["../../packages/kernel/src/index.ts"],
-      "@tseer/server": ["../../packages/server/src/index.ts"]
+      "@tseer/server": ["../../packages/server/src/index.ts"],
+      "@tseer/twitter-sessions": ["../../packages/twitter-sessions/src/index.ts"]
     }
   },
   "include": ["src", "tests", "tsdown.config.ts"]

@@ -6,6 +6,7 @@ import {
   staticRoutePlugin,
 } from "@tseer/kernel";
 import { serverPlugin } from "@tseer/server";
+import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
 import type { Context } from "cordis";
 import hello from "./plugins/hello.ts";
 
@@ -18,6 +19,10 @@ export interface CreateAppOptions {
   configText?: string | undefined;
   /** Override for `config.port` (applied before the web plugin binds). */
   port?: number | undefined;
+  /** Path to the sessions JSONL store (default: `TSEER_SESSIONS_FILE`, `./sessions.jsonl`). */
+  sessionsPath?: string | undefined;
+  /** Skip the sessions plugin entirely (no pool, `/.health` stays empty). */
+  withoutSessions?: boolean | undefined;
 }
 
 /** Mount the scaffold plugin list on a kernel-booted cordis context. */
@@ -42,7 +47,14 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     retryDelayMs: ctx.config.retryDelayMs,
   });
   await ctx.plugin(aboutRoutePlugin, { title: ctx.config.title });
-  await ctx.plugin(healthRoutePlugin);
+  if (options.withoutSessions !== true) {
+    await ctx.plugin(twitterSessionsPlugin, { path: options.sessionsPath });
+  }
+  await ctx.plugin(healthRoutePlugin, {
+    sessionHealth: options.withoutSessions === true ? undefined : () => ctx.accounts.health(),
+    sessionDebug: options.withoutSessions === true ? undefined : () => ctx.accounts.debug(),
+    enableDebug: ctx.config.enableDebug,
+  });
   await ctx.plugin(staticRoutePlugin);
   return ctx;
 }

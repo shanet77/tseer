@@ -10,7 +10,7 @@ with an *everything-is-a-plugin* architecture, built on
 | --- | --- | --- |
 | 0 | Scaffold: workspace, tooling, CI, hello-cordis app | **done** |
 | 1 | Kernel + types + config service (`tseer web`) | **done** |
-| 2 | Platform seams (http-client, cache, sessions, server, media) | **in progress** (server, http-client) |
+| 2 | Platform seams (http-client, cache, sessions, server, media) | **in progress** (server, http-client, twitter-sessions) |
 | 3 | Provider + parsers (`twitter-api`, `twitter-parser`) | not started |
 | 4 | Web parity, core routes (views, prefs, render) | not started |
 | 5 | Long tail (embed, list, community, article, space, …) | not started |
@@ -27,9 +27,14 @@ pnpm test
 pnpm start    # `tseer web` — reads nitter.conf, serves GET /about
 ```
 
-`tseer web [--config=<path>] [--port=<n>]`: config defaults to
+`tseer web [--config=<path>] [--port=<n>] [--sessions=<path>]`: config defaults to
 `TSEER_CONF_FILE` / `NITTER_CONF_FILE`, then `./nitter.conf` — any missing file
-falls back to built-in defaults with a warning-free boot.
+falls back to built-in defaults with a warning-free boot. The sessions file
+defaults to `TSEER_SESSIONS_FILE` / `NITTER_SESSIONS_FILE`, then
+`./sessions.jsonl`; a missing file boots with an empty pool and a warning.
+
+Session-pool state is exposed at `GET /.health`, and per-session detail at
+`GET /.sessions` when `enableDebug = true`.
 
 Other scripts: `pnpm lint` / `pnpm lint:fix` (biome), `pnpm typecheck` (tsc).
 

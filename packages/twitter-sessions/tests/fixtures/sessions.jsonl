@@ -1,0 +1,2 @@
+{"kind": "cookie", "id": "1234567890123456789", "username": "test_user", "auth_token": "aaaaaaaaaabbbbbbbbbbccccccccccdddddddddd", "ct0": "11111111222222223333333344444444"}
+{"kind": "oauth", "username": "oauth_user", "oauthToken": "1234567890-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789ab", "oauthTokenSecret": "s3cret-token-secret"}
