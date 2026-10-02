@@ -10,7 +10,7 @@ with an *everything-is-a-plugin* architecture, built on
 | --- | --- | --- |
 | 0 | Scaffold: workspace, tooling, CI, hello-cordis app | **done** |
 | 1 | Kernel + types + config service (`tseer web`) | **done** |
-| 2 | Platform seams (http-client, cache, sessions, server, media) | **in progress** (server, http-client, twitter-sessions) |
+| 2 | Platform seams (http-client, cache, sessions, server, media) | **in progress** (server, http-client, twitter-sessions, cache) |
 | 3 | Provider + parsers (`twitter-api`, `twitter-parser`) | not started |
 | 4 | Web parity, core routes (views, prefs, render) | not started |
 | 5 | Long tail (embed, list, community, article, space, …) | not started |

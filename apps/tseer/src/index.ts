@@ -1,3 +1,4 @@
+import { cachePlugin } from "@tseer/cache";
 import { httpClientPlugin } from "@tseer/http-client";
 import {
   aboutRoutePlugin,
@@ -19,6 +20,10 @@ export interface CreateAppOptions {
   configText?: string | undefined;
   /** Override for `config.port` (applied before the web plugin binds). */
   port?: number | undefined;
+  /** Cache backend to mount. Default `memory`. */
+  cacheProvider?: "memory" | "redis" | undefined;
+  /** Skip the cache plugin entirely. */
+  withoutCache?: boolean | undefined;
   /** Path to the sessions JSONL store (default: `TSEER_SESSIONS_FILE`, `./sessions.jsonl`). */
   sessionsPath?: string | undefined;
   /** Skip the sessions plugin entirely (no pool, `/.health` stays empty). */
@@ -47,6 +52,9 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     retryDelayMs: ctx.config.retryDelayMs,
   });
   await ctx.plugin(aboutRoutePlugin, { title: ctx.config.title });
+  if (options.withoutCache !== true) {
+    await ctx.plugin(cachePlugin, { provider: options.cacheProvider ?? "memory" });
+  }
   if (options.withoutSessions !== true) {
     await ctx.plugin(twitterSessionsPlugin, { path: options.sessionsPath });
   }

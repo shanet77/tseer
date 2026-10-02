@@ -1,0 +1,24 @@
+{
+  "name": "@tseer/cache",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "tseer cache seam: ctx.cache get/set/cached with memory and redis providers, namespaced versioned JSON keys, and ported TTL buckets. A TypeScript port of nitter (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "cordis": "4.0.0-rc.10"
+  }
+}

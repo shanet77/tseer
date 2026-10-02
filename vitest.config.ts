@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
+const cacheSrc = fileURLToPath(new URL("./packages/cache/src/index.ts", import.meta.url));
 const httpClientSrc = fileURLToPath(
   new URL("./packages/http-client/src/index.ts", import.meta.url),
 );
@@ -14,6 +15,7 @@ const typesSrc = fileURLToPath(new URL("./packages/types/src/index.ts", import.m
 export default defineConfig({
   resolve: {
     alias: {
+      "@tseer/cache": cacheSrc,
       "@tseer/http-client": httpClientSrc,
       "@tseer/kernel": kernelSrc,
       "@tseer/server": serverSrc,

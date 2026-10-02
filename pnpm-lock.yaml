@@ -184,6 +184,9 @@ importers:
 
   apps/tseer:
     dependencies:
+      '@tseer/cache':
+        specifier: workspace:*
+        version: link:../../packages/cache
       '@tseer/http-client':
         specifier: workspace:*
         version: link:../../packages/http-client
@@ -196,6 +199,12 @@ importers:
       '@tseer/twitter-sessions':
         specifier: workspace:*
         version: link:../../packages/twitter-sessions
+      cordis:
+        specifier: 4.0.0-rc.10
+        version: 4.0.0-rc.10
+
+  packages/cache:
+    dependencies:
       cordis:
         specifier: 4.0.0-rc.10
         version: 4.0.0-rc.10
