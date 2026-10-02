@@ -46,6 +46,18 @@ export interface AppReply {
     contentType: string,
     options?: ReplyOptions,
   ): Promise<void> | void;
+  /**
+   * Stream a body to the client without buffering it (media proxying).
+   *
+   * Optional on the seam: providers that cannot stream may omit it, so
+   * consumers must feature-detect (`if (reply.stream) …`) and fall back to
+   * `send()`. Buffers belong in memory only when a provider forces the fallback.
+   */
+  stream?(
+    body: AsyncIterable<Uint8Array>,
+    contentType: string,
+    options?: ReplyOptions,
+  ): Promise<void> | void;
 }
 
 /** Route handler: framework-agnostic request in, reply out. */

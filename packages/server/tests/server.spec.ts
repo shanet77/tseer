@@ -177,3 +177,98 @@ describe("validation", () => {
     await fiber.dispose();
   });
 });
+
+describe("AppReply.stream", () => {
+  it("delivers the body from an async handler, over inject and a real socket", async () => {
+    async function* body() {
+      yield Buffer.from("HELLO");
+      yield Buffer.from("WORLD");
+    }
+    const ctx = new Context();
+    await ctx.plugin(serverPlugin, { port: 0 });
+    ctx.server.route({
+      method: "GET",
+      path: "/stream",
+      handler: (_req, reply) =>
+        reply.stream?.(body(), "image/jpeg", { status: 200, headers: { etag: "abc" } }),
+    });
+
+    // Both paths matter: `inject` is what route tests use, and the real socket is
+    // what proves the framing is valid on the wire.
+    const injected = await ctx.server.inject({ url: "/stream" });
+    expect(injected.status).toBe(200);
+    expect(injected.headers["content-type"]).toBe("image/jpeg");
+    expect(injected.headers["etag"]).toBe("abc");
+    expect(injected.body).toBe("HELLOWORLD");
+
+    const bound = await ctx.server.start();
+    const response = await fetch(`http://127.0.0.1:${bound.port}/stream`);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("image/jpeg");
+    expect(await response.text()).toBe("HELLOWORLD");
+    await ctx.server.close();
+  });
+
+  it("streams large bodies incrementally rather than buffering", async () => {
+    const CHUNKS = 64;
+    const CHUNK_BYTES = 64 * 1024;
+    let produced = 0;
+    // A generator that only advances as the consumer pulls: if the route
+    // buffered the whole body up front, `produced` would already be at its
+    // maximum before the client received a single byte.
+    async function* body(): AsyncGenerator<Uint8Array> {
+      for (let i = 0; i < CHUNKS; i++) {
+        produced++;
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        yield new Uint8Array(CHUNK_BYTES).fill(i % 256);
+      }
+    }
+    const ctx = new Context();
+    await ctx.plugin(serverPlugin, { port: 0 });
+    ctx.server.route({
+      method: "GET",
+      path: "/big",
+      handler: (_req, reply) => reply.stream?.(body(), "application/octet-stream"),
+    });
+
+    const bound = await ctx.server.start();
+    const response = await fetch(`http://127.0.0.1:${bound.port}/big`);
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("expected a response body");
+    const first = await reader.read();
+    expect(first.done).toBe(false);
+    // Not everything has been produced yet, so this really is incremental.
+    expect(produced).toBeLessThan(CHUNKS);
+
+    let total = first.value?.length ?? 0;
+    for (;;) {
+      const next = await reader.read();
+      if (next.done) break;
+      total += next.value?.length ?? 0;
+    }
+    expect(total).toBe(CHUNKS * CHUNK_BYTES);
+    expect(produced).toBe(CHUNKS);
+    await ctx.server.close();
+  });
+
+  it("honours an explicit content-length and forwards a status", async () => {
+    async function* body() {
+      yield Buffer.from("12345");
+    }
+    const ctx = new Context();
+    await ctx.plugin(serverPlugin, { port: 0 });
+    ctx.server.route({
+      method: "GET",
+      path: "/len",
+      handler: (_req, reply) =>
+        reply.stream?.(body(), "application/octet-stream", {
+          status: 206,
+          headers: { "content-length": "5" },
+        }),
+    });
+    const res = await ctx.server.inject({ url: "/len" });
+    expect(res.status).toBe(206);
+    expect(res.headers["content-length"]).toBe("5");
+    expect(res.body).toBe("12345");
+  });
+});
