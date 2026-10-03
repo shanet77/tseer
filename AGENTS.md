@@ -16,8 +16,8 @@ plan-vs-reality deltas discovered during implementation.
 
 - [x] Phase 0 — scaffold: pnpm workspace, tsconfig, biome, vitest, CI, hello-cordis app
 - [x] Phase 1 — `kernel/createApp(config)`, config service (zod + nitter.conf ini), `types`, `logger`, `tseer web` serving `/about`
-- [ ] Phase 2 — platform seams: `http-client`, `cache`, `twitter-sessions`, `server`, `media`
-      — partial: `server` and `http-client` have landed.
+- [x] Phase 2 — platform seams: `http-client`, `cache`, `twitter-sessions`, `server`, `media`
+      — **done**; all five have landed.
 - [ ] Phase 3 — `twitter-api` + `twitter-parser` with golden fixtures
 - [ ] Phase 4 — `views`, `prefs`, `ctx.render`, core route plugins
 - [ ] Phase 5 — long-tail route plugins
@@ -93,6 +93,164 @@ runtime:
 ```
 apps/tseer/          # bin `tseer`; src/index.ts (createApp), src/cli.ts (boot),
                       # src/plugins/hello.ts (scaffold plugin), tests/
-packages/             # kernel, types, server, http-client — more seams per plan §2
+packages/             # kernel, types, server, http-client, twitter-sessions, cache,
+                      # media — more seams per plan §2
 docs/TS_PORT_PLAN.md  # the spec
 ```
+
+## cache notes (plan §2/§4, `redis_cache.nim` port)
+
+- **Two layers, not one.** `CacheStore` is the backend port (opaque JSON string
+  in, TTL seconds out); `CacheService` implements the plan's §4 `Cache` contract
+  over it. The seam consumers inject is `CacheService`; a store never interprets
+  a value or a TTL. That split is what makes "memory; redis provider plugin"
+  (plan §1) work without either backend knowing about the other.
+- **Redis is an *optional* peer, not a dependency.** The memory provider must
+  install with no redis, so `ioredis` is dynamically imported in
+  `src/ioredis.ts` and declared ambiently in `src/ioredis-optional.d.ts`. Two
+  gotchas, both hit here: tsdown needs `deps.neverBundle: ["ioredis"]` (the
+  `external` key is deprecated), and the ambient file **must not** be named
+  `ioredis.d.ts` — sharing a basename with `ioredis.ts` makes tsc treat it as
+  that file's emit output and silently skip it. `createIoredisClient` is
+  deliberately *not* re-exported from the barrel; exporting it would make the
+  dynamic import static and defeat the code-split.
+- **Keys are `<prefix>:<version>:<ns>:<key>`**, with namespaces ported verbatim
+  from `redis_cache.nim` (`p`, `i`, `t`, `l`, `rss`, `pr2`, `ai`, `sp`, `bc`,
+  `cm`, `cmm`, `pid`) so an existing nitter redis stays readable. The version
+  segment replaces `redis_cache.nim`'s `migrate`/`SCAN`-and-delete: bump
+  `CACHE_VERSION` and old keys are left to expire. `cacheKey` **rejects `:` in
+  a namespace** so a glob built from it can never over-match.
+- **`userIdBucketKey` uses FNV-1a, not Nim's `hash`.** `uidKey` was
+  `"pid:" & $(hash(name) div 1_000_000)`; Nim's `hash` is not stable across
+  builds, so buckets would reshuffle and orphan every cached id. FNV-1a is
+  deterministic, which is what the bucket scheme needs.
+- **`cached()` is the load-bearing part.** In-flight fills are tracked per
+  qualified key so concurrent misses share one factory call (the stampede the
+  plan calls out). The `finally` delete means a rejected factory neither caches
+  the error nor poisons the slot for the next caller — a failing upstream stays
+  retryable instead of wedging that key forever.
+- **Deliberate divergences from the Nim original** (documented at the call site):
+  - Values are **JSON, not flatty+supersnappy** (plan §3 says so). Bigger on the
+    wire, debuggable, and it matches the TS domain objects.
+  - Store read/write errors are **warned and swallowed** — a read degrades to a
+    miss, so a redis outage costs latency, not availability. `redis_cache.nim`
+    `quit 1`'d on a connect failure; a plugin must not kill the process (same
+    reasoning as the sessions pool).
+  - A `ttl <= 0` is a **no-op write**, not a delete-and-store: that is how
+    `listMinutes = 0` disables list caching. An undecodable stored value is
+    deleted and reported rather than echoed back as a miss forever.
+  - No `migrate`/`hash-max-ziplist-entries` on boot. The version segment makes
+    the flatty/snappy migration obsolete, and the ziplist tuning is a
+    redis-internals concern that does not apply to the JSON layout.
+- **Not implemented (deliberately):** the per-entity `cache*`/`getCached*`
+  wrappers (`getCachedUser`, `getCachedRss`, `getCachedList`, …). Those are
+  `twitter-api`'s job in Phase 3 — they call the GraphQL fetchers — and they
+  become one-liners over `cached()` with the `resolveTtls` buckets. Only
+  `userIdField`/`userIdBucketKey` are kept here, because the `pid:` bucket is a
+  key-layout concern, not a fetch concern. The rss hash (`min` cursor + feed in
+  one key) is likewise deferred to the RSS route plugin, since it needs the
+  `Rss` domain type.
+
+## twitter-sessions notes (plan §3, `auth.nim` port)
+## media notes (plan §1/§2/§4, `utils.nim` + `routes/media.nim` port)
+
+- **Two plugins, not one.** `mediaPlugin` provides `ctx.media` (pure signing,
+  no I/O); `mediaRoutePlugin` registers `/pic*` and `/video*` and injects
+  `ctx.server` + `ctx.media`. Splitting them is what lets `views` build links by
+  depending on `ctx.media` alone, with no fetcher or listener involved.
+- **`ctx.media` is just `utils.nim`.** 13 hex chars of HMAC-SHA256
+  (`($hmac(sha256, key, data))[0 .. 12]` — Nim ranges are inclusive, so 13 not
+  12), plus `picUrl`/`origPicUrl`/`vidUrl` in whichever encoding
+  `config.base64Media` selects. Images are **unsigned**, as in nitter: those
+  links are embedded in HTML, and verifying them would cost a lookup per image.
+  Only `/video/` carries a signature, so a route can tell the two apart.
+- **`MediaFetcher` is a separate port from `ctx.http`, deliberately.** The API
+  client buffers whole bodies, retries 429/503, and treats Cloudflare HTML as
+  retryable — none of which suits a 40 MB video segment (buffering defeats
+  streaming; CF-detection would mangle binary). The media fetcher streams, sets
+  only `headersTimeout`, and **never follows redirects**: `proxyMedia`
+  re-validates every `Location` against the domain allowlist, and an
+  auto-followed redirect would walk straight off the allowlisted host and
+  re-open nitter #1411. It reuses `createDispatcher` from `http-client` so
+  `config.proxy`/`proxyAuth` behave identically, but owns its own pool.
+- **The allowlist is checked twice, and both checks matter.** `isTwitterUrl`
+  runs on every fetch *after* decoding, because the decoded URL is
+  attacker-supplied even though the link was generated by us. `.vmap` gets a
+  third check: it is a second, independently-controlled fetch to a URL that was
+  never signed.
+- **ETag is FNV-1a over the *requested* URL.** Same substitution as `cache`:
+  Nim's `hash` reshuffles across builds, and an ETag must instead stay identical
+  across restarts for `If-None-Match` to ever hit. Hashing the request URL (not
+  the redirect target) keeps the validator stable across a redirect.
+- **Each encoding is its own registered route.** nitter writes one regex per
+  route with an optional `(enc)?` group and re-derives the encoding by testing
+  whether it matched; here `/pic/enc/:url` and `/pic/:url` are separate
+  registrations, so a handler knows the encoding by construction.
+- **Percent-encoding uses `%20`, not `+`.** Deliberate divergence from
+  `encodeUrl(usePlus = true)`: the `server` seam hands handlers params fastify has
+  *already* percent-decoded, so a `+` we emitted for a space would survive as a
+  literal `+`, while a real `+` correctly arrives as `%2B`. `%20` keeps the round
+  trip exact; only the literal-space case differs, and media URLs have none.
+- **Never decode a route param twice.** `decodeSegment` used to run
+  `decodeUrl` on the `percent` case, which is exactly the double decode the
+  notes above warn about — so `urls.ts` claimed "the routes do not call it"
+  while `routes.ts` called it through `decodeSegment`. Anything with a `%` in
+  its path silently changed: `a%2Fb.jpg` → `a/b.jpg`, `a%20b.jpg` → `a b.jpg`.
+  That corrupts the URL the **HMAC and the ETag were computed over**, so those
+  links 403 and cache under the wrong validator. `decodeSegment` now returns
+  `percent` params untouched and only undoes base64 for `enc`; `decodeUrl` is
+  kept as the documented inverse of `encodeUrl` for raw (undecoded) segments.
+  Two unit tests had encoded the buggy contract (`decodeSegment(encodeUrl(u))`),
+  which is the tell that the unit boundary and the route boundary disagreed —
+  `routes.spec.ts` now covers it end-to-end through a real `inject`.
+- **`AppReply.stream()` needs `reply.hijack()`, and this is the load-bearing
+  seam detail.** fastify's stream path is broken for `async` handlers: the
+  wrapper treats the resolved value as a payload and calls `reply.send(undefined)`,
+  ending the response before a lazily-pulled stream has produced anything —
+  silently, as `200` with an empty body. `hijack()` says "this handler owns the
+  raw response", which is also the shape nitter has (it writes to the socket).
+  `packages/server/tests/server.spec.ts` asserts over both `inject` and a real
+  socket so this cannot regress quietly.
+- **Non-200 responses must be aborted.** `proxyMedia` calls `abort()` on every
+  discarded response; without it each retry and every failed status leaks a
+  pooled socket. `MediaFetcher` documents that a body must be consumed *or*
+  aborted.
+- **Not implemented:** range requests. nitter ignores `Range` too, so partial
+  content is not a regression, but a resumable video download would need it —
+  which is why `stream()` takes ownership of framing and can forward an upstream
+  `content-length` as-is.
+
+- **The `ctx.accounts` service is a `SessionPool` instance**, not a bare
+  interface — `ctx.accounts.lease/release/reportError/health/debug` are methods
+  on the class, so the composition root can read `size`/`all()` for diagnostics.
+  `Accounts` in `src/types.ts` is the narrow contract `twitter-api` will
+  consume in Phase 3.
+- **`ApiSelector` is `string | { oauth, cookie }`** — the dual-URL mapping from
+  `api.nim` `toUrl`. `resolveApi(selector, session.kind)` picks the endpoint for
+  a given session, which is what makes the port's per-API rate-limit key correct
+  for mixed oauth/cookie pools.
+- **Deliberate divergences from the Nim original** (all documented at the call
+  site):
+  - `getSession` samples the whole pool from a random start and returns the
+    first *ready* session; Nim's `for i in 0..<len` loop re-samples
+    `len` times and effectively behaves the same, but reads as a bug.
+  - A missing `sessions.jsonl` warns and boots an **empty pool** instead of
+    `quit 1` — a plugin must not kill the process. `loadSessionsFile` still
+    throws `SessionsFileError`; the plugin catches it.
+  - Malformed JSONL lines become warnings instead of aborting the file
+    (Nim would raise out of `initSessionPool`).
+  - `snowflakeToEpoch` uses `BigInt` (`int64` ids exceed `Number.MAX_SAFE_INTEGER`).
+  - `setRateLimit`'s race guard, the 1-hour `limited` window, the
+    `remaining <= 10` threshold, and the `graphUserTweetsV2` exemption are
+    ported verbatim — these are the load-bearing bits.
+- **`/health` and `/sessions` take injected callbacks** (`sessionHealth`,
+  `sessionDebug`) so `kernel` never imports `twitter-sessions`; the app wires
+  them to `ctx.accounts.health()` / `.debug()`. `/.sessions` is gated on
+  `enableDebug`, matching nitter's `routes/debug.nim`.
+- **`pino-pretty` is a declared dependency of kernel.** The debug exporter asks
+  pino for the `pino-pretty` transport (`enableDebug = true`), and pino resolves
+  that target string against kernel's own `node_modules` at runtime — so the
+  dependency must be listed even though nothing imports it (a bundler never sees
+  it). Without it, boot throws `unable to determine transport target`
+  synchronously; `kernel.spec.ts` mounts `loggerPlugin` with `debug: true` as a
+  regression test.
