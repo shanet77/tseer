@@ -1,0 +1,1285 @@
+{
+  "meta": {
+    "nitterCommit": "376f149",
+    "generator": "generate_goldens.nim"
+  },
+  "constants": {
+    "CONSUMER_KEY": "3nVuSoBZnx6U4vzUxf5w",
+    "CONSUMER_SECRET": "Bcs59EFbbsdF6Sl9Ng71smgStWEGwXXKSjYvPVt7qys",
+    "BEARER_TOKEN": "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
+    "BEARER_TOKEN_2": "Bearer AAAAAAAAAAAAAAAAAAAAAFXzAwAAAAAAMHCxpeSDG1gLNLghVe8d74hl6k4%3DRUMF4xAQLsbeBhTSRrCiQpJtxoGWeyHrDb5te2jpGskWDFW82F",
+    "GRAPH_USER": "Gb-d6r0vxPOADdG62OEBpQ/UserByScreenName",
+    "GRAPH_USER_V2": "-ZzAG_Bckx16LMbEvHC3lg/UserResultByScreenNameQuery",
+    "GRAPH_USER_BY_ID": "xvmVfRLmnr1alc5f2dib0Q/UserByRestId",
+    "GRAPH_USER_TWEETS_V2": "LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2",
+    "GRAPH_USER_TWEETS_AND_REPLIES_V2": "AcYHjc_YAx-9_rKWdMsKvA/UserWithProfileTweetsAndRepliesQueryV2",
+    "GRAPH_USER_TWEETS": "SXVCYB8XHSS25nzIljNtZA/UserTweets",
+    "GRAPH_USER_TWEETS_AND_REPLIES": "qUpkZU6eN8MbtQb7rC_pYg/UserTweetsAndReplies",
+    "GRAPH_USER_MEDIA": "VyudDWQnr9vJNw7GasFz2g/UserMedia",
+    "GRAPH_USER_MEDIA_V2": "WK111rbR0vM0ZX4lyZCYjw/MediaTimelineV2",
+    "GRAPH_USER_ARTICLES": "ZmMjUyrTpwYfTGAdylEyMw/UserArticlesTweets",
+    "GRAPH_USER_ARTICLES_V2": "PsGixN38UZz2RheyayNB5Q/UserProfileArticlesTimelineQuery",
+    "GRAPH_TWEET": "OZMbEnEa96AN8Pq6HyTWdw/ConversationTimeline",
+    "GRAPH_TWEET_DETAIL": "XMOz5h24KAZ86qKffKTLdQ/TweetDetail",
+    "GRAPH_TWEET_RESULT": "xYOrBQoTlfKJJPsX76MZEw/TweetResultByIdQuery",
+    "GRAPH_TWEET_EDIT_HISTORY": "1izbuOcH_QpuMcyCxOXkAg/TweetEditHistory",
+    "GRAPH_SEARCH_TIMELINE": "hyPfJYJ_XAtDYoslQc-Rgg/SearchTimeline",
+    "GRAPH_LIST_BY_ID": "niz0TtOxL2zIcbq6_NQiNw/ListByRestId",
+    "GRAPH_LIST_BY_SLUG": "RqkWNDQpOntlxNtJa4RIoQ/ListBySlug",
+    "GRAPH_LIST_MEMBERS": "8rYmkvWQe9jRRZdy_-vkGA/ListMembers",
+    "GRAPH_LIST_TWEETS": "0QJtcuMzVywHGAWD6Dtjlw/ListTimeline",
+    "GRAPH_ABOUT_ACCOUNT": "TzOG2twZEfhr9KmClvVVqA/AboutAccountQuery",
+    "GRAPH_COMMUNITY": "-ElI1vg3dYbttVMhBhGdLw/CommunityQuery",
+    "GRAPH_COMMUNITY_TWEETS": "EwftYyqQemkckQ0wzGM6uw/CommunityTweetsTimeline",
+    "GRAPH_COMMUNITY_MEDIA": "ESJtwnI_apuGesbJncpc0Q/CommunityMediaTimeline",
+    "GRAPH_COMMUNITY_MEMBERS": "woAp_YdzAdqnWDrqLTNpAw/membersSliceTimeline_Query",
+    "GRAPH_COMMUNITY_MODERATORS": "0oYT9GRiWUhrz5xoqFE9uw/moderatorsSliceTimeline_Query",
+    "GRAPH_COMMUNITY_HASHTAGS": "D5EqomOIWeJnSkMhL-FLew/CommunityHashtagsTimeline",
+    "GRAPH_TWEET_RESULT_BY_REST_ID": "GZsN2Pc4knAoit6pXa4HSA/TweetResultByRestId",
+    "GRAPH_TWEET_RESULTS_BY_REST_IDS": "Pho4sg8jLcrVlMeclMayrg/TweetResultsByRestIds",
+    "GRAPH_BROADCAST": "RG6wSogandh6WPIzxW9aag/BroadcastQuery",
+    "GRAPH_AUDIO_SPACE": "Bh0L6azTQoMs9rJKeCF4wQ/AudioSpaceById",
+    "GRAPH_FOLLOWERS": "JNyQdTISpzCkj_1fqxDvFg/Followers",
+    "GRAPH_FOLLOWING": "qGZZDF3mp91q7X22s3HxpA/Following",
+    "REST_LIVE_STREAM": "1.1/live_video_stream/status/",
+    "GQL_FEATURES": "{\"rweb_video_screen_enabled\":false,\"rweb_cashtags_enabled\":true,\"profile_label_improvements_pcf_label_in_post_enabled\":true,\"responsive_web_profile_redirect_enabled\":false,\"rweb_tipjar_consumption_enabled\":false,\"verified_phone_label_enabled\":false,\"creator_subscriptions_tweet_preview_api_enabled\":true,\"responsive_web_graphql_timeline_navigation_enabled\":true,\"responsive_web_graphql_skip_user_profile_image_extensions_enabled\":false,\"premium_content_api_read_enabled\":false,\"communities_web_enable_tweet_community_results_fetch\":true,\"c9s_tweet_anatomy_moderator_badge_enabled\":true,\"c9s_list_members_action_api_enabled\":false,\"c9s_superc9s_indication_enabled\":false,\"responsive_web_grok_analyze_button_fetch_trends_enabled\":false,\"responsive_web_grok_analyze_post_followups_enabled\":true,\"rweb_cashtags_composer_attachment_enabled\":true,\"responsive_web_jetfuel_frame\":true,\"responsive_web_grok_share_attachment_enabled\":true,\"responsive_web_grok_annotations_enabled\":true,\"articles_preview_enabled\":true,\"responsive_web_edit_tweet_api_enabled\":true,\"rweb_conversational_replies_downvote_enabled\":false,\"graphql_is_translatable_rweb_tweet_is_translatable_enabled\":true,\"view_counts_everywhere_api_enabled\":true,\"longform_notetweets_consumption_enabled\":true,\"responsive_web_twitter_article_tweet_consumption_enabled\":true,\"content_disclosure_indicator_enabled\":true,\"content_disclosure_ai_generated_indicator_enabled\":true,\"responsive_web_grok_show_grok_translated_post\":true,\"responsive_web_grok_analysis_button_from_backend\":true,\"post_ctas_fetch_enabled\":true,\"freedom_of_speech_not_reach_fetch_enabled\":true,\"standardized_nudges_misinfo\":true,\"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled\":true,\"longform_notetweets_rich_text_read_enabled\":true,\"longform_notetweets_inline_media_enabled\":false,\"responsive_web_grok_image_annotation_enabled\":true,\"responsive_web_grok_imagine_annotation_enabled\":true,\"responsive_web_grok_community_note_auto_translation_is_enabled\":true,\"responsive_web_enhance_cards_enabled\":false}",
+    "TWEET_VARS": "{\"postId\":\"$1\",$2\"ranking_mode\":\"$3\",\"includeHasBirdwatchNotes\":false,\"includePromotedContent\":false,\"withBirdwatchNotes\":true,\"withVoice\":false,\"withV2Timeline\":true}",
+    "TWEET_DETAIL_VARS": "{\"focalTweetId\":\"$1\",$2\"referrer\":\"profile\",\"with_rux_injections\":false,\"rankingMode\":\"Relevance\",\"includePromotedContent\":true,\"withCommunity\":true,\"withQuickPromoteEligibilityTweetFields\":true,\"withBirdwatchNotes\":true,\"withVoice\":true}",
+    "TWEET_EDIT_HISTORY_VARS": "{\"tweetId\":\"$1\",\"withQuickPromoteEligibilityTweetFields\":true}",
+    "REST_ID_VARS": "{\"rest_id\":\"$1\",$2\"count\":$3}",
+    "USER_MEDIA_VARS": "{\"userId\":\"$1\",$2\"count\":$3,\"includePromotedContent\":false,\"withClientEventToken\":false,\"withBirdwatchNotes\":false,\"withVoice\":true}",
+    "USER_TWEETS_VARS": "{\"userId\":\"$1\",$2\"count\":20,\"includePromotedContent\":false,\"withQuickPromoteEligibilityTweetFields\":true,\"withVoice\":true}",
+    "USER_TWEETS_AND_REPLIES_VARS": "{\"userId\":\"$1\",$2\"count\":20,\"includePromotedContent\":false,\"withCommunity\":true,\"withVoice\":true}",
+    "USER_ARTICLES_VARS": "{\"userId\":\"$1\",$2\"count\":20,\"includePromotedContent\":false,\"withVoice\":true}",
+    "ARTICLE_VARS": "{\"tweetId\":\"$1\",\"includePromotedContent\":false,\"withBirdwatchNotes\":true,\"withVoice\":true,\"withCommunity\":true}",
+    "ARTICLE_BATCH_VARS": "{\"tweetIds\":$1,\"includePromotedContent\":false,\"withBirdwatchNotes\":true,\"withVoice\":true,\"withCommunity\":true}",
+    "TWEET_BY_REST_ID_VARS": "{\"tweetId\":\"$1\",\"includePromotedContent\":false,\"withBirdwatchNotes\":false,\"withVoice\":false,\"withCommunity\":false}",
+    "USER_BY_REST_ID_VARS": "{\"userId\":\"$1\",\"withSafetyModeUserFields\":true}",
+    "COMMUNITY_TWEETS_VARS": "{\"communityId\":\"$1\",$2\"count\":20,\"displayLocation\":\"Community\",\"rankingMode\":\"$3\",\"withCommunity\":true}",
+    "COMMUNITY_MEDIA_VARS": "{\"communityId\":\"$1\",$2\"count\":20,\"withCommunity\":true}",
+    "COMMUNITY_MEMBERS_VARS": "{\"communityId\":\"$1\",\"cursor\":$2}",
+    "COMMUNITY_HASHTAGS_VARS": "{\"communityId\":\"$1\",$2\"count\":20,\"hashtags\":[\"$3\"],\"withCommunity\":true}",
+    "ARTICLE_FIELD_TOGGLES": "{\"withArticleRichContentState\":true,\"withArticlePlainText\":false,\"withArticleSummaryText\":true,\"withArticleVoiceOver\":true}",
+    "USER_TWEETS_FIELD_TOGGLES": "{\"withArticleRichContentState\":true,\"withArticlePlainText\":false}",
+    "TWEET_DETAIL_FIELD_TOGGLES": "{\"withArticleRichContentState\":true,\"withArticlePlainText\":false,\"withGrokAnalyze\":false,\"withDisallowedReplyControls\":false}",
+    "EMPTY_QUERY": "include:nativeretweets"
+  },
+  "encodeUrl": [
+    {
+      "input": "",
+      "usePlus": true,
+      "output": ""
+    },
+    {
+      "input": "",
+      "usePlus": false,
+      "output": ""
+    },
+    {
+      "input": "plain",
+      "usePlus": true,
+      "output": "plain"
+    },
+    {
+      "input": "plain",
+      "usePlus": false,
+      "output": "plain"
+    },
+    {
+      "input": "a b",
+      "usePlus": true,
+      "output": "a+b"
+    },
+    {
+      "input": "a b",
+      "usePlus": false,
+      "output": "a%20b"
+    },
+    {
+      "input": "a+b",
+      "usePlus": true,
+      "output": "a%2Bb"
+    },
+    {
+      "input": "a+b",
+      "usePlus": false,
+      "output": "a%2Bb"
+    },
+    {
+      "input": "a&b=c",
+      "usePlus": true,
+      "output": "a%26b%3Dc"
+    },
+    {
+      "input": "a&b=c",
+      "usePlus": false,
+      "output": "a%26b%3Dc"
+    },
+    {
+      "input": "héllo wörld",
+      "usePlus": true,
+      "output": "h%C3%A9llo+w%C3%B6rld"
+    },
+    {
+      "input": "héllo wörld",
+      "usePlus": false,
+      "output": "h%C3%A9llo%20w%C3%B6rld"
+    },
+    {
+      "input": "\"quoted\"",
+      "usePlus": true,
+      "output": "%22quoted%22"
+    },
+    {
+      "input": "\"quoted\"",
+      "usePlus": false,
+      "output": "%22quoted%22"
+    },
+    {
+      "input": "~/-._",
+      "usePlus": true,
+      "output": "~%2F-._"
+    },
+    {
+      "input": "~/-._",
+      "usePlus": false,
+      "output": "~%2F-._"
+    },
+    {
+      "input": "%20",
+      "usePlus": true,
+      "output": "%2520"
+    },
+    {
+      "input": "%20",
+      "usePlus": false,
+      "output": "%2520"
+    },
+    {
+      "input": "100%",
+      "usePlus": true,
+      "output": "100%25"
+    },
+    {
+      "input": "100%",
+      "usePlus": false,
+      "output": "100%25"
+    },
+    {
+      "input": "$1",
+      "usePlus": true,
+      "output": "%241"
+    },
+    {
+      "input": "$1",
+      "usePlus": false,
+      "output": "%241"
+    },
+    {
+      "input": "a\nb",
+      "usePlus": true,
+      "output": "a%0Ab"
+    },
+    {
+      "input": "a\nb",
+      "usePlus": false,
+      "output": "a%0Ab"
+    }
+  ],
+  "encodeQuery": [
+    {
+      "params": [["variables", "{\"a\":1}"], ["features", "{"]],
+      "usePlus": true,
+      "omitEq": true,
+      "sep": "&",
+      "output": "variables=%7B%22a%22%3A1%7D&features=%7B"
+    },
+    {
+      "params": [["rawQuery", "nasa from:alice"], ["empty", ""], ["arr", "a+b"]],
+      "usePlus": true,
+      "omitEq": true,
+      "sep": "&",
+      "output": "rawQuery=nasa+from%3Aalice&empty&arr=a%2Bb"
+    },
+    {
+      "params": [["k", "a b"]],
+      "usePlus": false,
+      "omitEq": false,
+      "sep": "&",
+      "output": "k=a%20b"
+    },
+    {
+      "params": [["k", "a b"], ["j", "c d"]],
+      "usePlus": true,
+      "omitEq": true,
+      "sep": ";",
+      "output": "k=a+b;j=c+d"
+    },
+    {
+      "params": [],
+      "usePlus": true,
+      "omitEq": true,
+      "sep": "&",
+      "output": ""
+    }
+  ],
+  "subst": [
+    {
+      "label": "single",
+      "template": "$1-$2-$3",
+      "args": ["a", "b", "c"],
+      "output": "a-b-c"
+    },
+    {
+      "label": "reuse arg",
+      "template": "$1 again $1",
+      "args": ["x"],
+      "output": "x again x"
+    },
+    {
+      "label": "empty arg",
+      "template": "[$1]",
+      "args": [""],
+      "output": "[]"
+    },
+    {
+      "label": "dollar escape",
+      "template": "price: $$ and $1",
+      "args": ["v"],
+      "output": "price: $ and v"
+    },
+    {
+      "label": "value not rescanned",
+      "template": "{$1}",
+      "args": ["$2"],
+      "output": "{$2}"
+    },
+    {
+      "label": "stray dollar",
+      "template": "keep $foo bar",
+      "args": ["x"],
+      "error": "invalid format string: keep $foo bar"
+    },
+    {
+      "label": "trailing dollar",
+      "template": "abc$",
+      "args": ["x"],
+      "output": "abc$"
+    },
+    {
+      "label": "missing arg",
+      "template": "$1 $2",
+      "args": ["only"],
+      "error": "invalid format string: $1 $2"
+    },
+    {
+      "label": "zero index",
+      "template": "$0",
+      "args": ["x"],
+      "error": "invalid format string: $0"
+    },
+    {
+      "label": "out of range",
+      "template": "$12",
+      "args": ["x"],
+      "error": "invalid format string: $12"
+    }
+  ],
+  "urls": [
+    {
+      "label": "userUrl simple",
+      "cookie": "https://x.com/i/api/graphql/Gb-d6r0vxPOADdG62OEBpQ/UserByScreenName?variables=%7B%22screen_name%22%3A%22nasa%22%2C%22withGrokTranslatedBio%22%3Afalse%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%2C%22withGrokAnalyze%22%3Afalse%2C%22withDisallowedReplyControls%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/-ZzAG_Bckx16LMbEvHC3lg/UserResultByScreenNameQuery?variables=%7B%22screen_name%22%3A%22nasa%22%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "userUrl underscore",
+      "cookie": "https://x.com/i/api/graphql/Gb-d6r0vxPOADdG62OEBpQ/UserByScreenName?variables=%7B%22screen_name%22%3A%22foo_bar%22%2C%22withGrokTranslatedBio%22%3Afalse%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%2C%22withGrokAnalyze%22%3Afalse%2C%22withDisallowedReplyControls%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/-ZzAG_Bckx16LMbEvHC3lg/UserResultByScreenNameQuery?variables=%7B%22screen_name%22%3A%22foo_bar%22%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "userUrl json chars",
+      "cookie": "https://x.com/i/api/graphql/Gb-d6r0vxPOADdG62OEBpQ/UserByScreenName?variables=%7B%22screen_name%22%3A%22a%5C%22b%5C%5Cc%22%2C%22withGrokTranslatedBio%22%3Afalse%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%2C%22withGrokAnalyze%22%3Afalse%2C%22withDisallowedReplyControls%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/-ZzAG_Bckx16LMbEvHC3lg/UserResultByScreenNameQuery?variables=%7B%22screen_name%22%3A%22a%5C%22b%5C%5Cc%22%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "mediaUrl no cursor",
+      "cookie": "https://x.com/i/api/graphql/VyudDWQnr9vJNw7GasFz2g/UserMedia?variables=%7B%22userId%22%3A%2212345%22%2C%22count%22%3A100%2C%22includePromotedContent%22%3Afalse%2C%22withClientEventToken%22%3Afalse%2C%22withBirdwatchNotes%22%3Afalse%2C%22withVoice%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/WK111rbR0vM0ZX4lyZCYjw/MediaTimelineV2?variables=%7B%22rest_id%22%3A%2212345%22%2C%22count%22%3A100%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "mediaUrl cursor",
+      "cookie": "https://x.com/i/api/graphql/VyudDWQnr9vJNw7GasFz2g/UserMedia?variables=%7B%22userId%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22count%22%3A100%2C%22includePromotedContent%22%3Afalse%2C%22withClientEventToken%22%3Afalse%2C%22withBirdwatchNotes%22%3Afalse%2C%22withVoice%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/WK111rbR0vM0ZX4lyZCYjw/MediaTimelineV2?variables=%7B%22rest_id%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22count%22%3A100%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "mediaUrl cursor json chars",
+      "cookie": "https://x.com/i/api/graphql/VyudDWQnr9vJNw7GasFz2g/UserMedia?variables=%7B%22userId%22%3A%2212345%22%2C%22cursor%22%3A%22cur%3A%5C%22x%5C%22%5C%5Cy%22%2C%22count%22%3A100%2C%22includePromotedContent%22%3Afalse%2C%22withClientEventToken%22%3Afalse%2C%22withBirdwatchNotes%22%3Afalse%2C%22withVoice%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/WK111rbR0vM0ZX4lyZCYjw/MediaTimelineV2?variables=%7B%22rest_id%22%3A%2212345%22%2C%22cursor%22%3A%22cur%3A%5C%22x%5C%22%5C%5Cy%22%2C%22count%22%3A100%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "userTweetsUrl no cursor",
+      "cookie": "https://x.com/i/api/graphql/LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2?variables=%7B%22rest_id%22%3A%2212345%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2?variables=%7B%22rest_id%22%3A%2212345%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D"
+    },
+    {
+      "label": "userTweetsUrl cursor",
+      "cookie": "https://x.com/i/api/graphql/LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2?variables=%7B%22rest_id%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2?variables=%7B%22rest_id%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D"
+    },
+    {
+      "label": "userTweetsAndRepliesUrl no cursor",
+      "cookie": "https://x.com/i/api/graphql/qUpkZU6eN8MbtQb7rC_pYg/UserTweetsAndReplies?variables=%7B%22userId%22%3A%2212345%22%2C%22count%22%3A20%2C%22includePromotedContent%22%3Afalse%2C%22withCommunity%22%3Atrue%2C%22withVoice%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/AcYHjc_YAx-9_rKWdMsKvA/UserWithProfileTweetsAndRepliesQueryV2?variables=%7B%22rest_id%22%3A%2212345%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D"
+    },
+    {
+      "label": "userTweetsAndRepliesUrl cursor",
+      "cookie": "https://x.com/i/api/graphql/qUpkZU6eN8MbtQb7rC_pYg/UserTweetsAndReplies?variables=%7B%22userId%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22count%22%3A20%2C%22includePromotedContent%22%3Afalse%2C%22withCommunity%22%3Atrue%2C%22withVoice%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/AcYHjc_YAx-9_rKWdMsKvA/UserWithProfileTweetsAndRepliesQueryV2?variables=%7B%22rest_id%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D"
+    },
+    {
+      "label": "userArticlesUrl no cursor",
+      "cookie": "https://x.com/i/api/graphql/ZmMjUyrTpwYfTGAdylEyMw/UserArticlesTweets?variables=%7B%22userId%22%3A%2212345%22%2C%22count%22%3A20%2C%22includePromotedContent%22%3Afalse%2C%22withVoice%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/PsGixN38UZz2RheyayNB5Q/UserProfileArticlesTimelineQuery?variables=%7B%22rest_id%22%3A%2212345%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D"
+    },
+    {
+      "label": "userArticlesUrl cursor",
+      "cookie": "https://x.com/i/api/graphql/ZmMjUyrTpwYfTGAdylEyMw/UserArticlesTweets?variables=%7B%22userId%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22count%22%3A20%2C%22includePromotedContent%22%3Afalse%2C%22withVoice%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/PsGixN38UZz2RheyayNB5Q/UserProfileArticlesTimelineQuery?variables=%7B%22rest_id%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Atrue%2C%22withArticlePlainText%22%3Afalse%7D"
+    },
+    {
+      "label": "tweetDetailUrl default",
+      "cookie": "https://x.com/i/api/graphql/OZMbEnEa96AN8Pq6HyTWdw/ConversationTimeline?variables=%7B%22postId%22%3A%2212345%22%2C%22ranking_mode%22%3A%22Relevance%22%2C%22includeHasBirdwatchNotes%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withBirdwatchNotes%22%3Atrue%2C%22withVoice%22%3Afalse%2C%22withV2Timeline%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/OZMbEnEa96AN8Pq6HyTWdw/ConversationTimeline?variables=%7B%22postId%22%3A%2212345%22%2C%22ranking_mode%22%3A%22Relevance%22%2C%22includeHasBirdwatchNotes%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withBirdwatchNotes%22%3Atrue%2C%22withVoice%22%3Afalse%2C%22withV2Timeline%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "tweetDetailUrl recency cursor",
+      "cookie": "https://x.com/i/api/graphql/OZMbEnEa96AN8Pq6HyTWdw/ConversationTimeline?variables=%7B%22postId%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22ranking_mode%22%3A%22Recency%22%2C%22includeHasBirdwatchNotes%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withBirdwatchNotes%22%3Atrue%2C%22withVoice%22%3Afalse%2C%22withV2Timeline%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/OZMbEnEa96AN8Pq6HyTWdw/ConversationTimeline?variables=%7B%22postId%22%3A%2212345%22%2C%22cursor%22%3A%22scroll%3Aabc%22%2C%22ranking_mode%22%3A%22Recency%22%2C%22includeHasBirdwatchNotes%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withBirdwatchNotes%22%3Atrue%2C%22withVoice%22%3Afalse%2C%22withV2Timeline%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "tweetDetailUrl likes",
+      "cookie": "https://x.com/i/api/graphql/OZMbEnEa96AN8Pq6HyTWdw/ConversationTimeline?variables=%7B%22postId%22%3A%2212345%22%2C%22ranking_mode%22%3A%22Likes%22%2C%22includeHasBirdwatchNotes%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withBirdwatchNotes%22%3Atrue%2C%22withVoice%22%3Afalse%2C%22withV2Timeline%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/OZMbEnEa96AN8Pq6HyTWdw/ConversationTimeline?variables=%7B%22postId%22%3A%2212345%22%2C%22ranking_mode%22%3A%22Likes%22%2C%22includeHasBirdwatchNotes%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withBirdwatchNotes%22%3Atrue%2C%22withVoice%22%3Afalse%2C%22withV2Timeline%22%3Atrue%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "restReq no params",
+      "cookie": "https://x.com/i/api/1.1/live_video_stream/status/abc123",
+      "oauth": "https://api.x.com/1.1/live_video_stream/status/abc123"
+    },
+    {
+      "label": "restReq with params",
+      "cookie": "https://x.com/i/api/1.1/foo.json?a=b+c",
+      "oauth": "https://api.x.com/1.1/foo.json?a=b+c"
+    },
+    {
+      "label": "apiReq search variables",
+      "cookie": "https://x.com/i/api/graphql/hyPfJYJ_XAtDYoslQc-Rgg/SearchTimeline?variables=%7B%22rawQuery%22%3A%22nasa+from%3Aalice%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D",
+      "oauth": "https://api.x.com/graphql/hyPfJYJ_XAtDYoslQc-Rgg/SearchTimeline?variables=%7B%22rawQuery%22%3A%22nasa+from%3Aalice%22%2C%22count%22%3A20%7D&features=%7B%22rweb_video_screen_enabled%22%3Afalse%2C%22rweb_cashtags_enabled%22%3Atrue%2C%22profile_label_improvements_pcf_label_in_post_enabled%22%3Atrue%2C%22responsive_web_profile_redirect_enabled%22%3Afalse%2C%22rweb_tipjar_consumption_enabled%22%3Afalse%2C%22verified_phone_label_enabled%22%3Afalse%2C%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22premium_content_api_read_enabled%22%3Afalse%2C%22communities_web_enable_tweet_community_results_fetch%22%3Atrue%2C%22c9s_tweet_anatomy_moderator_badge_enabled%22%3Atrue%2C%22c9s_list_members_action_api_enabled%22%3Afalse%2C%22c9s_superc9s_indication_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_button_fetch_trends_enabled%22%3Afalse%2C%22responsive_web_grok_analyze_post_followups_enabled%22%3Atrue%2C%22rweb_cashtags_composer_attachment_enabled%22%3Atrue%2C%22responsive_web_jetfuel_frame%22%3Atrue%2C%22responsive_web_grok_share_attachment_enabled%22%3Atrue%2C%22responsive_web_grok_annotations_enabled%22%3Atrue%2C%22articles_preview_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22rweb_conversational_replies_downvote_enabled%22%3Afalse%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Atrue%2C%22content_disclosure_indicator_enabled%22%3Atrue%2C%22content_disclosure_ai_generated_indicator_enabled%22%3Atrue%2C%22responsive_web_grok_show_grok_translated_post%22%3Atrue%2C%22responsive_web_grok_analysis_button_from_backend%22%3Atrue%2C%22post_ctas_fetch_enabled%22%3Atrue%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Afalse%2C%22responsive_web_grok_image_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_imagine_annotation_enabled%22%3Atrue%2C%22responsive_web_grok_community_note_auto_translation_is_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D"
+    },
+    {
+      "label": "communitySliceReq",
+      "cookie": "https://x.com/i/api/graphql/woAp_YdzAdqnWDrqLTNpAw/membersSliceTimeline_Query?variables=%7B%22communityId%22%3A%22777%22%2C%22cursor%22%3Anull%7D",
+      "oauth": "https://api.x.com/graphql/woAp_YdzAdqnWDrqLTNpAw/membersSliceTimeline_Query?variables=%7B%22communityId%22%3A%22777%22%2C%22cursor%22%3Anull%7D"
+    }
+  ],
+  "query": [
+    {
+      "label": "empty tweets",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets",
+      "url": "f=tweets"
+    },
+    {
+      "label": "text only",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "nasa",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets nasa",
+      "url": "f=tweets&q=nasa"
+    },
+    {
+      "label": "users passthrough",
+      "query": {
+        "kind": "users",
+        "view": "",
+        "text": "nasa",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "nasa",
+      "url": "f=users&q=nasa"
+    },
+    {
+      "label": "fromUser single",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": ["alice"],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "(from:alice) include:nativeretweets",
+      "url": "f=tweets"
+    },
+    {
+      "label": "fromUser multi posts",
+      "query": {
+        "kind": "posts",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": ["alice", "bob"],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "(from:alice OR from:bob) (filter:self_threads OR -filter:replies) include:nativeretweets",
+      "url": ""
+    },
+    {
+      "label": "fromUser media",
+      "query": {
+        "kind": "media",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": ["alice"],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "(from:alice) (filter:self_threads OR -filter:replies) include:nativeretweets",
+      "url": ""
+    },
+    {
+      "label": "filters sep AND",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": ["media", "links"],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": "AND"
+      },
+      "maxId": "",
+      "param": "include:nativeretweets (filter:media AND filter:links)",
+      "url": "f=tweets&f-media=on&f-links=on"
+    },
+    {
+      "label": "filters default sep double space",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": ["images", "videos"],
+        "includes": [],
+        "excludes": ["replies"],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets (filter:images  filter:videos  -filter:replies)",
+      "url": "f=tweets&f-images=on&f-videos=on&e-replies=on"
+    },
+    {
+      "label": "excludes nativeretweets",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": ["nativeretweets", "replies"],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "(-filter:replies)",
+      "url": "f=tweets&e-nativeretweets=on&e-replies=on"
+    },
+    {
+      "label": "since until",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "2024-01-01",
+        "until": "2024-02-01",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets since:2024-01-01 until:2024-02-01",
+      "url": "f=tweets&since=2024-01-01&until=2024-02-01"
+    },
+    {
+      "label": "since until maxId drops until",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "2024-01-01",
+        "until": "2024-02-01",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "123",
+      "param": "include:nativeretweets since:2024-01-01 max_id:123",
+      "url": "f=tweets&since=2024-01-01&until=2024-02-01"
+    },
+    {
+      "label": "minLikes",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "5",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets min_faves:5",
+      "url": "f=tweets&min_faves=5"
+    },
+    {
+      "label": "minLikes maxId",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "7",
+        "sep": ""
+      },
+      "maxId": "999",
+      "param": "include:nativeretweets min_faves:7 max_id:999",
+      "url": "f=tweets&min_faves=7"
+    },
+    {
+      "label": "full combo",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "hello world",
+        "filters": ["images"],
+        "includes": [],
+        "excludes": ["replies"],
+        "fromUser": ["alice"],
+        "since": "2024-01-01",
+        "until": "",
+        "minLikes": "10",
+        "sep": "OR"
+      },
+      "maxId": "",
+      "param": "(from:alice) include:nativeretweets (filter:images OR -filter:replies) since:2024-01-01 min_faves:10 hello world",
+      "url": "f=tweets&q=hello+world&f-images=on&e-replies=on&since=2024-01-01&min_faves=10"
+    },
+    {
+      "label": "kind posts no fromUser",
+      "query": {
+        "kind": "posts",
+        "view": "",
+        "text": "hi",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets hi",
+      "url": ""
+    },
+    {
+      "label": "kind media profile tab",
+      "query": {
+        "kind": "media",
+        "view": "",
+        "text": "x",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets x",
+      "url": "f=media&q=x"
+    },
+    {
+      "label": "kind top",
+      "query": {
+        "kind": "top",
+        "view": "",
+        "text": "x",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets x",
+      "url": "f=top&q=x"
+    },
+    {
+      "label": "kind lists",
+      "query": {
+        "kind": "lists",
+        "view": "",
+        "text": "x",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets x",
+      "url": "f=lists&q=x"
+    },
+    {
+      "label": "includes nativeretweets explicit",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": ["nativeretweets"],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets (include:nativeretweets)",
+      "url": "f=tweets"
+    },
+    {
+      "label": "includes spaces",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": ["spaces"],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets (include:spaces)",
+      "url": "f=tweets&i-spaces=on"
+    },
+    {
+      "label": "fromUser replies kind",
+      "query": {
+        "kind": "replies",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": ["alice"],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "(from:alice) include:nativeretweets",
+      "url": ""
+    },
+    {
+      "label": "fromUser userList kind",
+      "query": {
+        "kind": "userList",
+        "view": "",
+        "text": "z",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": ["alice"],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "(from:alice) include:nativeretweets z",
+      "url": ""
+    },
+    {
+      "label": "text with quotes",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "say \"hi\" & bye",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets say \"hi\" & bye",
+      "url": "f=tweets&q=say+%22hi%22+%26+bye"
+    },
+    {
+      "label": "view only outside kind block",
+      "query": {
+        "kind": "replies",
+        "view": "grid",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "include:nativeretweets",
+      "url": "view=grid"
+    },
+    {
+      "label": "emptyQuery equal excludes",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": ["nativeretweets", "retweets", "replies"],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "(-filter:retweets  -filter:replies)",
+      "url": "f=tweets&e-nativeretweets=on&e-retweets=on&e-replies=on"
+    },
+    {
+      "label": "getMediaQuery",
+      "query": {
+        "kind": "media",
+        "view": "",
+        "text": "",
+        "filters": ["twimg", "native_video"],
+        "includes": [],
+        "excludes": [],
+        "fromUser": ["alice"],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": "OR"
+      },
+      "maxId": "",
+      "param": "(from:alice) (filter:self_threads OR -filter:replies) include:nativeretweets (filter:twimg OR filter:native_video)",
+      "url": ""
+    },
+    {
+      "label": "getArticlesQuery",
+      "query": {
+        "kind": "articles",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": ["alice"],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "(from:alice) include:nativeretweets",
+      "url": ""
+    },
+    {
+      "label": "getReplyQuery",
+      "query": {
+        "kind": "replies",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": ["alice"],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "maxId": "",
+      "param": "(from:alice) include:nativeretweets",
+      "url": ""
+    }
+  ],
+  "initQuery": [
+    {
+      "label": "f tweets q nasa",
+      "params": {
+        "f": "tweets",
+        "q": "nasa"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "nasa",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets nasa",
+      "url": "f=tweets&q=nasa"
+    },
+    {
+      "label": "f garbage falls back",
+      "params": {
+        "f": "garbage",
+        "q": "x"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "x",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets x",
+      "url": "f=tweets&q=x"
+    },
+    {
+      "label": "f live falls back",
+      "params": {
+        "f": "live",
+        "q": "nasa"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "nasa",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets nasa",
+      "url": "f=tweets&q=nasa"
+    },
+    {
+      "label": "f Media first char case",
+      "params": {
+        "f": "Media"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets",
+      "url": "f=tweets"
+    },
+    {
+      "label": "f mEDIA style insensitive",
+      "params": {
+        "f": "mEDIA"
+      },
+      "name": "",
+      "query": {
+        "kind": "media",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets",
+      "url": "f=media"
+    },
+    {
+      "label": "f USERLIST first char case",
+      "params": {
+        "f": "USERLIST"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets",
+      "url": "f=tweets"
+    },
+    {
+      "label": "f user_list underscore",
+      "params": {
+        "f": "user_list"
+      },
+      "name": "",
+      "query": {
+        "kind": "userList",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets",
+      "url": ""
+    },
+    {
+      "label": "f articles coerced to tweets",
+      "params": {
+        "f": "articles"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets",
+      "url": "f=tweets"
+    },
+    {
+      "label": "missing f defaults tweets",
+      "params": {
+        "q": "x"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "x",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets x",
+      "url": "f=tweets&q=x"
+    },
+    {
+      "label": "filters presence not value",
+      "params": {
+        "f": "media",
+        "q": "x",
+        "f-images": "off",
+        "e-videos": "on",
+        "since": "2024-01-01",
+        "min_faves": "3"
+      },
+      "name": "",
+      "query": {
+        "kind": "media",
+        "view": "",
+        "text": "x",
+        "filters": ["images"],
+        "includes": [],
+        "excludes": ["videos"],
+        "fromUser": [],
+        "since": "2024-01-01",
+        "until": "",
+        "minLikes": "3",
+        "sep": ""
+      },
+      "param": "include:nativeretweets (filter:images  -filter:videos) since:2024-01-01 min_faves:3 x",
+      "url": "f=media&q=x&f-images=on&e-videos=on&since=2024-01-01&min_faves=3"
+    },
+    {
+      "label": "min_faves garbage",
+      "params": {
+        "min_faves": "abc"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets",
+      "url": "f=tweets"
+    },
+    {
+      "label": "min_faves empty",
+      "params": {
+        "min_faves": ""
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets",
+      "url": "f=tweets"
+    },
+    {
+      "label": "fromUser name csv",
+      "params": {
+        "f": "tweets"
+      },
+      "name": "alice,bob",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": ["alice", "bob"],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "(from:alice OR from:bob) include:nativeretweets",
+      "url": "f=tweets"
+    },
+    {
+      "label": "empty name",
+      "params": {
+        "f": "tweets"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets",
+      "url": "f=tweets"
+    },
+    {
+      "label": "view param",
+      "params": {
+        "f": "top",
+        "q": "x",
+        "view": "videos"
+      },
+      "name": "",
+      "query": {
+        "kind": "top",
+        "view": "videos",
+        "text": "x",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets x",
+      "url": "view=videos&f=top&q=x"
+    },
+    {
+      "label": "until and q",
+      "params": {
+        "f": "tweets",
+        "q": "hello world",
+        "until": "2024-02-01"
+      },
+      "name": "",
+      "query": {
+        "kind": "tweets",
+        "view": "",
+        "text": "hello world",
+        "filters": [],
+        "includes": [],
+        "excludes": [],
+        "fromUser": [],
+        "since": "",
+        "until": "2024-02-01",
+        "minLikes": "",
+        "sep": ""
+      },
+      "param": "include:nativeretweets until:2024-02-01 hello world",
+      "url": "f=tweets&q=hello+world&until=2024-02-01"
+    }
+  ]
+}

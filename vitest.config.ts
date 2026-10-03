@@ -12,6 +12,9 @@ const sessionsSrc = fileURLToPath(
   new URL("./packages/twitter-sessions/src/index.ts", import.meta.url),
 );
 const typesSrc = fileURLToPath(new URL("./packages/types/src/index.ts", import.meta.url));
+const twitterApiSrc = fileURLToPath(
+  new URL("./packages/twitter-api/src/index.ts", import.meta.url),
+);
 
 export default defineConfig({
   resolve: {
@@ -22,6 +25,7 @@ export default defineConfig({
       "@tseer/media": mediaSrc,
       "@tseer/server": serverSrc,
       "@tseer/twitter-sessions": sessionsSrc,
+      "@tseer/twitter-api": twitterApiSrc,
       "@tseer/types": typesSrc,
     },
   },

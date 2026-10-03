@@ -19,6 +19,9 @@ plan-vs-reality deltas discovered during implementation.
 - [x] Phase 2 — platform seams: `http-client`, `cache`, `twitter-sessions`, `server`, `media`
       — **done**; all five have landed.
 - [ ] Phase 3 — `twitter-api` + `twitter-parser` with golden fixtures
+      — **in progress**; `twitter-api` (endpoints, request builders, URL builders,
+      search-query compiler, golden fixtures from nitter @ 376f149) has landed.
+      Still pending: `twitter-parser`, the GraphQL fetch layer, and `tseer debug`.
 - [ ] Phase 4 — `views`, `prefs`, `ctx.render`, core route plugins
 - [ ] Phase 5 — long-tail route plugins
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
@@ -94,7 +97,7 @@ runtime:
 apps/tseer/          # bin `tseer`; src/index.ts (createApp), src/cli.ts (boot),
                       # src/plugins/hello.ts (scaffold plugin), tests/
 packages/             # kernel, types, server, http-client, twitter-sessions, cache,
-                      # media — more seams per plan §2
+                      # media, twitter-api — more seams per plan §2
 docs/TS_PORT_PLAN.md  # the spec
 ```
 

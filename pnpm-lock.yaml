@@ -263,6 +263,12 @@ importers:
         specifier: ^5.6.0
         version: 5.12.5
 
+  packages/twitter-api:
+    dependencies:
+      '@tseer/types':
+        specifier: workspace:*
+        version: link:../types
+
   packages/twitter-sessions:
     dependencies:
       '@tseer/types':

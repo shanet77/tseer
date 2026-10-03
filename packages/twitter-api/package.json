@@ -1,0 +1,24 @@
+{
+  "name": "@tseer/twitter-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "tseer twitter-api seam: X GraphQL endpoint consts, ApiReq dual-URL mapping, URL builders, and the search-query compiler. A TypeScript port of nitter (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tseer/types": "workspace:*"
+  }
+}
