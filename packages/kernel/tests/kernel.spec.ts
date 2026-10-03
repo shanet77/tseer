@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serverPlugin } from "@tseer/server";
+import { Context } from "cordis";
 import { describe, expect, it } from "vitest";
 import {
   aboutPlugin,
@@ -11,6 +12,7 @@ import {
   createApp,
   emptySessionHealth,
   healthRoutePlugin,
+  loggerPlugin,
   parseConfigText,
   parseIni,
   readConfigFile,
@@ -301,5 +303,32 @@ describe("health routes", () => {
     await fiber.dispose();
     expect((await ctx.server.inject({ url: "/.health" })).status).toBe(404);
     expect((await ctx.server.inject({ url: "/.sessions" })).status).toBe(404);
+  });
+});
+
+describe("logger plugin", () => {
+  it("boots with debug off (plain JSON transport)", async () => {
+    const ctx = new Context();
+    const fiber = await ctx.plugin(loggerPlugin, { debug: false });
+    expect(() => ctx.logger.info("plain")).not.toThrow();
+    await fiber.dispose();
+  });
+
+  it("boots with debug on, resolving the pino-pretty transport", async () => {
+    const ctx = new Context();
+    const fiber = await ctx.plugin(loggerPlugin, { debug: true });
+    expect(() => ctx.logger.debug("pretty")).not.toThrow();
+    await fiber.dispose();
+  });
+
+  it("forwards messages through the exporter level gate", async () => {
+    const ctx = new Context();
+    const fiber = await ctx.plugin(loggerPlugin, { debug: false, level: "warn" });
+    expect(() => {
+      ctx.logger.debug("dropped");
+      ctx.logger.warn("kept");
+      ctx.logger.error("kept");
+    }).not.toThrow();
+    await fiber.dispose();
   });
 });
