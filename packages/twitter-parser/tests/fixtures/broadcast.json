@@ -1,0 +1,27 @@
+{
+  "data": {
+    "broadcast": {
+      "broadcast_id": "BC1",
+      "status": "Live now",
+      "state": "running",
+      "image_url": "https://pbs.twimg.com/bc.jpg",
+      "media_key": "bckey",
+      "total_watched": 100,
+      "start_time": 1700000000000,
+      "end_time": 1700003600000,
+      "edited_replay": {
+        "start_time": 30
+      },
+      "available_for_replay": true,
+      "user_results": {
+        "result": {
+          "rest_id": "1234567890",
+          "core": {
+            "screen_name": "jack",
+            "name": "Jack"
+          }
+        }
+      }
+    }
+  }
+}

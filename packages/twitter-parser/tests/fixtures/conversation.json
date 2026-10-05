@@ -1,0 +1,72 @@
+{
+  "data": {
+    "threaded_conversation_with_injections_v2": {
+      "instructions": [
+        {
+          "type": "TimelineAddEntries",
+          "entries": [
+            {
+              "entryId": "tweet-1001",
+              "content": {
+                "itemContent": {
+                  "tweet_results": {
+                    "result": {
+                      "rest_id": "1001",
+                      "legacy": { "id_str": "1001", "full_text": "the main tweet" }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "entryId": "tweet-999",
+              "content": {
+                "itemContent": {
+                  "tweet_results": {
+                    "result": {
+                      "rest_id": "999",
+                      "legacy": { "id_str": "999", "full_text": "an earlier tweet" }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "entryId": "conversationthread-42",
+              "content": {
+                "items": [
+                  {
+                    "entryId": "tweet-2001",
+                    "item": {
+                      "content": {
+                        "tweet_results": {
+                          "result": {
+                            "rest_id": "2001",
+                            "legacy": { "id_str": "2001", "full_text": "self reply" }
+                          }
+                        },
+                        "tweet_display_type": "SelfThread"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "entryId": "tombstone-998",
+              "content": {
+                "content": {
+                  "tombstoneInfo": { "richText": { "text": "This Tweet is unavailable" } }
+                }
+              }
+            },
+            {
+              "entryId": "cursor-bottom-CONVCURSOR",
+              "content": { "value": "CONVCURSOR" }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

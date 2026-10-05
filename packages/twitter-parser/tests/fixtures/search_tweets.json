@@ -1,0 +1,36 @@
+{
+  "data": {
+    "search_by_raw_query": {
+      "search_timeline": {
+        "timeline": {
+          "instructions": [
+            {
+              "type": "TimelineAddEntries",
+              "entries": [
+                {
+                  "entryId": "tweet-1001",
+                  "content": {
+                    "itemContent": {
+                      "tweet_results": {
+                        "result": {
+                          "rest_id": "1001",
+                          "legacy": { "id_str": "1001", "full_text": "search hit" }
+                        }
+                      }
+                    }
+                  }
+                },
+                { "entryId": "cursor-bottom-OLDCURSOR", "content": { "value": "OLDCURSOR" } }
+              ]
+            },
+            {
+              "type": "TimelineReplaceEntry",
+              "entry_id_to_replace": "cursor-bottom-OLDCURSOR",
+              "entry": { "content": { "value": "NEWCURSOR" } }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

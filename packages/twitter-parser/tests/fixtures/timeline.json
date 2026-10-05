@@ -1,0 +1,75 @@
+{
+  "data": {
+    "user": {
+      "result": {
+        "timeline": {
+          "timeline": {
+            "instructions": [
+              {
+                "type": "TimelineAddEntries",
+                "entries": [
+                  {
+                    "entryId": "tweet-1001",
+                    "content": {
+                      "entryType": "TimelineTimelineItem",
+                      "__typename": "TimelineTimelineItem",
+                      "itemContent": {
+                        "tweet_results": {
+                          "result": {
+                            "rest_id": "1001",
+                            "legacy": { "id_str": "1001", "full_text": "pinned? no, normal" }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "entryId": "homeConversation-2000",
+                    "content": {
+                      "entryType": "TimelineTimelineModule",
+                      "items": [
+                        {
+                          "entryId": "tweet-2000",
+                          "item": {
+                            "content": {
+                              "tweet_results": {
+                                "result": {
+                                  "rest_id": "2000",
+                                  "legacy": { "id_str": "2000", "full_text": "thread part" }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "entryId": "cursor-bottom-XYZCURSOR",
+                    "content": { "entryType": "TimelineTimelineCursor", "value": "XYZCURSOR" }
+                  }
+                ]
+              },
+              {
+                "type": "TimelinePinEntry",
+                "entry": {
+                  "entryId": "tweet-3000",
+                  "content": {
+                    "itemContent": {
+                      "tweet_results": {
+                        "result": {
+                          "rest_id": "3000",
+                          "legacy": { "id_str": "3000", "full_text": "pinned tweet" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

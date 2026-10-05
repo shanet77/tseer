@@ -1,0 +1,23 @@
+{
+  "data": {
+    "communityResults": {
+      "result": {
+        "rest_id": "777",
+        "name": "Community",
+        "description": "a community",
+        "member_count": 50,
+        "join_policy": "Open",
+        "created_at": 1700000000000,
+        "primary_community_topic": { "topic_name": "Tech" },
+        "custom_banner_media": {
+          "media_info": { "original_img_url": "https://pbs.twimg.com/community_banner/1.jpg" }
+        },
+        "creator_results": {
+          "result": { "rest_id": "1234567890", "core": { "screen_name": "jack", "name": "Jack" } }
+        },
+        "rules": [{ "name": "Be nice", "description": "no meanness" }],
+        "trending_hashtags_slice": { "items": [{ "hashtag": "tseer" }] }
+      }
+    }
+  }
+}

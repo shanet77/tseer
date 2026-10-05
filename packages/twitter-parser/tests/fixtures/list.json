@@ -1,0 +1,11 @@
+{
+  "data": {
+    "list": {
+      "id_str": "555",
+      "name": "My List",
+      "description": "a list",
+      "member_count": 3,
+      "user": { "rest_id": "1234567890", "core": { "screen_name": "jack", "name": "Jack" } }
+    }
+  }
+}

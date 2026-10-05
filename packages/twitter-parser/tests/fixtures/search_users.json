@@ -1,0 +1,35 @@
+{
+  "data": {
+    "search_by_raw_query": {
+      "search_timeline": {
+        "timeline": {
+          "instructions": [
+            {
+              "type": "TimelineAddEntries",
+              "entries": [
+                {
+                  "entryId": "user-1234567890",
+                  "content": {
+                    "itemContent": {
+                      "user_results": {
+                        "result": {
+                          "rest_id": "1234567890",
+                          "legacy": {
+                            "id_str": "1234567890",
+                            "screen_name": "jack",
+                            "name": "Jack"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                { "entryId": "cursor-bottom-UCURSOR", "content": { "value": "UCURSOR" } }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

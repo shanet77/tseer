@@ -1,0 +1,32 @@
+{
+  "data": {
+    "audioSpace": {
+      "metadata": {
+        "rest_id": "SP1",
+        "title": "Space title",
+        "state": "Running",
+        "media_key": "mk1",
+        "total_live_listeners": 12,
+        "total_replay_watched": 0,
+        "is_space_available_for_replay": false,
+        "started_at": 1700000000000,
+        "ended_at": "",
+        "creator_results": {
+          "result": { "rest_id": "1234567890", "core": { "screen_name": "jack", "name": "Jack" } }
+        }
+      },
+      "participants": {
+        "admins": [
+          {
+            "user_results": { "rest_id": "1234567890" },
+            "twitter_screen_name": "jack",
+            "display_name": "Jack",
+            "avatar_url": "a.jpg",
+            "is_verified": true
+          }
+        ],
+        "speakers": []
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "data": {
+    "user": {
+      "result": {
+        "timeline": {
+          "timeline": {
+            "instructions": [
+              {
+                "type": "TimelineAddEntries",
+                "entries": [
+                  {
+                    "entryId": "user-1234567890",
+                    "content": {
+                      "entryType": "TimelineTimelineItem",
+                      "itemContent": {
+                        "user_results": {
+                          "result": {
+                            "rest_id": "1234567890",
+                            "legacy": {
+                              "id_str": "1234567890",
+                              "screen_name": "jack",
+                              "name": "Jack"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "entryId": "cursor-bottom-FC",
+                    "content": {
+                      "entryType": "TimelineTimelineCursor",
+                      "cursorType": "Bottom",
+                      "value": "FCURSOR"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
