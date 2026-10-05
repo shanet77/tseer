@@ -196,6 +196,9 @@ importers:
       '@tseer/server':
         specifier: workspace:*
         version: link:../../packages/server
+      '@tseer/twitter-api':
+        specifier: workspace:*
+        version: link:../../packages/twitter-api
       '@tseer/twitter-sessions':
         specifier: workspace:*
         version: link:../../packages/twitter-sessions
@@ -265,9 +268,18 @@ importers:
 
   packages/twitter-api:
     dependencies:
+      '@tseer/http-client':
+        specifier: workspace:*
+        version: link:../http-client
+      '@tseer/twitter-sessions':
+        specifier: workspace:*
+        version: link:../twitter-sessions
       '@tseer/types':
         specifier: workspace:*
         version: link:../types
+      cordis:
+        specifier: 4.0.0-rc.10
+        version: 4.0.0-rc.10
 
   packages/twitter-sessions:
     dependencies:

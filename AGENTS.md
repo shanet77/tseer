@@ -20,8 +20,12 @@ plan-vs-reality deltas discovered during implementation.
       — **done**; all five have landed.
 - [ ] Phase 3 — `twitter-api` + `twitter-parser` with golden fixtures
       — **in progress**; `twitter-api` (endpoints, request builders, URL builders,
-      search-query compiler, golden fixtures from nitter @ 376f149) has landed.
-      Still pending: `twitter-parser`, the GraphQL fetch layer, and `tseer debug`.
+      search-query compiler, golden fixtures from nitter @ 376f149) has landed,
+      as has the fetch layer (OAuth1 + tid headers, lease/http/triage loop,
+      raw `getGraph*` fetchers, `ctx.twitter` plugin, wired into `apps/tseer`).
+      Still pending: `twitter-parser` (which also flips `ctx.twitter` to plan §3
+      domain types, extracts response cursors, and lands the `cached()` wrappers)
+      and `tseer debug`.
 - [ ] Phase 4 — `views`, `prefs`, `ctx.render`, core route plugins
 - [ ] Phase 5 — long-tail route plugins
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
@@ -257,3 +261,56 @@ docs/TS_PORT_PLAN.md  # the spec
   it). Without it, boot throws `unable to determine transport target`
   synchronously; `kernel.spec.ts` mounts `loggerPlugin` with `debug: true` as a
   regression test.
+
+## twitter-api notes (plan §3, `api.nim` + `apiutils.nim` + `tid.nim` port)
+
+- **OAuth1 signing is a port, not a dependency** (`oauth1.ts`). nitter signs
+  with the nimble package `oauth == 0.11` (CORDEA); a generic JS OAuth1 lib
+  cannot reproduce its two wire details — the fixed `nonce: "0"` and the exact
+  `Authorization` field order (signature before token, version last). HMAC-SHA1
+  comes from `node:crypto`. `tests/fixtures/generate_oauth_golden.nim` imports
+  the *real* CORDEA code from the nimble pkgcache (needs `-d:ssl` + two
+  `--path`s, see its header) and `oauth1_golden.json` pins its output byte for
+  byte — that is the fidelity oracle, run it again if the signing ever changes.
+  The URL preprocessing (`+` → `%20`, `,` → `%2C`) before signing is what keeps
+  the signature base string equal to RFC 5849 for `toUrl`'s output; do not drop it.
+- **The fetch loop owns retries; `ctx.http` does one attempt per lease.**
+  nitter's `retry` template re-leases a session per attempt — rotation is the
+  point (the pool skips limited sessions) — so `fetch.ts` loops
+  `maxRetries` times and calls `ctx.http` with `maxRetries: 1`. Config
+  `maxRetries` therefore means *total attempts across sessions*, exactly like
+  nitter (default 1 = no retry). Never "fix" this by letting the transport
+  retry API calls with the same lease; that silently kills rotation.
+- **Rate limits are recorded by `release(lease, resp.rateLimit)` immediately
+  after the response**, before body triage. The `Accounts` seam has no
+  standalone `setRateLimit`, and `release` is idempotent, so the triage paths
+  can still call `release`/`reportError` afterwards (nitter recorded headers
+  before triage too, then released in `finally`). Divergence: nitter leaks
+  `pending` when `getAndValidateSession` fails (the raise sits outside
+  `fetchImpl`'s `finally`); here the catch always releases.
+- **Error triage is `fetchImpl`'s, keyed on pool semantics.** Object payloads
+  starting `{"errors"` are parsed strictly (jsony-equivalent: `{errors:
+  [{code, message}]}`, `code` numeric or an enum name — anything else raises and
+  becomes retryable `RateLimitError`). Skippable codes
+  (`0/34/144/29/37/214`) are ignored; `89/239/326` and `88` go through
+  `accounts.reportError`, which is where the pool maps code → invalidate /
+  setLimited. A 400 raises `InternalError` *after* parse and is **not** retried
+  (http-client deliberately returns 400 so this mapping lives here).
+- **`tid.ts` deliberately bypasses `ctx.http`.** nitter fetches the pair
+  dictionary with a private `AsyncHttpClient` (no proxy, no retries); the
+  default `fetchPairs` uses global `fetch` for the same reason, which also
+  keeps it clear of `apiProxy` rewriting. The generator is lazy — no network
+  happens at plugin mount, and only cookie + non-`skipTid` + non-`/1.1/` paths
+  ever call it (`disableTid` → `BEARER_TOKEN_2` fallback, ported verbatim).
+- **`ctx.twitter` returns raw upstream bodies for now.** `TwitterApi` uses
+  plan §3 method names (`user`, `tweets`, `search`, …) with nitter's proc names
+  in the docs, but returns `Json`/`string` — the parse layer does not exist yet.
+  Deliberately parked for the `twitter-parser` session: response cursor
+  extraction (`top`/`bottom` — parser territory in nitter), search's #1372
+  repeat-page clearing (needs parsed content), plan §3 domain return types, and
+  the `getCached*` wrappers (they cache *parsed domain objects* under nitter's
+  key layout — caching raw JSON there would poison the keys).
+- **The plugin uses `inject = ["accounts", "http"]`** (same pattern as
+  `mediaRoutePlugin`), so mounting defers until both seams are provided;
+  `apps/tseer` mounts it only when sessions are mounted (`withoutSessions`
+  implies no `ctx.twitter`, and `withoutTwitter` opts out explicitly).

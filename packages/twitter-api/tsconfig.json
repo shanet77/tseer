@@ -2,6 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "paths": {
+      "@tseer/http-client": ["../http-client/src/index.ts"],
+      "@tseer/twitter-sessions": ["../twitter-sessions/src/index.ts"],
       "@tseer/types": ["../types/src/index.ts"]
     }
   },

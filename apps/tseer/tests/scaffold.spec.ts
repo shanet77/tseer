@@ -12,6 +12,7 @@ describe("scaffold boot", () => {
     expect(ctx.server).toBeDefined();
     expect(ctx.http).toBeDefined();
     expect(ctx.cache).toBeDefined();
+    expect(ctx.twitter).toBeDefined();
     const about = await ctx.server.inject({ url: "/about" });
     expect(about.status).toBe(200);
     expect(about.body).toContain("<h1>About Nitter</h1>");
@@ -46,6 +47,11 @@ describe("scaffold boot", () => {
   it("omits the cache seam when the plugin is not mounted", async () => {
     const ctx = await createApp({ configText: "", withoutCache: true });
     expect(ctx.cache).toBeUndefined();
+  });
+
+  it("omits ctx.twitter when sessions are off (the seam needs ctx.accounts)", async () => {
+    const ctx = await createApp({ configText: "", withoutSessions: true });
+    expect(ctx.twitter).toBeUndefined();
   });
 
   it("unwinds plugin effects when a plugin unloads", async () => {

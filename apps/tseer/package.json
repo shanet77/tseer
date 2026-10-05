@@ -19,6 +19,7 @@
     "@tseer/http-client": "workspace:*",
     "@tseer/kernel": "workspace:*",
     "@tseer/server": "workspace:*",
+    "@tseer/twitter-api": "workspace:*",
     "@tseer/twitter-sessions": "workspace:*",
     "cordis": "4.0.0-rc.10"
   }

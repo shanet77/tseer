@@ -1,4 +1,4 @@
-/** `@tseer/twitter-api` — endpoint consts, dual-URL request builders, search-query compiler. */
+/** `@tseer/twitter-api` — endpoint consts, request builders, OAuth1/tid headers, the fetch layer, and `ctx.twitter` (plan §3 provider seam). */
 
 export {
   apiReq,
@@ -74,6 +74,16 @@ export {
   USER_TWEETS_FIELD_TOGGLES,
   USER_TWEETS_VARS,
 } from "./endpoints.ts";
+export type { Fetcher, FetcherDeps, FetcherOptions, FetchLogger, Json } from "./fetch.ts";
+export { createFetcher } from "./fetch.ts";
+export type { RawSearch, TwitterApi, TwitterApiFetchers } from "./fetchers.ts";
+export { createTwitterApi } from "./fetchers.ts";
+export type { GenHeadersOptions } from "./headers.ts";
+export { genHeaders } from "./headers.ts";
+export type { OauthHeaderOptions } from "./oauth1.ts";
+export { getOauthHeader, percentEncode } from "./oauth1.ts";
+export type { TwitterApiPluginOptions } from "./plugin.ts";
+export { default as twitterApiPlugin } from "./plugin.ts";
 export {
   EMPTY_QUERY,
   genQueryParam,
@@ -85,5 +95,7 @@ export {
   VALID_FILTERS,
   validateNumber,
 } from "./search-query.ts";
+export type { TidGenerator, TidGeneratorOptions, TidPair } from "./tid.ts";
+export { createTidGenerator, parseTidPairs } from "./tid.ts";
 export type { ApiReq, ApiUrl } from "./urls.ts";
 export { encodeQuery, encodeUrl, toUrl } from "./urls.ts";

@@ -1,0 +1,26 @@
+[
+  {
+    "label": "cookie graphql simple",
+    "url": "https://x.com/i/api/graphql/Gb-d6r0vxPOADdG62OEBpQ/UserByScreenName?variables=%7B%22screen_name%22%3A%22nasa%22%7D&features=abc",
+    "token": "oauth-token-1",
+    "tokenSecret": "oauth-secret-1",
+    "timestamp": "1700000000",
+    "header": "OAuth oauth_consumer_key=\"3nVuSoBZnx6U4vzUxf5w\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1700000000\", oauth_nonce=\"0\", oauth_signature=\"dic4cgjNM0dlWLs1M3VCWK0luOU%3D\", oauth_token=\"oauth-token-1\", oauth_version=\"1.0\""
+  },
+  {
+    "label": "oauth graphql with commas and spaces",
+    "url": "https://api.x.com/graphql/LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2?variables=%7B%22rest_id%22%3A%2212345%22%2C+%22count%22%3A20%7D&features=abc",
+    "token": "oauth-token-2",
+    "tokenSecret": "oauth-secret-2",
+    "timestamp": "1712345678",
+    "header": "OAuth oauth_consumer_key=\"3nVuSoBZnx6U4vzUxf5w\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1712345678\", oauth_nonce=\"0\", oauth_signature=\"GzMvcjxAnE8qz9%2FQprZSyXE8jtY%3D\", oauth_token=\"oauth-token-2\", oauth_version=\"1.0\""
+  },
+  {
+    "label": "empty query params",
+    "url": "https://api.x.com/1.1/help/configuration.json",
+    "token": "",
+    "tokenSecret": "",
+    "timestamp": "1600000000",
+    "header": "OAuth oauth_consumer_key=\"3nVuSoBZnx6U4vzUxf5w\", oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"1600000000\", oauth_nonce=\"0\", oauth_signature=\"xHXISBOx6r0uG9AW6%2F3Dc%2FNnT9s%3D\", oauth_version=\"1.0\""
+  }
+]

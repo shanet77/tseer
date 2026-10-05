@@ -7,6 +7,7 @@ import {
   staticRoutePlugin,
 } from "@tseer/kernel";
 import { serverPlugin } from "@tseer/server";
+import { twitterApiPlugin } from "@tseer/twitter-api";
 import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
 import type { Context } from "cordis";
 import hello from "./plugins/hello.ts";
@@ -28,6 +29,8 @@ export interface CreateAppOptions {
   sessionsPath?: string | undefined;
   /** Skip the sessions plugin entirely (no pool, `/.health` stays empty). */
   withoutSessions?: boolean | undefined;
+  /** Skip the `ctx.twitter` provider (needs `ctx.accounts`; default when sessions are off). */
+  withoutTwitter?: boolean | undefined;
 }
 
 /** Mount the scaffold plugin list on a kernel-booted cordis context. */
@@ -57,6 +60,13 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
   }
   if (options.withoutSessions !== true) {
     await ctx.plugin(twitterSessionsPlugin, { path: options.sessionsPath });
+  }
+  if (options.withoutTwitter !== true && options.withoutSessions !== true) {
+    await ctx.plugin(twitterApiPlugin, {
+      disableTid: ctx.config.disableTid,
+      maxRetries: ctx.config.maxRetries,
+      retryDelayMs: ctx.config.retryDelayMs,
+    });
   }
   await ctx.plugin(healthRoutePlugin, {
     sessionHealth: options.withoutSessions === true ? undefined : () => ctx.accounts.health(),
