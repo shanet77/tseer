@@ -15,6 +15,7 @@ export {
   userTweetsUrl,
   userUrl,
 } from "./client.ts";
+export { createDomainTwitterApi, type ProfileTweets, type TwitterApi } from "./domain.ts";
 export {
   ARTICLE_BATCH_VARS,
   ARTICLE_FIELD_TOGGLES,
@@ -76,7 +77,7 @@ export {
 } from "./endpoints.ts";
 export type { Fetcher, FetcherDeps, FetcherOptions, FetchLogger, Json } from "./fetch.ts";
 export { createFetcher } from "./fetch.ts";
-export type { RawSearch, TwitterApi, TwitterApiFetchers } from "./fetchers.ts";
+export type { RawSearch, RawTwitterApi, TwitterApiFetchers } from "./fetchers.ts";
 export { createTwitterApi } from "./fetchers.ts";
 export type { GenHeadersOptions } from "./headers.ts";
 export { genHeaders } from "./headers.ts";

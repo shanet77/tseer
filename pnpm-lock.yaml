@@ -193,12 +193,18 @@ importers:
       '@tseer/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@tseer/media':
+        specifier: workspace:*
+        version: link:../../packages/media
       '@tseer/server':
         specifier: workspace:*
         version: link:../../packages/server
       '@tseer/twitter-api':
         specifier: workspace:*
         version: link:../../packages/twitter-api
+      '@tseer/twitter-parser':
+        specifier: workspace:*
+        version: link:../../packages/twitter-parser
       '@tseer/twitter-sessions':
         specifier: workspace:*
         version: link:../../packages/twitter-sessions
@@ -271,6 +277,9 @@ importers:
       '@tseer/http-client':
         specifier: workspace:*
         version: link:../http-client
+      '@tseer/twitter-parser':
+        specifier: workspace:*
+        version: link:../twitter-parser
       '@tseer/twitter-sessions':
         specifier: workspace:*
         version: link:../twitter-sessions

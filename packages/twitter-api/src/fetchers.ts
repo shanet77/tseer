@@ -85,12 +85,11 @@ export interface TwitterApiFetchers {
 }
 
 /**
- * `ctx.twitter` — the provider seam (plan §3), raw-flavoured: methods return
- * the upstream body (JSON for nitter's `fetch` procs, text for `fetchRaw`)
- * until `twitter-parser` lands, at which point the same names gain domain
- * return types without touching this module's request construction.
+ * The raw half of the provider seam: methods return the upstream body (JSON
+ * for nitter's `fetch` procs, text for `fetchRaw`). The domain-flavoured
+ * `TwitterApi` (plan §3) composes these with `ctx.parsers` in `domain.ts`.
  */
-export interface TwitterApi {
+export interface RawTwitterApi {
   /** Port of `api.nim` `getGraphUser` (`fetchRaw`). */
   user(username: string): Promise<string | undefined>;
   /** Port of `api.nim` `getGraphUserById` (`fetchRaw`). */
@@ -197,7 +196,7 @@ function productSearch(
   })();
 }
 
-export function createTwitterApi(fetcher: TwitterApiFetchers): TwitterApi {
+export function createTwitterApi(fetcher: TwitterApiFetchers): RawTwitterApi {
   const timeline = (kind: TimelineKind, id: string, cursor: string): Promise<Json | undefined> => {
     if (id.length === 0) return Promise.resolve(undefined);
     const fragment = cursorParam(cursor);

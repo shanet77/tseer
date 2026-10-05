@@ -1,7 +1,7 @@
 import { QueryKind } from "@tseer/types";
 import { Context } from "cordis";
 import { describe, expect, it } from "vitest";
-import type { ParseOptions, ParserKind } from "../src/plugin.ts";
+import type { ParseFn, ParserKind } from "../src/plugin.ts";
 import parsersPlugin from "../src/plugin.ts";
 import { Parsers } from "../src/registry.ts";
 

@@ -6,8 +6,10 @@ import {
   healthRoutePlugin,
   staticRoutePlugin,
 } from "@tseer/kernel";
+import { mediaPlugin } from "@tseer/media";
 import { serverPlugin } from "@tseer/server";
 import { twitterApiPlugin } from "@tseer/twitter-api";
+import { parsersPlugin } from "@tseer/twitter-parser";
 import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
 import type { Context } from "cordis";
 import hello from "./plugins/hello.ts";
@@ -62,6 +64,11 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     await ctx.plugin(twitterSessionsPlugin, { path: options.sessionsPath });
   }
   if (options.withoutTwitter !== true && options.withoutSessions !== true) {
+    await ctx.plugin(mediaPlugin, {
+      hmacKey: ctx.config.hmacKey,
+      base64Media: ctx.config.base64Media,
+    });
+    await ctx.plugin(parsersPlugin, { picUrl: (url) => ctx.media.picUrl(url) });
     await ctx.plugin(twitterApiPlugin, {
       disableTid: ctx.config.disableTid,
       maxRetries: ctx.config.maxRetries,

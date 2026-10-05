@@ -10,16 +10,18 @@
  * `ctx.twitter` at all.
  */
 import type { HttpClient } from "@tseer/http-client";
+import type { Parsers } from "@tseer/twitter-parser";
 import type { Accounts, Session } from "@tseer/twitter-sessions";
 import type { Context } from "cordis";
+import { createDomainTwitterApi, type TwitterApi } from "./domain.ts";
 import { createFetcher } from "./fetch.ts";
-import { createTwitterApi, type TwitterApi } from "./fetchers.ts";
+import { createTwitterApi } from "./fetchers.ts";
 import { genHeaders } from "./headers.ts";
 import { createTidGenerator } from "./tid.ts";
 
 declare module "cordis" {
   interface Context {
-    /** Plan §3 provider seam; raw bodies until `twitter-parser` lands. */
+    /** Plan §3 provider seam: parsed domain objects (fetch → parse). */
     twitter: TwitterApi;
   }
 }
@@ -51,11 +53,15 @@ export default function twitterApiPlugin(
   const config = ctx.get("config" as never) as TwitterConfig | undefined;
   const accounts = ctx.get("accounts" as never) as Accounts | undefined;
   const http = ctx.get("http" as never) as HttpClient | undefined;
+  const parsers = ctx.get("parsers" as never) as Parsers | undefined;
   if (accounts === undefined) {
     throw new Error("twitter: ctx.accounts is not mounted (load twitterSessionsPlugin first)");
   }
   if (http === undefined) {
     throw new Error("twitter: ctx.http is not mounted (load httpClientPlugin first)");
+  }
+  if (parsers === undefined) {
+    throw new Error("twitter: ctx.parsers is not mounted (load parsersPlugin first)");
   }
 
   const disableTid = options.disableTid ?? config?.disableTid ?? false;
@@ -81,7 +87,10 @@ export default function twitterApiPlugin(
     },
   );
 
-  const dispose = ctx.provide("twitter", createTwitterApi(fetcher));
+  const dispose = ctx.provide(
+    "twitter",
+    createDomainTwitterApi(createTwitterApi(fetcher), parsers),
+  );
   return () => {
     void dispose();
   };

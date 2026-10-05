@@ -5,6 +5,8 @@
     "paths": {
       "@tseer/http-client": ["../../packages/http-client/src/index.ts"],
       "@tseer/kernel": ["../../packages/kernel/src/index.ts"],
+      "@tseer/media": ["../../packages/media/src/index.ts"],
+      "@tseer/twitter-parser": ["../../packages/twitter-parser/src/index.ts"],
       "@tseer/server": ["../../packages/server/src/index.ts"],
       "@tseer/twitter-api": ["../../packages/twitter-api/src/index.ts"],
       "@tseer/twitter-sessions": ["../../packages/twitter-sessions/src/index.ts"]
