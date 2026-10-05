@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import type { TwitterApi } from "@tseer/twitter-api";
 import { createApp } from "./index.ts";
 
 function arg(name: string): string | undefined {
@@ -7,6 +8,47 @@ function arg(name: string): string | undefined {
 }
 
 const command = process.argv[2];
+if (command === "debug") {
+  const spec = process.argv[3] ?? "";
+  const match = spec.match(/^user\/(.+)$/);
+  if (!match) {
+    console.error(
+      `usage: tseer debug user/<name> | tseer web [--config=<path>] [--port=<n>] [--sessions=<path>]`,
+    );
+    process.exit(1);
+  }
+  const name = match[1];
+  if (name === undefined) {
+    console.error(`debug: empty user name`);
+    process.exit(1);
+  }
+  const configPath = arg("config") ?? process.env.TSEER_CONF_FILE ?? process.env.NITTER_CONF_FILE;
+  const sessionsPath = arg("sessions");
+  const debugCtx = await createApp({
+    ...(configPath ? { configPath } : { configText: "" }),
+    ...(sessionsPath ? { sessionsPath } : {}),
+  });
+  const twitter = debugCtx.twitter as TwitterApi | undefined;
+  if (!twitter) {
+    console.error(
+      "debug: ctx.twitter unavailable — sessions are required (pass --sessions=<path> or place sessions.jsonl)",
+    );
+    process.exit(1);
+  }
+  let user: Awaited<ReturnType<typeof twitter.user>>;
+  try {
+    user = await twitter.user(name);
+  } catch (err) {
+    console.error(`debug: ${err instanceof Error ? err.message : err}`);
+    process.exit(1);
+  }
+  if (!user) {
+    console.error(`debug: user ${name} not found`);
+    process.exit(1);
+  }
+  console.log(JSON.stringify(user, null, 2));
+  process.exit(0);
+}
 if (command && command !== "web") {
   console.error(`usage: tseer web [--config=<path>] [--port=<n>] [--sessions=<path>]`);
   process.exit(1);
