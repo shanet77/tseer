@@ -18,12 +18,14 @@ plan-vs-reality deltas discovered during implementation.
 - [x] Phase 1 — `kernel/createApp(config)`, config service (zod + nitter.conf ini), `types`, `logger`, `tseer web` serving `/about`
 - [x] Phase 2 — platform seams: `http-client`, `cache`, `twitter-sessions`, `server`, `media`
       — **done**; all five have landed.
-- [ ] Phase 3 — `twitter-api` + `twitter-parser` with golden fixtures
-      — **in progress**; `twitter-api` (endpoints, request builders, URL builders,
+- [x] Phase 3 — `twitter-api` + `twitter-parser` with golden fixtures
+      — **done**; `twitter-api` (endpoints, request builders, URL builders,
       search-query compiler, golden fixtures from nitter @ 376f149, fetch layer,
       `ctx.twitter` flipped to plan §3 domain types, `getCached*` wrappers) and
       `twitter-parser` (full parser port + `ctx.parsers` registry, wired into
-      `apps/tseer`) have landed. Still pending: `tseer debug`.
+      `apps/tseer`) have landed. `tseer debug user/<name>` prints parsed user
+      JSON (needs a sessions store; live smoke test still pending a real
+      session — plan §6's optional job).
 - [ ] Phase 4 — `views`, `prefs`, `ctx.render`, core route plugins
 - [ ] Phase 5 — long-tail route plugins
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
