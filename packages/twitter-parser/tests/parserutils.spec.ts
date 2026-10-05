@@ -113,7 +113,7 @@ describe("slices", () => {
   });
 
   it("builds anchors with escaped attributes", () => {
-    expect(anchor("text", "https://x.com/a&b")).toBe('<a href="https://x.com/a&amp;b">text</a>');
+    expect(anchor("text", "https://x.com/a&b")).toBe('<a href="https://x.com/a&b">text</a>');
     expect(anchor("text", "/x", 'a"b')).toBe('<a href="/x" title="a&quot;b">text</a>');
   });
 
@@ -145,7 +145,7 @@ describe("slices", () => {
     ];
     const html = replacedWith(runes, repls, { a: 0, b: runes.length });
     expect(html).toBe(
-      'look <a href="https://x.com/foo">x.com/foo</a> and <a href="/search?f=tweets&amp;q=%23tag">#tag</a> end',
+      'look <a href="https://x.com/foo">x.com/foo</a> and <a href="/search?f=tweets&q=%23tag">#tag</a> end',
     );
   });
 

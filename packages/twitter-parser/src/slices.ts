@@ -61,9 +61,13 @@ export function shortLink(text: string, length = 28): string {
   return shorten(text.replace(/^https?:\/\/(www[0-9]?\.)?/, ""), length);
 }
 
-/** `htmlgen.a(text, href, title)` — the anchor form the replaced text uses. */
+/**
+ * `htmlgen.a(text, href, title)` — the anchor form the replaced text uses.
+ * Ported verbatim: text and href go in raw (Nim escapes neither; the callers
+ * escape what parserutils.nim escapes), only `title` is attribute-escaped.
+ */
 export function anchor(text: string, href: string, title?: string): string {
-  const attrs = `href="${xmlEscape(href)}"${title === undefined ? "" : ` title="${xmlEscape(title)}"`}`;
+  const attrs = `href="${href}"${title === undefined ? "" : ` title="${xmlEscape(title)}"`}`;
   return `<a ${attrs}>${text}</a>`;
 }
 

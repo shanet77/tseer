@@ -1,0 +1,38 @@
+{
+  "user_results": {
+    "result": {
+      "__typename": "User",
+      "rest_id": "1234567890",
+      "is_blue_verified": true,
+      "legacy": {
+        "id_str": "1234567890",
+        "screen_name": "jack",
+        "name": "Jack",
+        "location": "San Francisco",
+        "description": "founder! visit https://t.co/abc and say hi @bob_1 about #foo",
+        "entities": {
+          "url": {
+            "urls": [
+              { "url": "https://t.co/abc", "expanded_url": "https://jack.xyz", "indices": [15, 31] }
+            ]
+          },
+          "description": {
+            "urls": [
+              { "url": "https://t.co/abc", "expanded_url": "https://jack.xyz", "indices": [15, 31] }
+            ]
+          }
+        },
+        "created_at": "Tue Mar 21 20:19:24 +0000 2006",
+        "friends_count": 100,
+        "followers_count": 1000000,
+        "favourites_count": 5,
+        "statuses_count": 50000,
+        "media_count": 500,
+        "protected": false,
+        "profile_banner_url": "https://pbs.twimg.com/profile_banners/123",
+        "profile_image_url_https": "https://pbs.twimg.com/profile_images/1/xyz_normal.jpg",
+        "pinned_tweet_ids_str": ["9876"]
+      }
+    }
+  }
+}
