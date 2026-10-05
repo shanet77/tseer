@@ -20,12 +20,10 @@ plan-vs-reality deltas discovered during implementation.
       — **done**; all five have landed.
 - [ ] Phase 3 — `twitter-api` + `twitter-parser` with golden fixtures
       — **in progress**; `twitter-api` (endpoints, request builders, URL builders,
-      search-query compiler, golden fixtures from nitter @ 376f149) has landed,
-      as has the fetch layer (OAuth1 + tid headers, lease/http/triage loop,
-      raw `getGraph*` fetchers, `ctx.twitter` plugin, wired into `apps/tseer`).
-      Still pending: `twitter-parser` (which also flips `ctx.twitter` to plan §3
-      domain types, extracts response cursors, and lands the `cached()` wrappers)
-      and `tseer debug`.
+      search-query compiler, golden fixtures from nitter @ 376f149, fetch layer,
+      `ctx.twitter` flipped to plan §3 domain types, `getCached*` wrappers) and
+      `twitter-parser` (full parser port + `ctx.parsers` registry, wired into
+      `apps/tseer`) have landed. Still pending: `tseer debug`.
 - [ ] Phase 4 — `views`, `prefs`, `ctx.render`, core route plugins
 - [ ] Phase 5 — long-tail route plugins
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
@@ -302,15 +300,76 @@ docs/TS_PORT_PLAN.md  # the spec
   keeps it clear of `apiProxy` rewriting. The generator is lazy — no network
   happens at plugin mount, and only cookie + non-`skipTid` + non-`/1.1/` paths
   ever call it (`disableTid` → `BEARER_TOKEN_2` fallback, ported verbatim).
-- **`ctx.twitter` returns raw upstream bodies for now.** `TwitterApi` uses
-  plan §3 method names (`user`, `tweets`, `search`, …) with nitter's proc names
-  in the docs, but returns `Json`/`string` — the parse layer does not exist yet.
-  Deliberately parked for the `twitter-parser` session: response cursor
-  extraction (`top`/`bottom` — parser territory in nitter), search's #1372
-  repeat-page clearing (needs parsed content), plan §3 domain return types, and
-  the `getCached*` wrappers (they cache *parsed domain objects* under nitter's
-  key layout — caching raw JSON there would poison the keys).
+- **`ctx.twitter` is domain-typed now.** `fetchers.ts` keeps the raw bodies
+  (`RawTwitterApi`); `domain.ts` composes them with `ctx.parsers` into the
+  plan §3 `TwitterApi` (parsed domain objects, cursors, the #1372 repeat-page
+  clearing, and `getTweet`'s two-request replies composition). The
+  `getCached*` wrappers (`cached.ts`) cache parsed domain objects under
+  nitter's key layout and ride the same service; `ctx.cache` is optional —
+  without it the wrappers degrade to direct fetches.
 - **The plugin uses `inject = ["accounts", "http"]`** (same pattern as
   `mediaRoutePlugin`), so mounting defers until both seams are provided;
   `apps/tseer` mounts it only when sessions are mounted (`withoutSessions`
   implies no `ctx.twitter`, and `withoutTwitter` opts out explicitly).
+
+## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
+
+- **Accessors, not jsony.** The Nim parsers come in two styles — packedjson
+  accessors (`parser.nim`) and jsony typed structs (`experimental/parser`).
+  The port is all tolerant accessors (`src/json.ts`): nitter's
+  `js{"a"}.getStr`/`getInt`/`select`/`with` semantics, with `undefined` and
+  JSON `null` both meaning "absent". Nim code that would *raise* on upstream
+  garbage (`parseInt` of a non-number) yields the 0/`""` default instead — a
+  malformed card must not take down a timeline.
+- **Ids and dates are strings.** int64 ids exceed `Number.MAX_SAFE_INTEGER`,
+  so ids stay strings with `""` as the zero (see `idFromEntry`, the port of
+  `getId`); `DateTime` is an ISO string with `""` as "not set" — this is what
+  makes domain objects survive `JSON.stringify` for the cache seam.
+- **Entity rewriting is codepoint-based.** Nim's `toRunes` slices map to
+  `[...text]` codepoint arrays; X entity indices are half-open, but Nim's
+  `..<` folds the exclusivity into `slice.b` at construction, so the port
+  keeps the raw index and translates each rune expression at its use site
+  (`slices.ts` documents the mapping). The `cmp` quirk
+  (`cmp(x.slice.a, y.slice.b)`) is ported verbatim.
+- **Quirks kept on purpose:** `replace("/video/1", "")` is `replaceAll` in
+  Nim, so attribution links genuinely become `/clapper002`-style strings —
+  the card-hiding comparison uses the same broken replace on both sides, so
+  it still matches; the birdwatch splice drops the final codepoint
+  (`0 ..< runes.len` folds to `len - 1`); the hashtag/mention regex is
+  `parserutils.nim`'s `re` version everywhere (the experimental `nre`
+  lookahead variant is not ported).
+- **Suspended users.** `parser.nim`'s JsonNode `parseGraphUser` has no
+  suspension handling — only the experimental string parser checks
+  `unavailable_reason`/`reason == "Suspended"`, and the cache sentinel
+  (`getCachedUsername` returning `"suspended"`) depends on it. The check is
+  ported from the experimental parser into both user paths (documented at the
+  call site).
+- **Cursors.** nitter extracts the `Bottom` cursor only (`top` stays empty);
+  the port keeps that. The search parsers handle `TimelineReplaceEntry`
+  bottom updates; `Result.query` is attached by the fetch layer (the registry
+  overwrites it when `options.query` is given) *after* parsing so #1372 can
+  compare `after` with the parsed bottom cursor first.
+- **Media links at parse time.** nitter builds `/pic/` card links through
+  process globals (`setHmacKey`); the port keeps that shape with
+  `setPicUrl`, wired by `parsersPlugin({ picUrl })` from `ctx.media` in
+  `apps/tseer`. Unset (standalone parser use), card image fallbacks get no
+  proxy link.
+- **`ctx.parsers` is a class instance**, like `ctx.accounts` — `has`/
+  `register` (reversible effect, un-registers on dispose) and
+  `parse(kind, json, { after, query, tweetId, kind })`. The `followers` kind
+  serves followers *and* following (the `kind` option picks the QueryKind),
+  mirroring `getGraphUserConnections`.
+- **The experimental `parseGraphListMembers`/`parseGraphFollowers`** accept a
+  raw string (they port `fetchRaw` bodies) or an already-parsed object, and
+  read `entryType`/`cursorType` (camelCase, the jsony exact-name fields)
+  while accepting both `user_results` and `userResults` — upstream sends
+  snake_case and the Nim structs rename it.
+- **Cache is optional for `twitterApiPlugin`.** `ctx.parsers` is required
+  (helpful error if the parse seam is not mounted); `ctx.cache` is not —
+  `apps/tseer` mounts `mediaPlugin` (pure signing) + `parsersPlugin` before
+  `twitterApiPlugin` when sessions exist.
+- **Fixtures are synthetic.** The plan asks for golden fixtures captured from
+  real GraphQL responses; capturing needs a live session, so the suite pins
+  parser behavior with hand-built payload fixtures per kind
+  (`packages/twitter-parser/tests/fixtures`). Swap in captured payloads when
+  a live smoke test happens (plan §6's optional job).
