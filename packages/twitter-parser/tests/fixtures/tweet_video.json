@@ -1,0 +1,42 @@
+{
+  "id_str": "1002",
+  "created_at": "Wed Aug 09 12:34:56 +0000 2023",
+  "full_text": "video time https://t.co/vid",
+  "display_text_range": [0, 27],
+  "entities": {
+    "media": [{ "url": "https://t.co/vid", "indices": [11, 27] }]
+  },
+  "user_id_str": "1234567890",
+  "reply_count": 0,
+  "retweet_count": 0,
+  "favorite_count": 0,
+  "views_count": 10,
+  "extended_entities": {
+    "media": [
+      {
+        "__typename": "video",
+        "media_url_https": "https://pbs.twimg.com/ext_tw_video_thumb/1.jpg",
+        "ext_alt_text": "clip",
+        "video_info": {
+          "duration_millis": 15000,
+          "variants": [
+            {
+              "content_type": "video/mp4",
+              "bit_rate": 1000000,
+              "url": "https://video.twimg.com/ext_tw_video/1/pu/vid/720x1280/a.mp4"
+            },
+            {
+              "content_type": "application/x-mpegURL",
+              "url": "https://video.twimg.com/ext_tw_video/1/pu/pl/a.m3u8"
+            }
+          ]
+        },
+        "additional_media_info": {
+          "source_user": { "id": 42, "screen_name": "clapper", "name": "Clapper" },
+          "title": "Shared video"
+        },
+        "expanded_url": "https://twitter.com/clapper/video/1002"
+      }
+    ]
+  }
+}

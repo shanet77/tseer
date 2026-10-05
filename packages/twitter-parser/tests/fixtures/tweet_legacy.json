@@ -1,0 +1,39 @@
+{
+  "id_str": "1001",
+  "conversation_id_str": "1001",
+  "in_reply_to_status_id_str": null,
+  "created_at": "Wed Aug 09 12:34:56 +0000 2023",
+  "full_text": "check https://t.co/xy mention @bob_1 and #tag https://t.co/pic",
+  "display_text_range": [0, 62],
+  "entities": {
+    "urls": [
+      {
+        "url": "https://t.co/xy",
+        "expanded_url": "https://example.com/article",
+        "indices": [6, 21]
+      },
+      {
+        "url": "https://t.co/pic",
+        "expanded_url": "https://pic.twitter.com/abc",
+        "indices": [46, 62]
+      }
+    ],
+    "hashtags": [{ "text": "tag", "indices": [41, 45] }],
+    "user_mentions": [{ "screen_name": "bob_1", "name": "Bob", "indices": [30, 36] }],
+    "media": [{ "url": "https://t.co/pic", "indices": [46, 62] }]
+  },
+  "user_id_str": "1234567890",
+  "reply_count": 2,
+  "retweet_count": 3,
+  "favorite_count": 4,
+  "views_count": 500,
+  "extended_entities": {
+    "media": [
+      {
+        "__typename": "photo",
+        "media_url_https": "https://pbs.twimg.com/media/abc.jpg",
+        "ext_alt_text": "a photo"
+      }
+    ]
+  }
+}

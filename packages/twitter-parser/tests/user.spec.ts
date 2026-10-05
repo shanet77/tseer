@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { VerifiedType } from "@tseer/types";
 import { describe, expect, it } from "vitest";
+import type { Json } from "../src/json.ts";
 import {
   parseAboutAccount,
   parseGraphUser,
@@ -9,7 +10,7 @@ import {
   parseVerifiedType,
 } from "../src/user.ts";
 
-function fixture(name: string): unknown {
+function fixture(name: string): Json {
   return JSON.parse(
     readFileSync(fileURLToPath(new URL(`./fixtures/${name}.json`, import.meta.url)), "utf8"),
   );
@@ -72,7 +73,7 @@ describe("user parsers", () => {
 
   it("ports parseUserResult for the list-member shape (legacy + typed)", () => {
     const legacy = parseUserResult(
-      (fixture("user_legacy") as { user_results: { result: unknown } }).user_results.result,
+      (fixture("user_legacy") as { user_results: { result: Json } }).user_results.result,
     );
     expect(legacy.username).toBe("jack");
     expect(legacy.pinnedTweet).toBe("9876");

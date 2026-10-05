@@ -1,0 +1,55 @@
+{
+  "rest_id": "1003",
+  "core": {
+    "user_results": {
+      "result": {
+        "rest_id": "1234567890",
+        "legacy": {
+          "id_str": "1234567890",
+          "screen_name": "jack",
+          "name": "Jack"
+        }
+      }
+    }
+  },
+  "legacy": {
+    "id_str": "1003",
+    "created_at": "Wed Aug 09 12:34:56 +0000 2023",
+    "full_text": "look at this link https://t.co/card",
+    "display_text_range": [0, 35],
+    "entities": {
+      "urls": [
+        {
+          "url": "https://t.co/card",
+          "expanded_url": "https://blog.example.com/post",
+          "indices": [14, 35]
+        }
+      ]
+    },
+    "user_id_str": "1234567890",
+    "reply_count": 0,
+    "retweet_count": 0,
+    "favorite_count": 0,
+    "views_count": 3
+  },
+  "card": {
+    "name": "summary",
+    "url": "https://t.co/card",
+    "binding_values": {
+      "title": {
+        "string_value": "A blog post"
+      },
+      "description": {
+        "string_value": "some text"
+      },
+      "vanity_url": {
+        "string_value": "blog.example.com"
+      },
+      "summary_photo_image_large": {
+        "image_value": {
+          "url": "https://pbs.twimg.com/card_img/1.jpg"
+        }
+      }
+    }
+  }
+}

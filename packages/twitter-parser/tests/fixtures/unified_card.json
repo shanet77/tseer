@@ -1,0 +1,17 @@
+{
+  "component_objects": {
+    "1": {
+      "type": "media_with_details_horizontal",
+      "data": { "id": "media1", "mediaId": "media1", "destination": "dest1" }
+    }
+  },
+  "destination_objects": {
+    "dest1": {
+      "data": { "url_data": { "url": "https://promo.example.com", "vanity": "promo.example.com" } }
+    }
+  },
+  "media_entities": {
+    "media1": { "type": "photo", "media_url_https": "https://pbs.twimg.com/media/promo.jpg" }
+  },
+  "app_store_data": {}
+}

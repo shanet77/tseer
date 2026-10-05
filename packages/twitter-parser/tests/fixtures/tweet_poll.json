@@ -1,0 +1,47 @@
+{
+  "rest_id": "1004",
+  "core": {
+    "user_results": {
+      "result": {
+        "rest_id": "1234567890",
+        "legacy": {
+          "id_str": "1234567890",
+          "screen_name": "jack",
+          "name": "Jack"
+        }
+      }
+    }
+  },
+  "legacy": {
+    "id_str": "1004",
+    "created_at": "Wed Aug 09 12:34:56 +0000 2023",
+    "full_text": "poll time",
+    "display_text_range": [0, 9],
+    "entities": {},
+    "user_id_str": "1234567890",
+    "reply_count": 0,
+    "retweet_count": 0,
+    "favorite_count": 0,
+    "views_count": 0
+  },
+  "card": {
+    "name": "poll2choice_text_only",
+    "binding_values": {
+      "choice1_count": {
+        "string_value": "10"
+      },
+      "choice1_label": {
+        "string_value": "Yes"
+      },
+      "choice2_count": {
+        "string_value": "5"
+      },
+      "choice2_label": {
+        "string_value": "No"
+      },
+      "end_datetime_utc": {
+        "string_value": "2099-01-02T03:04:05Z"
+      }
+    }
+  }
+}
