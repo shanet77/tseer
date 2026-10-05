@@ -1,5 +1,6 @@
 /** `@tseer/twitter-api` — endpoint consts, request builders, OAuth1/tid headers, the fetch layer, and `ctx.twitter` (plan §3 provider seam). */
 
+export { type CachedApiOptions, type CachedMethods, createCachedMethods } from "./cached.ts";
 export {
   apiReq,
   apiUrl,

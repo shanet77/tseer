@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@tseer/cache": "workspace:*",
     "@tseer/http-client": "workspace:*",
     "@tseer/twitter-parser": "workspace:*",
     "@tseer/twitter-sessions": "workspace:*",

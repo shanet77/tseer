@@ -274,6 +274,9 @@ importers:
 
   packages/twitter-api:
     dependencies:
+      '@tseer/cache':
+        specifier: workspace:*
+        version: link:../cache
       '@tseer/http-client':
         specifier: workspace:*
         version: link:../http-client

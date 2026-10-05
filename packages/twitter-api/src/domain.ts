@@ -30,6 +30,7 @@ import {
   type Tweet,
   type User,
 } from "@tseer/types";
+import { type CachedApiOptions, type CachedMethods, createCachedMethods } from "./cached.ts";
 import type { Json } from "./fetch.ts";
 import type { RawSearch, RawTwitterApi } from "./fetchers.ts";
 
@@ -119,6 +120,29 @@ export interface TwitterApi {
   broadcast(id: string): Promise<Broadcast | undefined>;
   /** Port of `fetchBroadcastStream` (no parsing; raw playback URL). */
   broadcastStream(mediaKey: string): Promise<string | undefined>;
+
+  // The redis_cache.nim wrappers (`getCached*`) — outside plan §3's sketch,
+  // but the seam the route plugins consume (Phase 4/5), exactly like nitter's
+  // routes call `getCachedUser` & co. directly.
+
+  /** Port of `getCachedUser`. */
+  cachedUser(username: string, fetch?: boolean): Promise<User | undefined>;
+  /** Port of `getCachedUsername` (the `i:` reverse lookup). */
+  cachedUsername(userId: string): Promise<string>;
+  /** Port of `getCachedAccountInfo`. */
+  cachedAccountInfo(username: string, fetch?: boolean): Promise<AccountInfo | undefined>;
+  /** Port of `getCachedPhotoRail`. */
+  cachedPhotoRail(id: string): Promise<PhotoRail | undefined>;
+  /** Port of `getCachedBroadcast`. */
+  cachedBroadcast(id: string): Promise<Broadcast | undefined>;
+  /** Port of `getCachedAudioSpace`. */
+  cachedSpace(id: string): Promise<AudioSpace | undefined>;
+  /** Port of `getCachedCommunity`. */
+  cachedCommunity(id: string): Promise<Community | undefined>;
+  /** Port of `getCachedCommunityModerators`. */
+  cachedCommunityModerators(id: string): Promise<User[] | undefined>;
+  /** Port of `getCachedList`. */
+  cachedList(username?: string, slug?: string, id?: string): Promise<List | undefined>;
 }
 
 /**
@@ -172,7 +196,11 @@ function emptyEnvelope(query: Query): {
   return { content: [], top: "", bottom: "", beginning: true, query };
 }
 
-export function createDomainTwitterApi(raw: RawTwitterApi, parsers: Parsers): TwitterApi {
+export function createDomainTwitterApi(
+  raw: RawTwitterApi,
+  parsers: Parsers,
+  cachedOptions: CachedApiOptions = {},
+): TwitterApi {
   const timeline = async (
     kind: "tweets" | "tweetsAndReplies" | "media" | "articles",
     userId: string,
@@ -204,7 +232,8 @@ export function createDomainTwitterApi(raw: RawTwitterApi, parsers: Parsers): Tw
     return parsed;
   };
 
-  return {
+  type CoreApi = Omit<TwitterApi, keyof CachedMethods>;
+  const core: CoreApi = {
     async user(username) {
       return parseBody(parsers, await raw.user(username), "user") as User | undefined;
     },
@@ -360,4 +389,22 @@ export function createDomainTwitterApi(raw: RawTwitterApi, parsers: Parsers): Tw
 
     broadcastStream: (mediaKey) => raw.broadcastStream(mediaKey),
   };
+
+  const cached = createCachedMethods(
+    {
+      user: (username) => core.user(username),
+      userById: (id) => core.userById(id),
+      aboutAccount: (username) => core.aboutAccount(username),
+      photoRail: (id) => core.photoRail(id),
+      broadcast: (id) => core.broadcast(id),
+      space: (id) => core.space(id),
+      broadcastStream: (mediaKey) => core.broadcastStream(mediaKey),
+      communityInfo: (id) => core.communityInfo(id),
+      communityModerators: (id) => core.communityModerators(id),
+      listInfo: (id) => core.listInfo(id),
+      listBySlug: (name, slug) => core.listBySlug(name, slug),
+    },
+    cachedOptions,
+  );
+  return { ...core, ...cached };
 }
