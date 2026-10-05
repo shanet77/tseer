@@ -281,6 +281,15 @@ importers:
         specifier: 4.0.0-rc.10
         version: 4.0.0-rc.10
 
+  packages/twitter-parser:
+    dependencies:
+      '@tseer/types':
+        specifier: workspace:*
+        version: link:../types
+      cordis:
+        specifier: 4.0.0-rc.10
+        version: 4.0.0-rc.10
+
   packages/twitter-sessions:
     dependencies:
       '@tseer/types':

@@ -9,7 +9,8 @@
  * encodes for the cache/JSON seam.
  */
 
-const TWITTER_DATE = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{2}) (\d{2}):(\d{2}):(\d{2}) \+0000 (\d{4})$/;
+const TWITTER_DATE =
+  /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{2}) (\d{2}):(\d{2}):(\d{2}) \+0000 (\d{4})$/;
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$/;
 
 const MONTHS = new Map(
@@ -18,7 +19,14 @@ const MONTHS = new Map(
   ),
 );
 
-function isoUtc(year: number, month: number, day: number, hour: number, minute: number, second: number): string {
+function isoUtc(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+): string {
   return new Date(Date.UTC(year, month, day, hour, minute, second)).toISOString();
 }
 

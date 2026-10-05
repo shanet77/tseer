@@ -142,6 +142,15 @@ export function idString(value: string): string {
   return /^[0-9]+$/.test(value) ? value : "";
 }
 
+/**
+ * `getId(string)`: the digits after the last dash (`tweet-1234` → `"1234"`);
+ * `""` when there is no numeric id (the TS "zero id").
+ */
+export function idFromEntry(value: string): string {
+  const start = value.lastIndexOf("-");
+  return idString(start < 0 ? value : value.slice(start + 1));
+}
+
 /** `getCursor`: `content.operation.cursor.value` (timeline replace-entry cursors). */
 export function cursorValue(node: Json, ...keys: string[]): string {
   return str(at(node, ...keys), "content", "operation", "cursor", "value");
