@@ -1,0 +1,25 @@
+{
+  "name": "@tseer/prefs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "tseer prefs seam: ctx.prefs per-request preferences from cookies/URL params. A TypeScript port of nitter's prefs.nim + prefs_impl.nim (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "cordis": "4.0.0-rc.10",
+    "zod": "^4.6.5"
+  }
+}

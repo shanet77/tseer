@@ -7,6 +7,7 @@ import {
   staticRoutePlugin,
 } from "@tseer/kernel";
 import { mediaPlugin } from "@tseer/media";
+import { prefsPlugin } from "@tseer/prefs";
 import { serverPlugin } from "@tseer/server";
 import { twitterApiPlugin } from "@tseer/twitter-api";
 import { parsersPlugin } from "@tseer/twitter-parser";
@@ -57,6 +58,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     retryDelayMs: ctx.config.retryDelayMs,
   });
   await ctx.plugin(aboutRoutePlugin, { title: ctx.config.title });
+  await ctx.plugin(prefsPlugin, { preferences: ctx.config.preferences });
   if (options.withoutCache !== true) {
     await ctx.plugin(cachePlugin, { provider: options.cacheProvider ?? "memory" });
   }

@@ -1,32 +1,23 @@
+import { allPrefs } from "@tseer/prefs";
 import type { IniDocument } from "./ini.ts";
 import { configSchema, gallerySizeOptions, type LoadedConfig, mediaViewOptions } from "./schema.ts";
 
-/** Preference keys by coercion kind (port of `src/prefs_impl.nim`). */
-const preferenceKinds: Record<string, "string" | "bool" | "gallerySize" | "mediaView"> = {
-  theme: "string",
-  infiniteScroll: "bool",
-  stickyProfile: "bool",
-  stickyNav: "bool",
-  bidiSupport: "bool",
-  hideTweetStats: "bool",
-  hideBanner: "bool",
-  hidePins: "bool",
-  hideReplies: "bool",
-  hideRelated: "bool",
-  hideCommunityNotes: "bool",
-  squareAvatars: "bool",
-  mp4Playback: "bool",
-  hlsPlayback: "bool",
-  proxyVideos: "bool",
-  muteVideos: "bool",
-  autoplayGifs: "bool",
-  compactGallery: "bool",
-  gallerySize: "gallerySize",
-  mediaView: "mediaView",
-  replaceTwitter: "string",
-  replaceYouTube: "string",
-  replaceReddit: "string",
-};
+/** Coercion kinds for the INI reader, derived from the shared pref metadata
+ * (`@tseer/prefs`). `theme` is a UI select but reads as free text everywhere —
+ * nitter's `genParsePrefs` special-cases it the same way. */
+const preferenceKinds: Record<string, "string" | "bool" | "gallerySize" | "mediaView"> = {};
+for (const pref of allPrefs) {
+  preferenceKinds[pref.name] =
+    pref.kind === "checkbox"
+      ? "bool"
+      : pref.name === "theme"
+        ? "string"
+        : pref.name === "gallerySize"
+          ? "gallerySize"
+          : pref.name === "mediaView"
+            ? "mediaView"
+            : "string";
+}
 
 function lower(value: string): string {
   return value.toLowerCase();

@@ -19,6 +19,7 @@
     "@tseer/http-client": "workspace:*",
     "@tseer/kernel": "workspace:*",
     "@tseer/media": "workspace:*",
+    "@tseer/prefs": "workspace:*",
     "@tseer/server": "workspace:*",
     "@tseer/twitter-api": "workspace:*",
     "@tseer/twitter-parser": "workspace:*",

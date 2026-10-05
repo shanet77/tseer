@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@tseer/prefs": "workspace:*",
     "@tseer/server": "workspace:*",
     "cordis": "4.0.0-rc.10",
     "pino": "^10.3.1",

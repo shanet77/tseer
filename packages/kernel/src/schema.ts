@@ -1,37 +1,18 @@
-/** `ctx.config` contract: zod schema ported from `config.nim` (+ `prefs_impl.nim` prefs). */
+/** `ctx.config` contract: zod schema ported from `config.nim`. The prefs model
+ * (`preferencesSchema`, the option lists, `TseerPreferences`) lives in
+ * `@tseer/prefs` — the owner of the `prefs_impl.nim` port — and is re-exported
+ * here so the config schema can embed it. */
+
+import {
+  gallerySizeOptions,
+  mediaViewOptions,
+  preferencesSchema,
+  themeOptions,
+} from "@tseer/prefs";
 import { z } from "zod";
 
-export const themeOptions = ["Nitter", "Twitter", "Mastodon", "Auto"] as const;
-export const gallerySizeOptions = ["Small", "Medium", "Large"] as const;
-export const mediaViewOptions = ["Timeline", "Grid", "Gallery"] as const;
-
-export const preferencesSchema = z.object({
-  theme: z.string().default("Nitter"),
-  infiniteScroll: z.boolean().default(false),
-  stickyProfile: z.boolean().default(true),
-  stickyNav: z.boolean().default(true),
-  bidiSupport: z.boolean().default(false),
-  hideTweetStats: z.boolean().default(false),
-  hideBanner: z.boolean().default(false),
-  hidePins: z.boolean().default(false),
-  hideReplies: z.boolean().default(false),
-  hideRelated: z.boolean().default(true),
-  hideCommunityNotes: z.boolean().default(false),
-  squareAvatars: z.boolean().default(false),
-  mp4Playback: z.boolean().default(true),
-  hlsPlayback: z.boolean().default(false),
-  proxyVideos: z.boolean().default(true),
-  muteVideos: z.boolean().default(false),
-  autoplayGifs: z.boolean().default(true),
-  compactGallery: z.boolean().default(false),
-  gallerySize: z.enum(gallerySizeOptions).default("Medium"),
-  mediaView: z.enum(mediaViewOptions).default("Timeline"),
-  replaceTwitter: z.string().default(""),
-  replaceYouTube: z.string().default(""),
-  replaceReddit: z.string().default(""),
-});
-
-export type TseerPreferences = z.infer<typeof preferencesSchema>;
+export type { TseerPreferences } from "@tseer/prefs";
+export { gallerySizeOptions, mediaViewOptions, preferencesSchema, themeOptions };
 
 export const configSchema = z.object({
   address: z.string().default("0.0.0.0"),
@@ -70,7 +51,6 @@ export const configSchema = z.object({
 });
 
 export type TseerConfig = z.infer<typeof configSchema>;
-
 export interface ConfigWarning {
   /** 1-based INI line, when the warning refers to file content. */
   line?: number | undefined;

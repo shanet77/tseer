@@ -27,6 +27,7 @@ plan-vs-reality deltas discovered during implementation.
       JSON (needs a sessions store; live smoke test still pending a real
       session — plan §6's optional job).
 - [ ] Phase 4 — `views`, `prefs`, `ctx.render`, core route plugins
+  - [x] `prefs` seam (`ctx.prefs`)
 - [ ] Phase 5 — long-tail route plugins
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
@@ -313,6 +314,35 @@ docs/TS_PORT_PLAN.md  # the spec
   `mediaRoutePlugin`), so mounting defers until both seams are provided;
   `apps/tseer` mounts it only when sessions are mounted (`withoutSessions`
   implies no `ctx.twitter`, and `withoutTwitter` opts out explicitly).
+
+## prefs notes (plan §1/§4, `prefs.nim` + `prefs_impl.nim` port)
+
+- **The pref model lives in `@tseer/prefs`, not kernel.** `preferencesSchema` +
+  the option lists started in `kernel` during Phase 1 (config needed them for
+  the INI reader); Phase 4 moved them to their owning package and kernel
+  re-exports. The metadata table (`prefList` — kind/label/default/options per
+  pref, port of the `genPrefs` DSL) is the single source of truth: kernel's
+  INI coercion kinds are derived from it, and `prefs.spec.ts` asserts the
+  schema's keys and defaults never drift from the metadata.
+- **Checkbox presence semantics, ported verbatim:** `genParsePrefs` sets a
+  checkbox to true for `"on"/"true"/"1"` — any other *present* value
+  (including `"off"`) is false. Presence is what matters, not the value; a
+  test pins the default-true `stickyNav: "off"` → false case.
+- **`theme` is a select that parses as free text.** The Nim macro special-cases
+  it (`input or name == "theme"` takes the raw string), so custom theme names
+  and URL-param themes like `?theme=SomeCustom` survive — kept, and flagged in
+  the kernel INI derivation too.
+- **URL params beat cookies** (nitter runs `genParsePrefs` on cookies then
+  params). `parsePrefs(defaults, cookies, params?)` mirrors that order; params
+  are optional.
+- **`encodePrefs` compares against the config-derived defaults**, like
+  `genEncodePrefs` against `defaultPrefs` — so a `[Preferences] theme =
+  Mastodon` config encodes a Mastodon-theme request as `""` (it *is* the
+  default). Checkbox form: `name=on` / `name=`, non-defaults only, joined with
+  `,`.
+- **Deliberately deferred to the preferences route (Phase 5):**
+  `genUpdatePrefs`/`genResetPrefs`/`genApplyPrefs` — those write per-pref
+  cookies onto a response, which is route-plugin territory (`savePref`).
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 
