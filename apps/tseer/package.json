@@ -24,6 +24,7 @@
     "@tseer/twitter-api": "workspace:*",
     "@tseer/twitter-parser": "workspace:*",
     "@tseer/twitter-sessions": "workspace:*",
+    "@tseer/views": "workspace:*",
     "cordis": "4.0.0-rc.10"
   }
 }

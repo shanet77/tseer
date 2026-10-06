@@ -1,0 +1,28 @@
+{
+  "name": "@tseer/views",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "tseer views: ctx.render (page/errorPage over preact TSX) and formatters. A TypeScript port of nitter's views/general.nim + formatters.nim (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tseer/prefs": "workspace:*",
+    "@tseer/types": "workspace:*",
+    "cordis": "4.0.0-rc.10",
+    "preact": "^10.27.4",
+    "preact-render-to-string": "^6.6.4"
+  }
+}

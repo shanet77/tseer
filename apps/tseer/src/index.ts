@@ -12,6 +12,7 @@ import { serverPlugin } from "@tseer/server";
 import { twitterApiPlugin } from "@tseer/twitter-api";
 import { parsersPlugin } from "@tseer/twitter-parser";
 import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
+import { renderPlugin } from "@tseer/views";
 import type { Context } from "cordis";
 import hello from "./plugins/hello.ts";
 
@@ -59,6 +60,12 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
   });
   await ctx.plugin(aboutRoutePlugin, { title: ctx.config.title });
   await ctx.plugin(prefsPlugin, { preferences: ctx.config.preferences });
+  await ctx.plugin(renderPlugin, {
+    title: ctx.config.title,
+    hostname: ctx.config.hostname,
+    useHttps: ctx.config.useHttps,
+    ...(options.withoutSessions === true ? {} : { picUrl: (url: string) => ctx.media.picUrl(url) }),
+  });
   if (options.withoutCache !== true) {
     await ctx.plugin(cachePlugin, { provider: options.cacheProvider ?? "memory" });
   }

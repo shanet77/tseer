@@ -28,6 +28,8 @@ plan-vs-reality deltas discovered during implementation.
       session — plan §6's optional job).
 - [ ] Phase 4 — `views`, `prefs`, `ctx.render`, core route plugins
   - [x] `prefs` seam (`ctx.prefs`)
+  - [x] `views` package (`ctx.render` + formatters; view components land with
+        their route plugins)
 - [ ] Phase 5 — long-tail route plugins
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
@@ -343,6 +345,37 @@ docs/TS_PORT_PLAN.md  # the spec
 - **Deliberately deferred to the preferences route (Phase 5):**
   `genUpdatePrefs`/`genResetPrefs`/`genApplyPrefs` — those write per-pref
   cookies onto a response, which is route-plugin territory (`savePref`).
+
+## views notes (plan §1/§4, `general.nim` + `formatters.nim` port)
+
+- **`render/post` is a cordis waterfall, not an emit.** The plan's
+  `(html: string) => string | void` maps to cordis's Koa-style
+  `ctx.waterfall("render/post", html, () => html)` — listeners return the
+  transformed HTML or call `next()` to pass through. The event signature in
+  the augmentation is `(html, next) => string` to match. `render/pre` fires
+  before the shell is built with the mutable `PageContext`.
+- **`picUrl` is injected, not imported.** `renderPlugin({ picUrl })` gets the
+  media signer's `picUrl` from the composition root (same pattern as
+  `parsersPlugin`), so `views` has no media dependency and works without it —
+  `picUrl` then returns `""` and image links degrade to empty.
+- **Deliberate divergences from the Nim original:**
+  - The error panel escapes its message (nitter writes `verbatim error`);
+    error strings interpolate usernames, so auto-escaping is the safe call.
+  - `stripHtml` is regex-based, not a real HTML parser like Nim's
+    `parseHtml` (fine for tweet/bio fragments; marked at the call site).
+  - `shorten` slices codepoints, not bytes (Nim could split a UTF-8 sequence).
+  - The liberapay donation icon is not ported (upstream's donate button).
+  - `getTwitterLink` (navbar "Open in X" canonical) is deferred: it needs the
+    search-query compiler (`genQueryParam`); routes pass `canonical`
+    explicitly and the shell falls back to `https://x.com` + path.
+  - `getM3u8Url`/`proxifyVideo` already live in `@tseer/media` (they are
+    utils/hls concerns, not formatting).
+- **Dates are rendered by hand in UTC** from the domain's ISO strings
+  (`""` = not set, mirroring Nim's `year == 0` guards); no Intl/locale
+  dependency, so output is deterministic for the golden tests.
+- **Structural prefs subset** (`TseerPreferencesLike`: theme/stickyNav/
+  hlsPlayback/infiniteScroll) keeps `views` importing only what the shell
+  reads; the full `TseerPreferences` satisfies it.
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 
