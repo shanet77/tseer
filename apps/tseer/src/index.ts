@@ -13,6 +13,7 @@ import { twitterApiPlugin } from "@tseer/twitter-api";
 import { parsersPlugin } from "@tseer/twitter-parser";
 import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
 import { renderPlugin } from "@tseer/views";
+import { timelinePlugin } from "@tseer/web-routes";
 import type { Context } from "cordis";
 import hello from "./plugins/hello.ts";
 
@@ -64,7 +65,13 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     title: ctx.config.title,
     hostname: ctx.config.hostname,
     useHttps: ctx.config.useHttps,
-    ...(options.withoutSessions === true ? {} : { picUrl: (url: string) => ctx.media.picUrl(url) }),
+    ...(options.withoutSessions === true
+      ? {}
+      : {
+          picUrl: (url: string) => ctx.media.picUrl(url),
+          origPicUrl: (url: string) => ctx.media.origPicUrl(url),
+          vidUrl: (url: string) => ctx.media.vidUrl(url),
+        }),
   });
   if (options.withoutCache !== true) {
     await ctx.plugin(cachePlugin, { provider: options.cacheProvider ?? "memory" });
@@ -83,6 +90,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
       maxRetries: ctx.config.maxRetries,
       retryDelayMs: ctx.config.retryDelayMs,
     });
+    await ctx.plugin(timelinePlugin);
   }
   await ctx.plugin(healthRoutePlugin, {
     sessionHealth: options.withoutSessions === true ? undefined : () => ctx.accounts.health(),

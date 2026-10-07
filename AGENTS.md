@@ -31,6 +31,7 @@ plan-vs-reality deltas discovered during implementation.
   - [x] `views` package (`ctx.render` + formatters; view components land with
         their route plugins)
 - [ ] Phase 5 — long-tail route plugins
+  - [x] `web-routes` package + timeline route plugin (profile/followers/following/about, `/:name/:tab?`, `intent/*`, `i/user`) — first `prefs`+`render`+`twitter` consumer, inject-based fastify tests
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
 Update this checklist as phases land.
@@ -376,6 +377,68 @@ docs/TS_PORT_PLAN.md  # the spec
 - **Structural prefs subset** (`TseerPreferencesLike`: theme/stickyNav/
   hlsPlayback/infiniteScroll) keeps `views` importing only what the shell
   reads; the full `TseerPreferences` satisfies it.
+- **View components land with the timeline plugin** (Phase 4):
+  `renderutils.tsx` (renderutils.nim) + `tweet.tsx`/`timeline.tsx`/
+  `search.tsx`/`profile.tsx`/`about-account.tsx`. The media signer reaches
+  the components through **process globals** (`media.ts` `setMediaSigners`,
+  the port of nitter's `getPicUrl` process globals), wired reversibly by
+  `renderPlugin({ picUrl, origPicUrl, vidUrl })` — the same shape
+  `parsersPlugin({ picUrl })` uses.
+- **`replaceUrls(...)` output is a raw-HTML sink** (`dangerouslySetInnerHTML`):
+  tweet text, quote text, bio and note arrive pre-escaped from the parser
+  (see the twitter-parser notes), and preact escapes everything else
+  (usernames, titles, hrefs) automatically.
+- **Threads are flat.** The parser port flattens `TimelineResult.content` to
+  `Tweet[]`, so `renderThread` (multi-tweet thread + "more replies" gap) has
+  no timeline counterpart — it returns with the status/conversation route.
+  `filterThreads` (retweet dedup, hidden pins) runs per tweet instead of per
+  thread. `renderListCard`/`renderTimelineLists`/`renderUserSearch`/
+  `renderListSearch` are deferred to the search route plugin.
+
+## web-routes notes (plan §4/§5, `routes/timeline.nim` port)
+
+- **`web-routes` is the plan §2 route-plugin package.** One plugin per nitter
+  route family; the timeline plugin injects `server` + `twitter` + `render` +
+  `prefs` (declared via the static `.inject` property, like `mediaRoutePlugin`)
+  and registers: `/i/user/:user_id`, `/intent/user`, `/intent/follow`,
+  `/:name/about`, `/:name/followers|following`, and the timeline as TWO fastify
+  registrations (`/:name`, `/:name/:tab`) — Jester's optional `@tab` group.
+  Fastify's radix router gives the static subpaths (`/about`, `/followers`,
+  `/following`) precedence over `:tab`, mirroring nitter's dedicated routes.
+- **cordis rc.10 does not run a plugin's returned disposer through
+  `fiber.dispose()`.** The routes are unregistered via `ctx.effect(() => () =>
+  disposeRoutes())` instead (same as `mediaRoutePlugin`) — the plugin's return
+  value is belt-and-braces for manual disposal. Without the effect, an unloaded
+  timeline plugin keeps serving pages from fastify's unregisterable routes.
+- **`cond` failures are 404 error pages** (nitter: fall through to the global
+  `error Http404` handler). Name conds ported verbatim: reserved names
+  (`pic`/`gif`/…), no `.`, charset with (main route) or without (about/
+  followers) comma. nitter's `getPath`/`getCursor`/`getNames`/`nitterParams`
+  helpers live in `web-routes/src/timeline.ts` alongside the plugin.
+- **`getUserId` collapses into `cachedUser`.** nitter's `getUserId` (pid-bucket
+  lookup + `"suspended"` sentinel) plus `getCachedUser` were two cached fetches;
+  here `cachedUser(name)` serves both — `user.id === ""` → not found (404 `User
+  "x" not found`, which nitter also prints, only after leaking an empty 200
+  through `respTimeline`), `user.suspended` → the sentinel's error page.
+- **Error pages ride `ctx.render.errorPage`** with nitter's statuses:
+  `RateLimitError`/`NoSessionsError` → 429, `InternalError`/`BadClientError` →
+  500, suspended → 200 (nitter's `resp showError(...)` default). A `guard`
+  wrapper maps the errors per handler; anything else rethrows to the server's
+  500 handler.
+- **Scroll fragments** (`?scroll=1`, infinite scroll) return `toHtml(...)` of
+  the timeline component (no shell), 204/404 when empty — `toHtml` is a thin
+  `renderToString` export on the views package.
+- **`fetchProfile`** resolves the user first, then dispatches on `query.kind`
+  to `tweets`/`tweetsAndReplies`/`media`/`articles`, else `search` (multi-user
+  and the search tab). nitter's post-deployment `after.startsWith("scroll")`
+  clearing and the `skipRail` media rule are kept.
+- **Tests** (`packages/web-routes/tests/timeline.spec.ts`) boot a real cordis
+  context (server + prefs + render plugins) with a **stubbed `ctx.twitter`**
+  provided directly, then assert through `ctx.server.inject` — the plan §6
+  "proving the seam is real" pattern. The **XSS regression test** feeds raw
+  upstream JSON (tweet text + username + fullname containing markup) through
+  the real `parseGraphTimeline` and asserts the page contains only escaped
+  markup.
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 
@@ -424,6 +487,15 @@ docs/TS_PORT_PLAN.md  # the spec
   `parse(kind, json, { after, query, tweetId, kind })`. The `followers` kind
   serves followers *and* following (the `kind` option picks the QueryKind),
   mirroring `getGraphUserConnections`.
+- **Deliberate divergence: plain text is escaped at the splice boundary.**
+  Upstream leaves the non-anchor segments of tweet text / bio raw and feeds
+  them to karax `verbatim` (only anchor display text is `escape()`d, and only
+  note tweets get the U+FFFA shield dance). Since `tweet.text`/`user.bio` are
+  the views' raw-HTML sinks (plan §6 mandates the XSS test), `replacedWith`
+  escapes plain segments and hashtag/mention anchor text, and the entity-less
+  early returns of `expandTweetEntities`/`expandNoteTweetEntities` escape the
+  untouched text. The note-tweet shield composes cleanly (U+FFFA isn't escaped
+  material; the final unshield produces `&lt;`/`&gt;` exactly as before).
 - **The experimental `parseGraphListMembers`/`parseGraphFollowers`** accept a
   raw string (they port `fetchRaw` bodies) or an already-parsed object, and
   read `entryType`/`cursorType` (camelCase, the jsony exact-name fields)

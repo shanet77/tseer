@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "paths": {
+      "@tseer/media": ["../media/src/index.ts"],
+      "@tseer/prefs": ["../prefs/src/index.ts"],
+      "@tseer/server": ["../server/src/index.ts"],
+      "@tseer/twitter-api": ["../twitter-api/src/index.ts"],
+      "@tseer/types": ["../types/src/index.ts"],
+      "@tseer/views": ["../views/src/index.ts"]
+    }
+  },
+  "include": ["src", "tests", "tsdown.config.ts"]
+}

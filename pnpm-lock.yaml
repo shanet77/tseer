@@ -214,6 +214,9 @@ importers:
       '@tseer/views':
         specifier: workspace:*
         version: link:../../packages/views
+      '@tseer/web-routes':
+        specifier: workspace:*
+        version: link:../../packages/web-routes
       cordis:
         specifier: 4.0.0-rc.10
         version: 4.0.0-rc.10
@@ -333,9 +336,15 @@ importers:
 
   packages/views:
     dependencies:
+      '@tseer/media':
+        specifier: workspace:*
+        version: link:../media
       '@tseer/prefs':
         specifier: workspace:*
         version: link:../prefs
+      '@tseer/twitter-api':
+        specifier: workspace:*
+        version: link:../twitter-api
       '@tseer/types':
         specifier: workspace:*
         version: link:../types
@@ -348,6 +357,33 @@ importers:
       preact-render-to-string:
         specifier: ^6.6.4
         version: 6.8.0(preact@10.29.8)
+
+  packages/web-routes:
+    dependencies:
+      '@tseer/media':
+        specifier: workspace:*
+        version: link:../media
+      '@tseer/prefs':
+        specifier: workspace:*
+        version: link:../prefs
+      '@tseer/server':
+        specifier: workspace:*
+        version: link:../server
+      '@tseer/twitter-api':
+        specifier: workspace:*
+        version: link:../twitter-api
+      '@tseer/twitter-parser':
+        specifier: workspace:*
+        version: link:../twitter-parser
+      '@tseer/types':
+        specifier: workspace:*
+        version: link:../types
+      '@tseer/views':
+        specifier: workspace:*
+        version: link:../views
+      cordis:
+        specifier: 4.0.0-rc.10
+        version: 4.0.0-rc.10
 
 packages:
 

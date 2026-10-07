@@ -1,0 +1,31 @@
+{
+  "name": "@tseer/web-routes",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "tseer route plugins: timeline, status, search, rss, … — one plugin per nitter route family. A TypeScript port of nitter's src/routes (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tseer/media": "workspace:*",
+    "@tseer/prefs": "workspace:*",
+    "@tseer/server": "workspace:*",
+    "@tseer/twitter-api": "workspace:*",
+    "@tseer/twitter-parser": "workspace:*",
+    "@tseer/types": "workspace:*",
+    "@tseer/views": "workspace:*",
+    "cordis": "4.0.0-rc.10"
+  }
+}
