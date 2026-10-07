@@ -179,18 +179,18 @@ export function replacedWith(
   let result = "";
   for (const [i, rep] of validRepls.entries()) {
     const lower = extractLowerBound(i, i - 1);
-    if (lower < rep.a) result += runes.slice(lower, rep.a).join("");
+    if (lower < rep.a) result += xmlEscape(runes.slice(lower, rep.a).join(""));
     switch (rep.kind) {
       case "hashtag": {
         if (rep.a + 1 < rep.b) {
           const name = runes.slice(rep.a + 1, rep.b).join("");
           const symbol = runes[rep.a] ?? "";
-          result += anchor(symbol + name, `/search?f=tweets&q=%23${name}`);
+          result += anchor(xmlEscape(symbol + name), `/search?f=tweets&q=%23${name}`);
         }
         break;
       }
       case "mention": {
-        result += anchor(runes.slice(rep.a, rep.b).join(""), rep.url ?? "", rep.display);
+        result += anchor(xmlEscape(runes.slice(rep.a, rep.b).join("")), rep.url ?? "", rep.display);
         break;
       }
       case "url": {
@@ -205,16 +205,11 @@ export function replacedWith(
 
   const restLower = extractLowerBound(validRepls.length, validRepls.length - 1);
   if (restLower >= 0 && restLower <= safeEnd) {
-    result += runes.slice(restLower, safeEnd).join("");
+    result += xmlEscape(runes.slice(restLower, safeEnd).join(""));
   }
   return result;
 }
 
-/**
- * The `unRegex`/`htRegex` post-processing both expanders finish with
- * (`replacef` → `replace` with a capture-aware callback; `$1`/`$2`/`$3` are
- * the capture groups).
- */
 export const UN_REGEX = /(^|[^A-z0-9\-_./?])@([A-z0-9_]{1,15})/g;
 export const HT_REGEX = /(^|[^\w\-_./?])([#＃$])([\w_]+)/g;
 

@@ -18,12 +18,20 @@ import {
   extractUrls,
   type ReplaceSlice,
   replacedWith,
+  xmlEscape,
 } from "./slices.ts";
 
 /** Port of `expandTweetEntities` (legacy shape). */
 export function expandTweetEntities(tweet: Tweet, js: Json, hasArticle = false): void {
   const entities = at(js, "entities");
-  if (entities === undefined) return;
+  if (entities === undefined) {
+    // No entities → the splicer never runs, so nothing would escape the raw
+    // full_text. tseer diverges from upstream here (Nim leaves plain text
+    // raw and feeds it to karax `verbatim`): tweet.text must be safe HTML,
+    // it is the views' raw sink.
+    tweet.text = xmlEscape(tweet.text);
+    return;
+  }
 
   const range = at(js, "display_text_range");
   const start = numAt(range, 0);
@@ -196,7 +204,11 @@ const XML_CLOSE = "&gt;";
 /** Port of `expandNoteTweetEntities` (long notes; `<`/`>` are shielded from the splicer). */
 export function expandNoteTweetEntities(tweet: Tweet, js: Json): void {
   const entities = at(js, "entity_set");
-  if (entities === undefined) return;
+  if (entities === undefined) {
+    // Same raw-sink reasoning as expandTweetEntities' entity-less path.
+    tweet.text = xmlEscape(tweet.text);
+    return;
+  }
 
   const text = str(js, "text").replaceAll("<", UNICODE_OPEN).replaceAll(">", UNICODE_CLOSE);
   const textSlice = { a: 0, b: [...text].length };
