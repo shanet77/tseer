@@ -4,7 +4,9 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "paths": {
+      "@tseer/media": ["../media/src/index.ts"],
       "@tseer/prefs": ["../prefs/src/index.ts"],
+      "@tseer/twitter-api": ["../twitter-api/src/index.ts"],
       "@tseer/types": ["../types/src/index.ts"]
     }
   },

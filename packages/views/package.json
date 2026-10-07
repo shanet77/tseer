@@ -19,7 +19,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@tseer/media": "workspace:*",
     "@tseer/prefs": "workspace:*",
+    "@tseer/twitter-api": "workspace:*",
     "@tseer/types": "workspace:*",
     "cordis": "4.0.0-rc.10",
     "preact": "^10.27.4",

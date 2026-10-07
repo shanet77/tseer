@@ -218,6 +218,11 @@ export function renderMain(props: MainProps): string {
   return doctype + renderToString(node);
 }
 
+/** Render a component to an HTML fragment (infinite-scroll responses). */
+export function toHtml(node: VNode): string {
+  return renderToString(node);
+}
+
 /** renderError: nitter's error panel (`panel-container`/`error-panel`). */
 export function renderError(error: string): VNode {
   return (

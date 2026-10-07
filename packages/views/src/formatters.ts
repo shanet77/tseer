@@ -285,6 +285,11 @@ export function getSuspended(username: string): string {
   return `User "${username}" has been suspended`;
 }
 
+/** `insertSep` (utils.nim): thousands separators from the right. */
+export function insertSep(num: string, sep = ","): string {
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+}
+
 export function titleize(str: string): string {
   const delims = new Set([" ", "("]);
   let result = "";
