@@ -40,6 +40,7 @@ function stubRaw(handlers: Partial<RawTwitterApi>): RawTwitterApi {
     space: async () => ({}),
     broadcast: async () => ({}),
     broadcastStream: async () => undefined,
+    resolve: async () => "",
   };
   return { ...base, ...handlers } as RawTwitterApi;
 }

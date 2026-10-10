@@ -121,6 +121,8 @@ export interface TwitterApi {
   broadcast(id: string): Promise<Broadcast | undefined>;
   /** Port of `fetchBroadcastStream` (no parsing; raw playback URL). */
   broadcastStream(mediaKey: string): Promise<string | undefined>;
+  /** Port of `api.nim` `resolve` (`HEAD`, no redirects → `location` header). */
+  resolve(url: string): Promise<string>;
 
   // The redis_cache.nim wrappers (`getCached*`) — outside plan §3's sketch,
   // but the seam the route plugins consume (Phase 4/5), exactly like nitter's
@@ -391,6 +393,8 @@ export function createDomainTwitterApi(
     },
 
     broadcastStream: (mediaKey) => raw.broadcastStream(mediaKey),
+
+    resolve: (url) => raw.resolve(url),
   };
 
   const cached = createCachedMethods(

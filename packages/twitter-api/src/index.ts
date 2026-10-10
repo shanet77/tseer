@@ -79,7 +79,7 @@ export {
 export type { Fetcher, FetcherDeps, FetcherOptions, FetchLogger, Json } from "./fetch.ts";
 export { createFetcher } from "./fetch.ts";
 export type { RawSearch, RawTwitterApi, TwitterApiFetchers } from "./fetchers.ts";
-export { createTwitterApi } from "./fetchers.ts";
+export { createTwitterApi, type ResolveFetch, resolveUrl } from "./fetchers.ts";
 export type { GenHeadersOptions } from "./headers.ts";
 export { genHeaders } from "./headers.ts";
 export type { OauthHeaderOptions } from "./oauth1.ts";

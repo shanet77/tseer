@@ -162,6 +162,38 @@ export interface RawTwitterApi {
    * when absent; `undefined` is this layer's empty.
    */
   broadcastStream(mediaKey: string): Promise<string | undefined>;
+  /**
+   * Port of `api.nim` `resolve`: `HEAD` with no redirects, returning the
+   * `location` header (`""` on any failure). Not session-bound — the route
+   * plugin applies `replaceUrls` to the result.
+   */
+  resolve(url: string): Promise<string>;
+}
+
+/**
+ * Port of `api.nim` `resolve`: `HEAD` with no redirect following, returning
+ * the `location` header (or `""` on any failure — nitter's `except: discard`).
+ *
+ * Deliberately bypasses `ctx.http` (like `tid.ts`'s `fetchPairs`): nitter
+ * uses a private `AsyncHttpClient` here, not the pooled/proxied session
+ * transport — a short-link hop must never consume a session lease or get
+ * rewritten by `apiProxy`. `fetchFn` is injectable for tests.
+ */
+export type ResolveFetch = (
+  url: string,
+  init: { method: string; redirect: "manual" },
+) => Promise<{ headers: { get(name: string): string | null } }>;
+
+export async function resolveUrl(
+  url: string,
+  fetchFn: ResolveFetch = fetch as unknown as ResolveFetch,
+): Promise<string> {
+  try {
+    const resp = await fetchFn(url, { method: "HEAD", redirect: "manual" });
+    return resp.headers.get("location") ?? "";
+  } catch {
+    return "";
+  }
 }
 
 /** Port of `api.nim`'s inline `%*{...}` variable objects (key order included). */
@@ -437,6 +469,11 @@ export function createTwitterApi(fetcher: TwitterApiFetchers): RawTwitterApi {
       if (typeof noRedirectPlaybackUrl === "string") return noRedirectPlaybackUrl;
       if (typeof location === "string") return location;
       return undefined;
+    },
+
+    async resolve(url) {
+      if (url.length === 0) return "";
+      return resolveUrl(url);
     },
   };
 }

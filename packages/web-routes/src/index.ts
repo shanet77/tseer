@@ -1,5 +1,6 @@
 /** `@tseer/web-routes` — route plugins, one per nitter route family. */
 
+export { default as resolverPlugin, registerResolverRoutes } from "./resolver.ts";
 export { default as rssPlugin, registerRssRoutes } from "./rss.ts";
 export { default as searchPlugin, registerSearchRoutes } from "./search.ts";
 export { default as statusPlugin, registerStatusRoutes } from "./status.ts";
