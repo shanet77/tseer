@@ -30,6 +30,9 @@ plan-vs-reality deltas discovered during implementation.
   - [x] `prefs` seam (`ctx.prefs`)
   - [x] `views` package (`ctx.render` + formatters; view components land with
         their route plugins)
+  - [x] `status` route plugin (`/:name/status/:id`, `/history`, legacy
+        redirects) + `views/status.tsx` (`renderConversation`,
+        `renderReplies`, `renderEditHistory`) — wired into `apps/tseer`
 - [ ] Phase 5 — long-tail route plugins
   - [x] `web-routes` package + timeline route plugin (profile/followers/following/about, `/:name/:tab?`, `intent/*`, `i/user`) — first `prefs`+`render`+`twitter` consumer, inject-based fastify tests
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
