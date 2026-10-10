@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@tseer/cache": "workspace:*",
     "@tseer/media": "workspace:*",
     "@tseer/prefs": "workspace:*",
     "@tseer/server": "workspace:*",

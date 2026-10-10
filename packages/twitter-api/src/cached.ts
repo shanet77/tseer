@@ -5,14 +5,18 @@
  * nitter's key layout (`p:`, `i:`, `pr2:`, `ai:`, `sp:`, `bc:`, `cm:`,
  * `cmm:`, `l:`, `pid:`), so an existing nitter redis stays readable.
  *
- * Not ported here: `getCachedRss` (the rss hash stores the *rendered* feed,
- * an RSS-route concern — plan §4), and `getCachedTweet` (commented out
- * upstream). The `pid:` bucket is stored as one JSON object per bucket key
- * (nitter uses a redis hash); writes are read-modify-write and repopulate on
- * the next cached user fetch, which is acceptable for the reverse-lookup
- * seam. The m3u8 URLs of spaces/broadcasts are deliberately *not* cached —
- * `getCachedBroadcast`/`getCachedAudioSpace` re-resolve them on every call,
- * like nitter.
+ * Not ported here: `getCachedTweet` (commented out upstream). The `pid:`
+ * bucket is stored as one JSON object per bucket key (nitter uses a redis
+ * hash); writes are read-modify-write and repopulate on the next cached user
+ * fetch, which is acceptable for the reverse-lookup seam. The m3u8 URLs of
+ * spaces/broadcasts are deliberately *not* cached — `getCachedBroadcast`/
+ * `getCachedAudioSpace` re-resolve them on every call, like nitter.
+ *
+ * `cachedRss` is the port of `getCachedRss`/`cacheRss`: the `rss:` hash stores
+ * the *rendered* feed plus the min cursor (`Rss`), keyed by the route plugin's
+ * `redisKey` (`<page>:<name>[:<cursor>]`). Unlike nitter's two-field hash, the
+ * whole `Rss` object is stored as one JSON value — including the
+ * `"suspended"` sentinel cursor, whose feed holds the username.
  */
 
 import type { Cache, CacheTtls } from "@tseer/cache";
@@ -24,6 +28,7 @@ import type {
   Community,
   List,
   PhotoRail,
+  Rss,
   User,
 } from "@tseer/types";
 
@@ -69,6 +74,8 @@ export interface CachedMethods {
   cachedCommunity(id: string): Promise<Community | undefined>;
   cachedCommunityModerators(id: string): Promise<User[] | undefined>;
   cachedList(username?: string, slug?: string, id?: string): Promise<List | undefined>;
+  /** Port of `getCachedRss`/`cacheRss` (key layout is the route's `redisKey`). */
+  cachedRss(key: string, factory: () => Promise<Rss>): Promise<Rss>;
 }
 
 export function createCachedMethods(
@@ -100,6 +107,7 @@ export function createCachedMethods(
       cachedCommunityModerators: async (id) => (await api.communityModerators(id))?.content,
       cachedList: (username = "", slug = "", id = "") =>
         id.length > 0 ? api.listInfo(id) : api.listBySlug(username, slug),
+      cachedRss: (_key, factory) => factory(),
     };
   }
 
@@ -219,6 +227,11 @@ export function createCachedMethods(
         await cache.set(namespaces.list, list.id, list, ttls.list);
       }
       return list;
+    },
+
+    /** Port of `getCachedRss`/`cacheRss` (a `ttl <= 0` disables the write). */
+    cachedRss(key, factory) {
+      return cache.cached<Rss>(namespaces.rss, key, ttls.rss, factory);
     },
   };
 }

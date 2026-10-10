@@ -360,6 +360,9 @@ importers:
 
   packages/web-routes:
     dependencies:
+      '@tseer/cache':
+        specifier: workspace:*
+        version: link:../cache
       '@tseer/media':
         specifier: workspace:*
         version: link:../media

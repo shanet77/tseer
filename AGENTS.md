@@ -37,6 +37,10 @@ plan-vs-reality deltas discovered during implementation.
         `views/search.tsx` (`renderUserSearch`, `renderListSearch`,
         `renderSearchForm`) + `views/timeline.tsx` (`renderListCard`,
         `renderTimelineLists`) — wired into `apps/tseer`
+  - [x] `rss` route plugin (`/search/rss`, `/:name/rss`, `/:name/:tab/rss`,
+        `/:name/lists/:slug/rss`, `/i/lists/:id/rss`) + `views/rss.ts`
+        (`renderTimelineRss`, `renderListRss`, `renderSearchRss`) +
+        `cachedRss` on `ctx.twitter` — wired into `apps/tseer`
 - [ ] Phase 5 — long-tail route plugins
   - [x] `web-routes` package + timeline route plugin (profile/followers/following/about, `/:name/:tab?`, `intent/*`, `i/user`) — first `prefs`+`render`+`twitter` consumer, inject-based fastify tests
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
@@ -479,6 +483,52 @@ docs/TS_PORT_PLAN.md  # the spec
   at the auto-escaped layer (page title, list description) while the
   pre-escaped-sink path (tweet text, bio) stays covered by the timeline
   spec's real-parser XSS test.
+
+## rss notes (plan §4, `routes/rss.nim` + `views/rss.nimf` port)
+
+- **`rssPlugin` is the same four-seam shape as its siblings** (`server` +
+  `twitter` + `render` + `prefs`, `ctx.effect` cleanup, `guard` mapping) and
+  registers `/search/rss`, `/:name/rss`, `/:name/:tab/rss`,
+  `/:name/lists/:slug/rss`, `/i/lists/:id/rss`. Jester's `/@name/?@tab?/rss`
+  group becomes the two registrations; fastify gives the static `rss`
+  segment precedence over the timeline plugin's `/:name/:tab` param, so
+  `/nasa/rss` serves the feed (not a 404 tab) regardless of mount order.
+- **The feed + min cursor ride `twitter.cachedRss`** (the `getCachedRss`/
+  `cacheRss` port in `twitter-api/src/cached.ts`, namespaced `rss:` with the
+  route's `redisKey` `<page>:<name>[:<cursor>]`). The whole `Rss` object is
+  one JSON value — unlike nitter's two-field hash — including the
+  `"suspended"` sentinel (feed holds the username). No-cache contexts
+  degrade to direct fetch, like every other `cached*` (which are likewise
+  unwired in prod — `twitterApiPlugin` never passes `{cache, ttls}`; wiring
+  that is a separate job).
+- **The search-key `$hash(...)` is FNV-1a**, not Nim's `hash` (unstable
+  across builds; same substitution as the `pid:` buckets). That is why
+  `web-routes` depends on `@tseer/cache` (public entry only: `fnv1a32`).
+- **`timelineRss` resolves via `cachedUser`, not `getUserId` + `getCachedUser`.**
+  One cached fetch instead of two; `user.suspended` carries the sentinel and
+  an empty `fullname` becomes the empty cursor (route answers 404). The rail
+  is skipped (`skipRail=true` equivalent) and the posts/replies `scroll`
+  guard is kept. Multi-user feeds go through `search` with the default-pic
+  stub user, verbatim.
+- **`views/rss.ts` is string templates, not TSX** (like the `.nimf`): item
+  bodies are CDATA HTML with parser-escaped tweet text interpolated raw;
+  only titles/card fields/poll options pass through `escapeXml` (exact
+  `xmltree.escape`: `&<>"`). Threads are flat (`Tweet[]`, not `seq[Tweets]`);
+  the pinned splice compares `BigInt` ids (Nim: int64), as does the
+  `2000000000000000000` GUID-cutoff check. `getTweetLink` keeps nitter's
+  default `focus=true`, so feed links carry `#m` exactly like upstream.
+- **Branch behavior ported verbatim:** per-tab `enableRSS*` gates → 403
+  `RSS feed is disabled`; `/search/rss` caps `q` at 200 (not the 500 of
+  `/search`) and only allows `tweets`/`top`/`media` kinds → 400 otherwise;
+  empty cursor → 404 `User/List/Search … not found`; suspended → 404 with
+  `getSuspended`. Success sends `application/rss+xml; charset=utf-8` with
+  the `Min-Id` cursor header. The slug route redirects to `/i/lists/:id/rss`
+  (with `?cursor=`, `%20`-encoded per the media notes).
+- **Tests:** `views/tests/rss.spec.ts` pins titles/media/card/poll/quote
+  rendering, the GUID cutoff, dedup + user filtering, and the pinned splice;
+  `web-routes/tests/rss.spec.ts` follows the search spec's boot pattern
+  (stubbed `ctx.twitter` with a passthrough `cachedRss`, key-shape and
+  `Min-Id` assertions, gates, redirects, unload).
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 

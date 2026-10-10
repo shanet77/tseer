@@ -80,6 +80,23 @@ export {
   verifiedIcon,
 } from "./renderutils.tsx";
 export {
+  defaultProfilePic,
+  escapeXml,
+  isGlobalGuid,
+  renderListRss,
+  renderRssArticle,
+  renderRssCard,
+  renderRssMedia,
+  renderRssPoll,
+  renderRssTweet,
+  renderRssTweets,
+  renderSearchRss,
+  renderTimelineRss,
+  rssDescription,
+  rssTitle,
+  withPinned,
+} from "./rss.ts";
+export {
   renderListSearch,
   renderMediaViewTabs,
   renderProfileTabs,

@@ -13,7 +13,7 @@ import { twitterApiPlugin } from "@tseer/twitter-api";
 import { parsersPlugin } from "@tseer/twitter-parser";
 import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
 import { renderPlugin } from "@tseer/views";
-import { searchPlugin, statusPlugin, timelinePlugin } from "@tseer/web-routes";
+import { rssPlugin, searchPlugin, statusPlugin, timelinePlugin } from "@tseer/web-routes";
 import type { Context } from "cordis";
 import hello from "./plugins/hello.ts";
 
@@ -93,6 +93,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     await ctx.plugin(timelinePlugin);
     await ctx.plugin(statusPlugin);
     await ctx.plugin(searchPlugin);
+    await ctx.plugin(rssPlugin);
   }
   await ctx.plugin(healthRoutePlugin, {
     sessionHealth: options.withoutSessions === true ? undefined : () => ctx.accounts.health(),

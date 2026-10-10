@@ -26,6 +26,7 @@ import {
   QueryKind,
   RankingMode,
   type Result,
+  type Rss,
   type TimelineResult,
   type Tweet,
   type User,
@@ -143,6 +144,8 @@ export interface TwitterApi {
   cachedCommunityModerators(id: string): Promise<User[] | undefined>;
   /** Port of `getCachedList`. */
   cachedList(username?: string, slug?: string, id?: string): Promise<List | undefined>;
+  /** Port of `getCachedRss`/`cacheRss` (key layout is the route's `redisKey`). */
+  cachedRss(key: string, factory: () => Promise<Rss>): Promise<Rss>;
 }
 
 /**

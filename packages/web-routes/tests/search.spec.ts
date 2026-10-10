@@ -63,7 +63,7 @@ function makeListResults(): Result<ListSearchResult> {
   };
 }
 
-function stubSearchTwitter(extra: Partial<TwitterApi> = {}): TwitterApi {
+export function stubSearchTwitter(extra: Partial<TwitterApi> = {}): TwitterApi {
   const base = stubTwitter(makeUser(), {
     pinned: undefined,
     tweets: {
