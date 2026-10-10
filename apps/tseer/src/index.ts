@@ -6,7 +6,7 @@ import {
   healthRoutePlugin,
   staticRoutePlugin,
 } from "@tseer/kernel";
-import { mediaPlugin } from "@tseer/media";
+import { mediaPlugin, mediaRoutePlugin } from "@tseer/media";
 import { prefsPlugin } from "@tseer/prefs";
 import { serverPlugin } from "@tseer/server";
 import { twitterApiPlugin } from "@tseer/twitter-api";
@@ -83,6 +83,11 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     await ctx.plugin(mediaPlugin, {
       hmacKey: ctx.config.hmacKey,
       base64Media: ctx.config.base64Media,
+    });
+    await ctx.plugin(mediaRoutePlugin, {
+      proxy: ctx.config.proxy,
+      proxyAuth: ctx.config.proxyAuth,
+      maxConns: ctx.config.httpMaxConns,
     });
     await ctx.plugin(parsersPlugin, { picUrl: (url) => ctx.media.picUrl(url) });
     await ctx.plugin(twitterApiPlugin, {

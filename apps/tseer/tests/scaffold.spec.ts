@@ -54,6 +54,17 @@ describe("scaffold boot", () => {
     expect(ctx.twitter).toBeUndefined();
   });
 
+  it("mounts the media proxy routes alongside the signer", async () => {
+    const ctx = await createApp({ configText: "" });
+    expect(ctx.media).toBeDefined();
+    expect(ctx.media.picUrl("https://pbs.twimg.com/media/x.jpg").startsWith("/pic/")).toBe(true);
+    // Bogus signature → 403 from the route (unmounted would be 404).
+    const bad = await ctx.server.inject({
+      url: "/video/deadbeefdead0/https%3A%2F%2Fvideo.twimg.com%2Ftest.mp4",
+    });
+    expect(bad.status).toBe(403);
+  });
+
   it("unwinds plugin effects when a plugin unloads", async () => {
     const ctx = new Context();
     const fiber = await ctx.plugin(hello, { name: "vitest" });
