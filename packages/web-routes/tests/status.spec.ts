@@ -117,16 +117,18 @@ describe("statusPlugin", () => {
     expect(twitter.tweet).toHaveBeenCalledWith("1001", "ABC", RankingMode.Likes);
   });
 
-  it("404s invalid ids, dotted names, and missing tweets", async () => {
+  it("404s invalid ids and missing tweets; dotted names fall through to static", async () => {
     const { ctx } = await boot(stubStatusTwitter(makeConversation()));
 
     const invalid = await ctx.server.inject({ url: "/nasa/status/abc" });
     expect(invalid.status).toBe(404);
     expect(invalid.body).toContain("Invalid tweet ID");
 
+    // Nitter's match-time `cond '.' notin name`: no route matches, so the
+    // request falls through to static instead of rendering an error page.
     const dotted = await ctx.server.inject({ url: "/na.sa/status/1001" });
     expect(dotted.status).toBe(404);
-    expect(dotted.body).toContain("Page not found");
+    expect(dotted.body).not.toContain("Page not found");
 
     const { ctx: ctx2 } = await boot(stubStatusTwitter(undefined));
     const missing = await ctx2.server.inject({ url: "/nasa/status/1001" });

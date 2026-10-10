@@ -30,6 +30,8 @@ plan-vs-reality deltas discovered during implementation.
   - [x] `prefs` seam (`ctx.prefs`)
   - [x] `views` package (`ctx.render` + formatters; view components land with
         their route plugins)
+  - [x] styles/static (`sass/**` + `public/**` port, §3 map) — see
+        "styles/static notes" below
   - [x] `status` route plugin (`/:name/status/:id`, `/history`, legacy
         redirects) + `views/status.tsx` (`renderConversation`,
         `renderReplies`, `renderEditHistory`) — wired into `apps/tseer`
@@ -409,6 +411,50 @@ docs/TS_PORT_PLAN.md  # the spec
   thread. `renderListCard`/`renderTimelineLists`/`renderUserSearch`/
   `renderListSearch` landed with the search route plugin (their old
   "deferred" note lives on in git history).
+
+## styles/static notes (plan §3, `sass/**` + `public/**` port)
+
+- **Lives in `@tseer/views`, served via `staticDir`.** `sass/**` (24 files)
+  and `public/**` (fonts, JS, icons, `fontello.css`, 9 theme files,
+  `md/about.md`) are verbatim nitter @ `145ca9e` (master HEAD, Oct 2026)
+  except one rename below. `viewsPublicDir()` (exported from the barrel)
+  resolves to `dist/public/` after `pnpm build`, else the source `public/`
+  (vitest path), keyed on the checked-in `css/fontello.css`.
+- **`style.css` is generated, like upstream.** `scripts/build-css.mjs` ports
+  `tools/gencss.nim` (`index.scss` + `sass/include` load path → dart-sass
+  `compile()`); it writes `public/css/style.css` (gitignored, same as
+  nitter's gitignore) and stages `public/` → `dist/public/` for the
+  published bundle. `views` `build` is `tsdown && node scripts/build-css.mjs`;
+  `files: ["dist"]` already covers the staged copy.
+- **One deliberate divergence: `_mixins.css` → `_mixins.scss`.** Its content
+  is SCSS (`@mixin`), which libsass tolerated under `.css` but dart-sass
+  parses as plain CSS (`@mixin` is illegal there). Legacy `@import`/`unquote`
+  deprecations are silenced; sources otherwise untouched.
+- **`@parcel/watcher` stays denied.** It is dart-sass's watch-mode-only
+  native dep; one-shot `compile()` never loads it, so `allowBuilds` records
+  `false` with the reason (repo denies builds by default).
+- **Fresh boots serve the ported assets.** `apps/tseer` defaults an
+  unconfigured `staticDir` (`./public`, which names a dir that only exists
+  when the operator creates it) to `viewsPublicDir()`; any explicit config
+  value or `staticDir` option wins. Kernel's default and `staticRoutePlugin`
+  are untouched.
+- **Dotted asset URLs reach static via match-time dotless params**
+  (`web-routes/src/params.ts`: `NAME_PARAM`/`TAB_PARAM` =
+  `:name([^.]+)`/`:tab([^.]+)`). Nitter's `cond '.' notin name` runs at
+  *match* time (Jester skips the route, falls through to static); the old
+  in-handler 404s let `/:name/:tab` swallow `/css/style.css`. Every `:name`
+  across timeline/status/rss must use the *identical* pattern string, or
+  find-my-way splits the radix node and one family shadows another (hit here:
+  `/nasa/about` lost to `:tab` until about/followers/following shared the
+  node). `:id`/`:slug`/`:hash` stay dot-allowing (nitter has no dot cond on
+  them; `Invalid tweet ID` must keep firing in-handler).
+- **Tests:** `views/tests/static.spec.ts` (every shell asset URL exists,
+  theme-per-`themeOptions`, no `.scss` under `public/`, in-memory sass
+  compile pins `--bg_color`/`.timeline-item`/`.tweet-body`);
+  `web-routes/tests/routing.spec.ts` (timeline+status+rss mounted together:
+  assets serve from static while each family keeps its routes);
+  timeline/status dotted-name tests now assert static fallthrough instead of
+  the error page (nitter parity).
 
 ## web-routes notes (plan §4/§5, `routes/timeline.nim` port)
 

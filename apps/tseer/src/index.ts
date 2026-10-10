@@ -12,7 +12,7 @@ import { serverPlugin } from "@tseer/server";
 import { twitterApiPlugin } from "@tseer/twitter-api";
 import { parsersPlugin } from "@tseer/twitter-parser";
 import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
-import { renderPlugin } from "@tseer/views";
+import { renderPlugin, viewsPublicDir } from "@tseer/views";
 import {
   resolverPlugin,
   rssPlugin,
@@ -42,6 +42,10 @@ export interface CreateAppOptions {
   withoutSessions?: boolean | undefined;
   /** Skip the `ctx.twitter` provider (needs `ctx.accounts`; default when sessions are off). */
   withoutTwitter?: boolean | undefined;
+  /** Directory served at the URL root (nitter `staticDir`). Defaults to the
+   * views package's `public/` (compiled theme CSS + vendored assets); an
+   * explicit `staticDir` in config always wins. */
+  staticDir?: string | undefined;
 }
 
 /** Mount the scaffold plugin list on a kernel-booted cordis context. */
@@ -51,6 +55,14 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     configText: options.configText,
   });
   if (options.port !== undefined) ctx.config.port = options.port;
+  // Fresh boots serve the ported theme/assets: kernel's `./public` default
+  // names a directory that only exists when the operator creates it (nitter
+  // parity — the example conf ships the same default). Kernel does not track
+  // whether the value was explicit, so `./public` always means "not
+  // configured" here; any other path (custom `staticDir`) is left alone. An
+  // explicit `staticDir` option wins over both.
+  if (options.staticDir !== undefined) ctx.config.staticDir = options.staticDir;
+  else if (ctx.config.staticDir === "./public") ctx.config.staticDir = viewsPublicDir();
 
   await ctx.plugin(hello, { name: options.name ?? "tseer" });
   await ctx.plugin(serverPlugin, {

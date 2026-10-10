@@ -107,6 +107,7 @@ export {
   renderTweetSearch,
   renderUserSearch,
 } from "./search.tsx";
+export { viewsPublicDir } from "./static.ts";
 export {
   getThreadLink,
   getUrlPrefix as getStatusUrlPrefix,

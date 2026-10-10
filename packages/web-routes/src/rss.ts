@@ -50,6 +50,7 @@ import {
   renderTimelineRss,
 } from "@tseer/views";
 import type { Context } from "cordis";
+import { NAME_PARAM, TAB_PARAM } from "./params.ts";
 import { emptyTimelineSearch } from "./search.ts";
 import {
   emptyTimeline,
@@ -371,20 +372,20 @@ export function registerRssRoutes(deps: RssRouteDeps): () => void {
 
   route({
     method: "GET",
-    path: "/:name/rss",
+    path: `/${NAME_PARAM}/rss`,
     handler: (req, reply) => guard(reply, undefined, () => showUserRss(req, reply, "")),
   });
 
   route({
     method: "GET",
-    path: "/:name/:tab/rss",
+    path: `/${NAME_PARAM}/${TAB_PARAM}/rss`,
     handler: (req, reply) =>
       guard(reply, undefined, () => showUserRss(req, reply, req.params["tab"] ?? "")),
   });
 
   route({
     method: "GET",
-    path: "/:name/lists/:slug/rss",
+    path: `/${NAME_PARAM}/lists/:slug/rss`,
     handler: (req, reply) =>
       guard(reply, undefined, async () => {
         const name = req.params["name"] ?? "";

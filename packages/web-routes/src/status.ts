@@ -23,6 +23,7 @@ import {
   toHtml,
 } from "@tseer/views";
 import type { Context } from "cordis";
+import { NAME_PARAM } from "./params.ts";
 import { getCursor, getPath } from "./timeline.ts";
 
 interface StatusConfig {
@@ -229,18 +230,18 @@ export function registerStatusRoutes(deps: StatusRouteDeps): () => void {
 
   route({
     method: "GET",
-    path: "/:name/status/:id",
+    path: `/${NAME_PARAM}/status/:id`,
     handler: (req, reply) => guard(reply, undefined, () => showStatus(req, reply)),
   });
   route({
     method: "GET",
-    path: "/:name/status/:id/history",
+    path: `/${NAME_PARAM}/status/:id/history`,
     handler: (req, reply) => guard(reply, undefined, () => showHistory(req, reply)),
   });
 
   route({
     method: "GET",
-    path: "/:name/statuses/:id",
+    path: `/${NAME_PARAM}/statuses/:id`,
     handler: (req, reply) =>
       guard(reply, undefined, async () => {
         await reply.redirect(`/${req.params["name"] ?? ""}/status/${req.params["id"] ?? ""}`);
@@ -248,7 +249,7 @@ export function registerStatusRoutes(deps: StatusRouteDeps): () => void {
   });
   route({
     method: "GET",
-    path: "/:name/thread/:id",
+    path: `/${NAME_PARAM}/thread/:id`,
     handler: (req, reply) =>
       guard(reply, undefined, async () => {
         await reply.redirect(`/${req.params["name"] ?? ""}/status/${req.params["id"] ?? ""}`);
@@ -264,7 +265,7 @@ export function registerStatusRoutes(deps: StatusRouteDeps): () => void {
   });
   route({
     method: "GET",
-    path: "/:name/:s/:id/:m",
+    path: `/${NAME_PARAM}/:s/:id/:m`,
     handler: (req, reply) =>
       guard(reply, undefined, async () => {
         const requestPrefs = prefs.parse(req.cookies, req.query);

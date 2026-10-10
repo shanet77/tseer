@@ -4,6 +4,9 @@
  * so markup in tweet text/usernames/card titles can never reach the page
  * unescaped. */
 
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { prefsPlugin } from "@tseer/prefs";
 import { serverPlugin } from "@tseer/server";
 import type { Json, ProfileTweets, TwitterApi } from "@tseer/twitter-api";
@@ -418,10 +421,28 @@ describe("timelinePlugin", () => {
     const twitter = stubTwitter(makeUser(), makeTimeline(makeTweet()));
     const { ctx } = await boot(twitter);
 
-    for (const url of ["/na.sa", "/search", "/settings", "/nasa/nope", "/a,b/articles"]) {
+    for (const url of ["/search", "/settings", "/nasa/nope", "/a,b/articles"]) {
       const res = await ctx.server.inject({ url });
       expect(res.status, url).toBe(404);
       expect(res.body, url).toContain("Page not found");
+    }
+  });
+
+  it("lets dotted paths fall through to static files (theme assets)", async () => {
+    const { ctx } = await boot(stubTwitter(makeUser(), makeTimeline(makeTweet())));
+    const dir = await mkdtemp(join(tmpdir(), "tseer-timeline-"));
+    await writeFile(join(dir, "style.css"), "body{}");
+    const disposeStatic = ctx.server.static("/", dir);
+    try {
+      const css = await ctx.server.inject({ url: "/style.css" });
+      expect(css.status).toBe(200);
+      expect(css.body).toBe("body{}");
+      // A dotted name with no file still 404s — just not as a profile page.
+      const missing = await ctx.server.inject({ url: "/na.sa" });
+      expect(missing.status).toBe(404);
+      expect(missing.body).not.toContain("Page not found");
+    } finally {
+      disposeStatic();
     }
   });
 

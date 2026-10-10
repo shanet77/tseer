@@ -14,9 +14,13 @@
  * - Jester's optional `@tab` group becomes two registrations (`/:name`,
  *   `/:name/:tab`); fastify's radix router gives the static subpaths
  *   (`/about`, `/followers`, `/following`) precedence over `:tab`, mirroring
- *   nitter's dedicated routes.
+ *   nitter's dedicated routes. Every `:name`/`:tab` here uses the shared
+ *   dotless params (`./params.ts`, the port of nitter's match-time
+ *   `cond '.' notin name`), so asset URLs fall through to `staticDir`
+ *   instead of 404ing as usernames.
  * - `cond` failures fall through to nitter's global 404 error page — the
- *   handlers answer 404 with `Page not found` directly.
+ *   handlers answer 404 with `Page not found` directly (dotted names never
+ *   reach a handler: they fall through to static first).
  * - `getUserId`'s pid-bucket lookup + "suspended" sentinel collapses into
  *   `cachedUser` (one cached user fetch instead of two; the suspended flag
  *   carries the sentinel).
@@ -67,6 +71,7 @@ import {
   toHtml,
 } from "@tseer/views";
 import type { Context } from "cordis";
+import { NAME_PARAM, TAB_PARAM } from "./params.ts";
 
 /** Subset of `ctx.config` the timeline routes read (declared locally so the
  * package never imports `@tseer/kernel`). */
@@ -450,7 +455,7 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
 
   route({
     method: "GET",
-    path: "/:name/about",
+    path: `/${NAME_PARAM}/about`,
     handler: (req, reply) =>
       guard(reply, undefined, async () => {
         const name = req.params["name"] ?? "";
@@ -534,13 +539,13 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
 
   route({
     method: "GET",
-    path: "/:name/followers",
+    path: `/${NAME_PARAM}/followers`,
     handler: (req, reply) =>
       guard(reply, undefined, () => showConnections(req, reply, "followers")),
   });
   route({
     method: "GET",
-    path: "/:name/following",
+    path: `/${NAME_PARAM}/following`,
     handler: (req, reply) =>
       guard(reply, undefined, () => showConnections(req, reply, "following")),
   });
@@ -595,12 +600,12 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
 
   route({
     method: "GET",
-    path: "/:name",
+    path: `/${NAME_PARAM}`,
     handler: (req, reply) => guard(reply, undefined, () => showIndex(req, reply, "")),
   });
   route({
     method: "GET",
-    path: "/:name/:tab",
+    path: `/${NAME_PARAM}/${TAB_PARAM}`,
     handler: (req, reply) =>
       guard(reply, undefined, () => showIndex(req, reply, req.params["tab"] ?? "")),
   });

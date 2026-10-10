@@ -8,3 +8,7 @@ packages:
 # add entries only with a comment explaining why the script is needed.
 allowBuilds:
   esbuild: true
+  # dart-sass's file watcher, used only by `sass --watch`. The theme build
+  # (packages/views/scripts/build-css.mjs) uses one-shot compile(), which
+  # never loads it, so its postinstall stays denied.
+  "@parcel/watcher": false

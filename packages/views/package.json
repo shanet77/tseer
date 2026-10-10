@@ -15,7 +15,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && node scripts/build-css.mjs",
+    "build:css": "node scripts/build-css.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
@@ -26,5 +27,8 @@
     "cordis": "4.0.0-rc.10",
     "preact": "^10.27.4",
     "preact-render-to-string": "^6.6.4"
+  },
+  "devDependencies": {
+    "sass": "^1.105.1"
   }
 }
