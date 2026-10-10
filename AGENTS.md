@@ -33,6 +33,10 @@ plan-vs-reality deltas discovered during implementation.
   - [x] `status` route plugin (`/:name/status/:id`, `/history`, legacy
         redirects) + `views/status.tsx` (`renderConversation`,
         `renderReplies`, `renderEditHistory`) — wired into `apps/tseer`
+  - [x] `search` route plugin (`/search`, `/hashtag/:hash`, `/opensearch`) +
+        `views/search.tsx` (`renderUserSearch`, `renderListSearch`,
+        `renderSearchForm`) + `views/timeline.tsx` (`renderListCard`,
+        `renderTimelineLists`) — wired into `apps/tseer`
 - [ ] Phase 5 — long-tail route plugins
   - [x] `web-routes` package + timeline route plugin (profile/followers/following/about, `/:name/:tab?`, `intent/*`, `i/user`) — first `prefs`+`render`+`twitter` consumer, inject-based fastify tests
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
@@ -382,7 +386,10 @@ docs/TS_PORT_PLAN.md  # the spec
   reads; the full `TseerPreferences` satisfies it.
 - **View components land with the timeline plugin** (Phase 4):
   `renderutils.tsx` (renderutils.nim) + `tweet.tsx`/`timeline.tsx`/
-  `search.tsx`/`profile.tsx`/`about-account.tsx`. The media signer reaches
+  `search.tsx`/`profile.tsx`/`about-account.tsx`. The search route plugin
+  adds `renderUserSearch`/`renderListSearch`/`renderSearchForm`
+  (`views/search.nim`) and `renderListCard`/`renderTimelineLists`
+  (`views/timeline.nim`, incl. the @mention linkification helpers). The media signer reaches
   the components through **process globals** (`media.ts` `setMediaSigners`,
   the port of nitter's `getPicUrl` process globals), wired reversibly by
   `renderPlugin({ picUrl, origPicUrl, vidUrl })` — the same shape
@@ -396,7 +403,8 @@ docs/TS_PORT_PLAN.md  # the spec
   no timeline counterpart — it returns with the status/conversation route.
   `filterThreads` (retweet dedup, hidden pins) runs per tweet instead of per
   thread. `renderListCard`/`renderTimelineLists`/`renderUserSearch`/
-  `renderListSearch` are deferred to the search route plugin.
+  `renderListSearch` landed with the search route plugin (their old
+  "deferred" note lives on in git history).
 
 ## web-routes notes (plan §4/§5, `routes/timeline.nim` port)
 
@@ -442,6 +450,35 @@ docs/TS_PORT_PLAN.md  # the spec
   upstream JSON (tweet text + username + fullname containing markup) through
   the real `parseGraphTimeline` and asserts the page contains only escaped
   markup.
+
+## search notes (plan §4, `routes/search.nim` port)
+
+- **`searchPlugin` is the same four-seam shape as the timeline/status
+  plugins** (`server` + `twitter` + `render` + `prefs` via static `.inject`,
+  `ctx.effect` cleanup, `guard` error mapping) and registers `/search`,
+  `/hashtag/:hash`, `/opensearch`. Static segments win over the timeline
+  plugin's `/:name`/`/:name/:tab` in fastify's radix router, so mount order
+  does not matter.
+- **Route-level `f=` remap lives in the plugin, not `query.nim`.** The
+  search-query compiler notes already called this out: `f=user` → `users`,
+  `f=list` → `lists` (x.com compat) happens after `initQuery`, mirroring
+  nitter mutating the parsed query in the route. The media `view` default
+  (`prefs.mediaView`, lowercased) mirrors the `/user/media` tab rule.
+- **Branch behavior ported verbatim:** `q` over 500 chars → 400; `users`
+  with a comma redirects to the combined `/a,b` timeline; people-search
+  swallows `InternalError` into an empty page (other errors propagate to
+  the 429/500 `guard`); tweet tabs attach the RSS link only when
+  `enableRSSSearch`; anything `initQuery` cannot produce (e.g. `f=posts`)
+  → 404 `Invalid search`. No `?scroll=` fragment handling — nitter's
+  search route has none either.
+- **`generateOpenSearchXml` is the `opensearch.nimf` template** as a static
+  string with XML-escaped config values, served as
+  `application/opensearchdescription+xml`.
+- **Tests** (`packages/web-routes/tests/search.spec.ts`) follow the timeline
+  spec's boot pattern (stubbed `ctx.twitter` + `inject`); escaping is pinned
+  at the auto-escaped layer (page title, list description) while the
+  pre-escaped-sink path (tweet text, bio) stays covered by the timeline
+  spec's real-parser XSS test.
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 

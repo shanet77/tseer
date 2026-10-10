@@ -1,14 +1,19 @@
 /** Port of nitter's `src/views/search.nim` — search bar, tab rows, the
- * filter panel, and `renderTweetSearch` (the timeline container that ties
- * tabs to `renderTimelineTweets`).
- *
- * Deferred with the search route plugin: `renderUserSearch`/
- * `renderListSearch`.
+ * filter panel, `renderTweetSearch` (the timeline container that ties tabs
+ * to `renderTimelineTweets`), and the user/list search pages.
  */
 
 import type { TseerPreferences } from "@tseer/prefs";
 import { genQueryUrl } from "@tseer/twitter-api";
-import { type Query, QueryKind, type TimelineResult, type Tweet } from "@tseer/types";
+import {
+  type ListSearchResult,
+  type Query,
+  QueryKind,
+  type Result,
+  type TimelineResult,
+  type Tweet,
+  type User,
+} from "@tseer/types";
 import { Fragment, type VNode } from "preact";
 import { titleize } from "./formatters.ts";
 import {
@@ -20,7 +25,7 @@ import {
   hiddenField,
   icon,
 } from "./renderutils.tsx";
-import { renderTimelineTweets } from "./timeline.tsx";
+import { renderTimelineLists, renderTimelineTweets, renderTimelineUsers } from "./timeline.tsx";
 
 const toggles: ReadonlyArray<readonly [key: string, label: string]> = [
   ["nativeretweets", "Retweets"],
@@ -214,6 +219,47 @@ export function renderTweetSearch(
         </>
       )}
       {renderTimelineTweets(results, prefs, path, pinned)}
+    </div>
+  );
+}
+
+/** search.nim `renderSearchForm`: the "Enter username..." header form. */
+export function renderSearchForm(kind: string, placeholder: string, value: string): VNode {
+  return (
+    <form method="get" action="/search" class="search-field" autocomplete="off">
+      {hiddenField("f", kind)}
+      {genInput("q", "", value, placeholder, "pref-inline")}
+      <button type="submit">{icon("search")}</button>
+    </form>
+  );
+}
+
+/** search.nim `renderUserSearch`: user results under the search tabs. */
+export function renderUserSearch(results: Result<User>, prefs: TseerPreferences): VNode {
+  return (
+    <div class="timeline-container">
+      <div class="timeline-header">
+        {renderSearchForm("users", "Enter username...", results.query.text)}
+      </div>
+      {renderSearchTabs(results.query)}
+      {renderTimelineUsers(results, prefs)}
+    </div>
+  );
+}
+
+/** search.nim `renderListSearch`: list results under the search tabs. */
+export function renderListSearch(
+  results: Result<ListSearchResult>,
+  prefs: TseerPreferences,
+  path: string,
+): VNode {
+  return (
+    <div class="timeline-container">
+      <div class="timeline-header">
+        {renderSearchForm("lists", "Enter search...", results.query.text)}
+      </div>
+      {renderSearchTabs(results.query)}
+      {renderTimelineLists(results, prefs, path)}
     </div>
   );
 }

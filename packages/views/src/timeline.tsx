@@ -6,15 +6,13 @@
  * `renderTimelineTweets` have no counterpart here — every content item is a
  * single tweet, exactly like the Nim `thread.len == 1` path. `renderThread`
  * comes back with the status/conversation route, which renders chains.
- *
- * Deferred with the search route plugin: `renderListCard`/
- * `renderTimelineLists` (list-search result cards).
  */
 
 import { encodeUrl } from "@tseer/media";
 import type { TseerPreferences } from "@tseer/prefs";
 import { genQueryUrl } from "@tseer/twitter-api";
 import {
+  type ListSearchResult,
   type Query,
   QueryKind,
   type Result,
@@ -23,7 +21,7 @@ import {
   type User,
 } from "@tseer/types";
 import type { VNode } from "preact";
-import { getUserPic, replaceUrls } from "./formatters.ts";
+import { getUserPic, insertSep, replaceUrls } from "./formatters.ts";
 import { genImg, getAvatarClass, icon, linkUser, verifiedIcon } from "./renderutils.tsx";
 import { renderTweet } from "./tweet.tsx";
 
@@ -141,6 +139,122 @@ export function renderTimelineUsers(
       {results.content.length > 0 ? (
         <>
           {results.content.map((user) => renderUser(user, prefs))}
+          {results.bottom.length > 0 && renderMore(results.query, results.bottom)}
+          {renderToTop()}
+        </>
+      ) : results.beginning ? (
+        renderNoneFound()
+      ) : (
+        renderNoMore()
+      )}
+    </div>
+  );
+}
+
+/** timeline.nim `mentionUsername`: "@user" → "user" for well-formed mentions. */
+function mentionUsername(word: string): string {
+  if (word.length > 1 && word[0] === "@" && /^[A-Za-z0-9_]+$/.test(word.slice(1))) {
+    return word.slice(1);
+  }
+  return "";
+}
+
+/** timeline.nim `mentionedUser`: the last @mention in "65 followers including @user". */
+function mentionedUser(s: string): string {
+  const words = s.split(" ");
+  for (let i = words.length - 1; i >= 0; i--) {
+    const result = mentionUsername(words[i] ?? "");
+    if (result.length > 0) return result;
+  }
+  return "";
+}
+
+/** timeline.nim `renderMentionedText`: linkify @mentions in plain API strings. */
+function renderMentionedText(s: string): VNode {
+  const words = s.split(" ");
+  return (
+    <span>
+      {words.map((word, i) => {
+        const username = mentionUsername(word);
+        return (
+          <>
+            {i > 0 && " "}
+            {username.length > 0 ? <a href={`/${username}`}>{word}</a> : word}
+          </>
+        );
+      })}
+    </span>
+  );
+}
+
+/** timeline.nim `renderListCard`: a list-search result card. */
+export function renderListCard(r: ListSearchResult): VNode {
+  const listUrl = `/i/lists/${r.list.id}`;
+  return (
+    <div class="timeline-item list-result">
+      {/* biome-ignore lint/a11y/useAnchorContent: nitter's invisible tweet-link overlay */}
+      {/* biome-ignore lint/a11y/useValidAnchor: overlay anchor, ported verbatim */}
+      <a class="tweet-link" href={listUrl} />
+      <a class="list-result-banner" href={listUrl}>
+        {r.list.banner.length > 0 && genImg(r.list.banner)}
+      </a>
+      <div class="list-result-body">
+        <div class="list-result-title fullname-and-username">
+          <a class="list-name fullname" href={listUrl}>
+            {r.list.name}
+          </a>
+          <span class="list-members">{`· ${insertSep(String(r.list.members), ",")} members`}</span>
+        </div>
+        <div class="list-result-context">
+          {r.followersContext.length > 0 ? (
+            <>
+              {/* the first facepile belongs to the "including @user" account */}
+              {r.facepiles.map((facepile, i) => {
+                const mentioned = i === 0 ? mentionedUser(r.followersContext) : "";
+                return mentioned.length > 0 ? (
+                  <a class="facepile-link" href={`/${mentioned}`}>
+                    {genImg(facepile, "list-facepile")}
+                  </a>
+                ) : (
+                  genImg(facepile, "list-facepile")
+                );
+              })}
+              {renderMentionedText(r.followersContext)}
+            </>
+          ) : (
+            <>
+              {r.owner.username.length > 0 ? (
+                <a class="facepile-link" href={`/${r.owner.username}`}>
+                  {genImg(getUserPic(r.owner.userPic, "_mini"), "list-facepile")}
+                </a>
+              ) : (
+                genImg(getUserPic(r.owner.userPic, "_mini"), "list-facepile")
+              )}
+              {linkUser(r.owner, "fullname")}
+              {linkUser(r.owner, "username")}
+            </>
+          )}
+        </div>
+        {r.list.description.length > 0 && (
+          <div class="list-result-description">{r.list.description}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** timeline.nim `renderTimelineLists`: paginated list-search results. */
+export function renderTimelineLists(
+  results: Result<ListSearchResult>,
+  _prefs: TseerPreferences,
+  path = "",
+): VNode {
+  return (
+    <div class="timeline">
+      {!results.beginning && renderNewer(results.query, path)}
+      {results.content.length > 0 ? (
+        <>
+          {results.content.map((list) => renderListCard(list))}
           {results.bottom.length > 0 && renderMore(results.query, results.bottom)}
           {renderToTop()}
         </>
