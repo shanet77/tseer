@@ -14,6 +14,7 @@ import { parsersPlugin } from "@tseer/twitter-parser";
 import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
 import { renderPlugin, viewsPublicDir } from "@tseer/views";
 import {
+  broadcastPlugin,
   preferencesPlugin,
   resolverPlugin,
   rssPlugin,
@@ -121,6 +122,11 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     await ctx.plugin(searchPlugin);
     await ctx.plugin(rssPlugin);
     await ctx.plugin(spacePlugin, {
+      proxy: ctx.config.proxy,
+      proxyAuth: ctx.config.proxyAuth,
+      maxConns: ctx.config.httpMaxConns,
+    });
+    await ctx.plugin(broadcastPlugin, {
       proxy: ctx.config.proxy,
       proxyAuth: ctx.config.proxyAuth,
       maxConns: ctx.config.httpMaxConns,

@@ -12,6 +12,8 @@
  *   is private, so the short names are local here).
  * - `insertSep` now lives in `formatters.ts`, so listener counts need no local
  *   helper.
+ * - {@link endedDate} is shared with `broadcast.tsx` (same "Ended MMM d, YYYY"
+ *   rendering; `views/broadcast.nim` has an identical `format` call).
  */
 
 import type { TseerPreferences } from "@tseer/prefs";
@@ -37,8 +39,8 @@ const MONTHS_SHORT = [
 ];
 
 /** Nim `sp.endTime.format("MMM d, YYYY")`, rendered by hand in UTC. `""` means
- * the date is not set (Nim's `year > 1` guard). */
-function endedDate(iso: string): string {
+ * the date is not set (Nim's `year > 1` guard). Shared with `broadcast.tsx`. */
+export function endedDate(iso: string): string {
   const date = new Date(iso);
   if (iso === "" || Number.isNaN(date.getTime())) return "";
   return `${MONTHS_SHORT[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;

@@ -59,6 +59,9 @@ plan-vs-reality deltas discovered during implementation.
   - [x] `space` route plugin (`/i/spaces/:id`, `/i/spaces/:id/stream`) +
         `views/space.tsx` (`renderSpace`, `renderParticipant`) — manifest
         fetch via `@tseer/media` `safeFetchText`; wired into `apps/tseer`
+  - [x] `broadcast` route plugin (`/i/broadcasts/:id`, `/i/broadcasts/:id/stream`)
+        + `views/broadcast.tsx` (`renderBroadcast`) — manifest fetch via
+        `@tseer/media` `safeFetchText`; wired into `apps/tseer`
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
 Update this checklist as phases land.
@@ -677,6 +680,49 @@ docs/TS_PORT_PLAN.md  # the spec
   `format("MMM d, YYYY")` is hand-rendered in UTC (no Intl; short month names
   are local — formatters' `monthsShort` is private). `insertSep` already lives
   in `formatters.ts`, so listener counts needed no new helper.
+
+## broadcast notes (plan §5, `routes/broadcast.nim` + `views/broadcast.nim` port)
+
+- **`broadcastPlugin` is the four-seam route-plugin shape** (`server` +
+  `twitter` + `render` + `prefs` via static `.inject`, `ctx.effect` cleanup)
+  registering `/i/broadcasts/:id` and `/i/broadcasts/:id/stream`. The static
+  `broadcasts` segment beats the unsupported plugin's `/i/:i/:j` param in the
+  radix router regardless of mount order, and that plugin's deny list is
+  upstream-verbatim — **not** extended with `broadcasts`: with the broadcast
+  plugin unmounted, `/i/broadcasts/x` rendering the "Unsupported feature"
+  panel is correct upstream-shaped behavior. The routes also back the
+  `broadcast` card kind (`parseBroadcast` links cards to both URLs).
+- **No `guard` — the `try/except: discard` is ported verbatim.** nitter's
+  broadcast route wraps `getCachedBroadcast` in a bare except that discards
+  *every* failure, so a rate-limited fetch collapses to the empty broadcast
+  and the 404 `Broadcast not found` page — **unlike the space sibling**, which
+  maps errors to 429/500 pages. `cachedBroadcast` in the plugin returns
+  `undefined` on any throw; only render bugs (a plugin bug) escape to the
+  server's 500 handler. `web-routes/tests/broadcast.spec.ts` pins the 429→404
+  divergence so it cannot be "fixed" into parity by accident.
+- **Everything else is the space plugin's shape:** alnum cond in-handler
+  (`:id` stays dot-allowing; failed conds answer `showError("Page not
+  found")`), bare 404/502 on the stream route (`reply.text("")`, no error
+  page), `VideoType.m3u8` content type (same divergence as space),
+  `@tseer/media` `safeFetchText` over a dedicated `UndiciMediaFetcher` closed
+  on unload, and segment signing through the views' process-global
+  `getVidUrl` — no fifth (`media`) seam.
+- **`views/broadcast.tsx` divergences:** the play overlay's
+  `onclick="playVideo(this)"` is a raw-HTML sink (same rule as `tweet.tsx`/
+  `space.tsx`); `year > 1` date guards map to empty-string guards, and the
+  `format("MMM d, YYYY")` "Ended …" text reuses `space.tsx`'s exported
+  `endedDate` (hand-rendered in UTC, no Intl). The duration badge subtracts
+  `replayStart * 1000` (replays begin partway through the recording), ported
+  verbatim. The no-manifest panels are upstream-verbatim, including the odd
+  mapping: `availableForReplay` **true** → "Stream unavailable", false →
+  "Replay is not available".
+- **`cachedBroadcast` (the `getCachedBroadcast` port) refreshes the m3u8 URL
+  on every hit** — `twitter-api/src/cached.ts` re-resolves
+  `broadcast.mediaKey` through `broadcastStream` even on a cache hit, since
+  playback URLs expire while the metadata (title/state/views) does not. The
+  route never signs or caches the stream URL itself.
+
+
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 

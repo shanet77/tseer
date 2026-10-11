@@ -2,6 +2,7 @@
  * profile/search view components, and formatters. */
 
 export { renderAboutAccount } from "./about-account.tsx";
+export { renderBroadcast } from "./broadcast.tsx";
 export { renderFeature } from "./feature.tsx";
 export {
   getDuration,
