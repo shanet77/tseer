@@ -23,6 +23,7 @@ import {
   toHtml,
 } from "@tseer/views";
 import type { Context } from "cordis";
+import { createShowError } from "./errors.ts";
 import { NAME_PARAM } from "./params.ts";
 import { getCursor, getPath } from "./timeline.ts";
 
@@ -57,14 +58,7 @@ export function registerStatusRoutes(deps: StatusRouteDeps): () => void {
     disposers.push(server.route(spec));
   };
 
-  function showError(
-    reply: AppReply,
-    message: string,
-    status = 200,
-    requestPrefs?: TseerPreferences,
-  ): void {
-    void reply.html(render.errorPage(message, undefined, requestPrefs), { status });
-  }
+  const showError = createShowError(render);
 
   async function guard(
     reply: AppReply,

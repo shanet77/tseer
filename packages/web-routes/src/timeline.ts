@@ -71,6 +71,7 @@ import {
   toHtml,
 } from "@tseer/views";
 import type { Context } from "cordis";
+import { createShowError } from "./errors.ts";
 import { NAME_PARAM, TAB_PARAM } from "./params.ts";
 
 /** Subset of `ctx.config` the timeline routes read (declared locally so the
@@ -241,14 +242,7 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
     disposers.push(server.route(spec));
   };
 
-  function showError(
-    reply: AppReply,
-    message: string,
-    status = 200,
-    requestPrefs?: TseerPreferences,
-  ): void {
-    void reply.html(render.errorPage(message, undefined, requestPrefs), { status });
-  }
+  const showError = createShowError(render);
 
   /** nitter.nim's error pages: the fetch loop's failures get real pages. */
   async function guard(

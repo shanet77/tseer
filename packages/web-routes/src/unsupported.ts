@@ -21,21 +21,31 @@
  *
  * The `cond @"i" notin [...]` guards from the Nim original are enforced
  * in-handler rather than at match time: a caught value answers the 404 error
- * page instead of the panel. The `/i` family avoids radix shadowing by
- * enumerating the static segments that sibling plugins own — `/i/user/:id`
- * (timeline), `/i/status/:id` (status), `/i/lists/:id/rss` (rss) — so those
- * keep resolving to their real handlers regardless of plugin mount order.
+ * page instead of the panel (in Jester a failed cond skips the route, which
+ * falls through to the same global 404 handler). The `/i/:i/:j` param routes
+ * sit *under* the static segments sibling plugins own — `/i/user/:id`
+ * (timeline), `/i/status/:id` (status), `/i/lists/:id/rss` (rss) — and
+ * fastify's radix router prefers static segments over params, so those keep
+ * resolving to their real handlers regardless of plugin mount order; the
+ * in-handler guard covers the case where the sibling is not mounted.
+ *
+ * Divergence from the Nim original: Jester's `/?`-suffixed patterns match a
+ * trailing slash (`/login/`, `/intent/`, `/i/`, `/nasa/lists/` all render the
+ * panel upstream); fastify's default strict trailing-slash matching answers
+ * 404. A seam-wide `ignoreTrailingSlash` would over-match where Jester's
+ * per-pattern `/?` does not, so the strict behavior is kept.
  *
  * Same three-seam shape as the other route plugins (`server` + `render` +
  * `prefs` via static `.inject`, `ctx.effect` cleanup). No `twitter` seam: the
  * panel is static.
  */
 
-import type { PrefsService, TseerPreferences } from "@tseer/prefs";
+import type { PrefsService } from "@tseer/prefs";
 import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
 import type { Render } from "@tseer/views";
 import { renderFeature } from "@tseer/views";
 import type { Context } from "cordis";
+import { createShowError } from "./errors.ts";
 import { NAME_PARAM } from "./params.ts";
 
 export interface UnsupportedRouteDeps {
@@ -46,19 +56,11 @@ export interface UnsupportedRouteDeps {
 
 export function registerUnsupportedRoutes(deps: UnsupportedRouteDeps): () => void {
   const { server, render, prefs } = deps;
+  const showError = createShowError(render);
   const disposers: (() => void)[] = [];
   const route = (spec: RouteSpec): void => {
     disposers.push(server.route(spec));
   };
-
-  function showError(
-    reply: AppReply,
-    message: string,
-    status = 200,
-    requestPrefs?: TseerPreferences,
-  ): void {
-    void reply.html(render.errorPage(message, undefined, requestPrefs), { status });
-  }
 
   /** Render the unsupported panel under the page shell. */
   async function feature(req: AppRequest, reply: AppReply): Promise<void> {
@@ -69,47 +71,42 @@ export function registerUnsupportedRoutes(deps: UnsupportedRouteDeps): () => voi
   }
 
   /** `cond @"i" notin denied` → the panel; a caught value → the 404 page. */
-  function featureUnless(
+  async function featureUnless(
     req: AppRequest,
     reply: AppReply,
     denied: readonly string[],
   ): Promise<void> {
     const i = req.params["i"] ?? "";
     if (denied.includes(i)) {
-      const requestPrefs = prefs.parse(req.cookies, req.query);
-      showError(reply, "Page not found", 404, requestPrefs);
-      return Promise.resolve();
+      showError(reply, "Page not found", 404, prefs.parse(req.cookies, req.query));
+      return;
     }
-    return feature(req, reply);
+    await feature(req, reply);
   }
 
   // /about/feature
-  route({ method: "GET", path: "/about/feature", handler: (req, reply) => feature(req, reply) });
+  route({ method: "GET", path: "/about/feature", handler: feature });
 
   // /login + /login/:i (Jester `/login/?@i?`)
-  route({ method: "GET", path: "/login", handler: (req, reply) => feature(req, reply) });
-  route({ method: "GET", path: "/login/:i", handler: (req, reply) => feature(req, reply) });
+  route({ method: "GET", path: "/login", handler: feature });
+  route({ method: "GET", path: "/login/:i", handler: feature });
 
   // /:name/lists (Jester `/@name/lists/?`). The bare path only; upstream's
   // list timeline (`/@name/lists/@slug`, list.nim) is the list plugin's job.
-  route({
-    method: "GET",
-    path: `/${NAME_PARAM}/lists`,
-    handler: (req, reply) => feature(req, reply),
-  });
+  route({ method: "GET", path: `/${NAME_PARAM}/lists`, handler: feature });
 
   // /intent + /intent/:i (Jester `/intent/?@i?`); `user`/`follow` are timeline's.
-  route({ method: "GET", path: "/intent", handler: (req, reply) => feature(req, reply) });
+  route({ method: "GET", path: "/intent", handler: feature });
   route({
     method: "GET",
     path: "/intent/:i",
     handler: (req, reply) => featureUnless(req, reply, ["user", "follow"]),
   });
 
-  // /i + /i/:i + /i/:i/:j (Jester `/i/@i?/@j?`). `status`, `lists`, `user` are
+  // /i + /i/:i + /i/:i/:j (Jester `/i/@i?/?@j?`). `status`, `lists`, `user` are
   // caught by the `cond` guard; the static segments sibling plugins own are
-  // enumerated below so they never fall into these param routes.
-  route({ method: "GET", path: "/i", handler: (req, reply) => feature(req, reply) });
+  // matched ahead of these param routes by the radix router (see header).
+  route({ method: "GET", path: "/i", handler: feature });
   route({
     method: "GET",
     path: "/i/:i",

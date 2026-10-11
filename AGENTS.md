@@ -50,6 +50,12 @@ plan-vs-reality deltas discovered during implementation.
         `views/preferences.tsx` (`renderPreferences`) + `prefs` `update.ts`
         (`genUpdatePrefs`/`genResetPrefs`/`genApplyPrefs` ports) — no `twitter`
         seam; wired into `apps/tseer`
+  - [x] `resolver` route plugin (`/cards/:card/:id`, `/t.co/:url`) — the
+        `api.nim` `resolve` port via `twitter.resolve` + `replaceUrls` rewrite;
+        wired into `apps/tseer`
+  - [x] `unsupported` route plugin (`/about/feature`, `/login`, `/:name/lists`,
+        `/intent*`, `/i*`) + `views/feature.tsx` (`renderFeature`) — static
+        panel, no `twitter` seam; wired into `apps/tseer`
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
 Update this checklist as phases land.

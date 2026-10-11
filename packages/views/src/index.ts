@@ -2,6 +2,7 @@
  * profile/search view components, and formatters. */
 
 export { renderAboutAccount } from "./about-account.tsx";
+export { renderFeature } from "./feature.tsx";
 export {
   getDuration,
   getJoinDate,
@@ -131,4 +132,3 @@ export {
   timelineViewClass,
 } from "./timeline.tsx";
 export { renderTweet } from "./tweet.tsx";
-export { renderFeature } from "./unsupported.tsx";
