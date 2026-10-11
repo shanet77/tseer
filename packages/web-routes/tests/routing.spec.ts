@@ -2,7 +2,8 @@
  * nitter's match-time `cond '.' notin name`) keeps every family on one radix
  * node, so static subpaths (`/about`, `/rss`, `/status`) win over `:tab` and
  * dotted asset URLs fall through to `staticDir`. Mounts timeline + status +
- * rss together because the shadowing only manifests across families. */
+ * rss + unsupported together because the shadowing only manifests across
+ * families (unsupported's `/i/:i/:j` must not swallow `/i/status/:id`). */
 
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -17,6 +18,7 @@ import { describe, expect, it, vi } from "vitest";
 import { default as rssPlugin } from "../src/rss.ts";
 import { default as statusPlugin } from "../src/status.ts";
 import { default as timelinePlugin } from "../src/timeline.ts";
+import { default as unsupportedPlugin } from "../src/unsupported.ts";
 import { makeConversation } from "./status.spec.ts";
 import { makeTimeline, makeTweet, makeUser, stubTwitter } from "./timeline.spec.ts";
 
@@ -27,6 +29,15 @@ function stubAllTwitter(): TwitterApi {
   return {
     ...stubTwitter(user, timeline),
     cachedRss: vi.fn(async (_key: string, factory: () => Promise<Rss>) => factory()),
+    cachedList: vi.fn(async () => ({
+      id: "LIST1",
+      name: "Space",
+      userId: "1234",
+      username: "nasa",
+      description: "orbital updates",
+      members: 3,
+      banner: "",
+    })),
     tweet: vi.fn(async () => conv),
     editHistory: vi.fn(async () => ({ latest: conv.tweet, history: [] })),
   } as unknown as TwitterApi;
@@ -51,6 +62,7 @@ describe("cross-plugin routing", () => {
       ctx.plugin(timelinePlugin),
       ctx.plugin(statusPlugin),
       ctx.plugin(rssPlugin),
+      ctx.plugin(unsupportedPlugin),
     ]);
 
     const dir = await mkdtemp(join(tmpdir(), "tseer-routing-"));
@@ -82,6 +94,24 @@ describe("cross-plugin routing", () => {
       const badTab = await ctx.server.inject({ url: "/nasa/nope" });
       expect(badTab.status).toBe(404);
       expect(badTab.body).toContain("Page not found");
+
+      // The unsupported plugin's `/i/:i/:j` must not swallow sibling routes:
+      // `/i/status/:id` (status) and `/i/user/:id` (timeline) keep winning by
+      // static-segment depth, and the bare panel paths still render.
+      const iStatus = await ctx.server.inject({ url: "/i/status/1001" });
+      expect(iStatus.status).toBe(200);
+      expect(iStatus.body).toContain("main tweet here");
+      expect(iStatus.body).not.toContain("Unsupported feature");
+      const iUser = await ctx.server.inject({ url: "/i/user/42" });
+      expect(iUser.status).toBe(404);
+      expect(iUser.body).toContain("User not found");
+      expect(iUser.body).not.toContain("Unsupported feature");
+      const listsRss = await ctx.server.inject({ url: "/nasa/lists/space/rss" });
+      expect(listsRss.status).toBe(302);
+      expect(listsRss.headers["location"]).toBe("/i/lists/LIST1/rss");
+      const panel = await ctx.server.inject({ url: "/nasa/lists" });
+      expect(panel.status).toBe(200);
+      expect(panel.body).toContain("Unsupported feature");
     } finally {
       disposeStatic();
       await Promise.all(fibers.map((fiber) => fiber.dispose()));

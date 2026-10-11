@@ -117,6 +117,23 @@ describe("statusPlugin", () => {
     expect(twitter.tweet).toHaveBeenCalledWith("1001", "ABC", RankingMode.Likes);
   });
 
+  it('renders the bare /i/status/:id in place (upstream name="i" match)', async () => {
+    // Upstream reaches this URL through the status router's `/@name/status/@id`
+    // with name="i"; the tweet page renders there, links pointing at the tweet's
+    // own username. It must not redirect or 404.
+    const twitter = stubStatusTwitter(makeConversation());
+    const { ctx } = await boot(twitter);
+
+    const res = await ctx.server.inject({ url: "/i/status/1001" });
+    expect(res.status).toBe(200);
+    expect(res.body).toContain("main tweet here");
+    expect(twitter.tweet).toHaveBeenCalledWith("1001", "", RankingMode.Relevance);
+
+    const invalid = await ctx.server.inject({ url: "/i/status/abc" });
+    expect(invalid.status).toBe(404);
+    expect(invalid.body).toContain("Invalid tweet ID");
+  });
+
   it("404s invalid ids and missing tweets; dotted names fall through to static", async () => {
     const { ctx } = await boot(stubStatusTwitter(makeConversation()));
 

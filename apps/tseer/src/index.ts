@@ -20,6 +20,7 @@ import {
   searchPlugin,
   statusPlugin,
   timelinePlugin,
+  unsupportedPlugin,
 } from "@tseer/web-routes";
 import type { Context } from "cordis";
 import hello from "./plugins/hello.ts";
@@ -120,13 +121,15 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     await ctx.plugin(rssPlugin);
     await ctx.plugin(resolverPlugin);
   }
-  // The settings page needs no X session — it renders from `prefs` + `render`
-  // alone, so it mounts regardless of `withoutTwitter`/`withoutSessions`.
+  // The settings page and the static "unsupported feature" panel need no X
+  // session — they render from `prefs` + `render` alone, so they mount
+  // regardless of `withoutTwitter`/`withoutSessions`.
   await ctx.plugin(preferencesPlugin, {
     hostname: ctx.config.hostname,
     useHttps: ctx.config.useHttps,
     staticDir: ctx.config.staticDir,
   });
+  await ctx.plugin(unsupportedPlugin);
   await ctx.plugin(healthRoutePlugin, {
     sessionHealth: options.withoutSessions === true ? undefined : () => ctx.accounts.health(),
     sessionDebug: options.withoutSessions === true ? undefined : () => ctx.accounts.debug(),

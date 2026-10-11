@@ -7,3 +7,4 @@ export { default as rssPlugin, registerRssRoutes } from "./rss.ts";
 export { default as searchPlugin, registerSearchRoutes } from "./search.ts";
 export { default as statusPlugin, registerStatusRoutes } from "./status.ts";
 export { default as timelinePlugin, registerTimelineRoutes } from "./timeline.ts";
+export { default as unsupportedPlugin, registerUnsupportedRoutes } from "./unsupported.ts";

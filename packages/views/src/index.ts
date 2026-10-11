@@ -131,3 +131,4 @@ export {
   timelineViewClass,
 } from "./timeline.tsx";
 export { renderTweet } from "./tweet.tsx";
+export { renderFeature } from "./unsupported.tsx";

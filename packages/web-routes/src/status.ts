@@ -263,6 +263,17 @@ export function registerStatusRoutes(deps: StatusRouteDeps): () => void {
         await reply.redirect(`/i/status/${req.params["id"] ?? ""}`);
       }),
   });
+  // Upstream serves the bare `/i/status/:id` (the target of `/i/web/status/:id`
+  // above) by matching the status router's `/@name/status/@id` with
+  // `name = "i"` — the tweet page renders in place, links coming from the
+  // tweet itself. It needs its own registration here because the unsupported
+  // plugin's `/i/:i/:j` would otherwise win the radix node (static "i" beats
+  // the `:name` param at position one) and answer 404.
+  route({
+    method: "GET",
+    path: "/i/status/:id",
+    handler: (req, reply) => guard(reply, undefined, () => showStatus(req, reply)),
+  });
   route({
     method: "GET",
     path: `/${NAME_PARAM}/:s/:id/:m`,
