@@ -174,3 +174,43 @@ export async function collect(body: AsyncIterable<Uint8Array>): Promise<Buffer> 
   for await (const chunk of body) chunks.push(chunk);
   return Buffer.concat(chunks);
 }
+
+/** Knobs {@link safeFetchText} passes down to {@link proxyMedia}. */
+export interface SafeFetchOptions {
+  fetcher: MediaFetcher;
+  /** Total attempts including the first (default 3, like `proxyMedia`). */
+  maxAttempts?: number | undefined;
+  /** Headers-phase timeout in milliseconds. */
+  headersTimeoutMs?: number | undefined;
+  /** Retry log sink. */
+  onRetry?: ((message: string) => void) | undefined;
+}
+
+/**
+ * Fetch a playlist body as text (nitter's `safeFetch`).
+ *
+ * Swallows every failure and yields `""` — a dead manifest is an empty playlist,
+ * not a 500. The allowlist is re-checked here because this is a second,
+ * separately-controlled fetch (a `.vmap` resolves to a *different* URL than the
+ * one that was signed; a space's m3u8 URL comes straight from the API payload).
+ *
+ * Lives beside `proxyMedia` so the media route and the space route share one
+ * implementation of the nitter `safeFetch` semantics: no auto-redirect follow,
+ * the allowlist re-checked on every decoded URL, and discarded responses
+ * aborted (inside `proxyMedia`).
+ */
+export async function safeFetchText(url: string, options: SafeFetchOptions): Promise<string> {
+  if (!isTwitterUrl(url)) return "";
+  const result = await proxyMedia(url, {
+    fetcher: options.fetcher,
+    maxAttempts: options.maxAttempts,
+    headersTimeoutMs: options.headersTimeoutMs,
+    onRetry: options.onRetry,
+  });
+  if (!result.ok) return "";
+  try {
+    return (await collect(result.body)).toString("utf8");
+  } catch {
+    return "";
+  }
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mediaEtag, proxyMedia } from "../src/index.ts";
+import { mediaEtag, proxyMedia, safeFetchText } from "../src/index.ts";
 import { drain, StubFetcher } from "./stub-fetcher.ts";
 
 describe("proxyMedia", () => {
@@ -138,5 +138,43 @@ describe("proxyMedia", () => {
     expect(seen).toHaveLength(3);
     expect(seen[0]).toContain("attempt 1/3");
     expect(seen[0]).toContain("status 500");
+  });
+});
+
+describe("safeFetchText", () => {
+  const MANIFEST = "https://video.twimg.com/spaces/main.m3u8";
+
+  it("collects a 200 body as utf8 text", async () => {
+    const fetcher = new StubFetcher({
+      responses: { [MANIFEST]: { body: "#EXTM3U\nseg1.ts" } },
+    });
+    const text = await safeFetchText(MANIFEST, { fetcher });
+    expect(text).toBe("#EXTM3U\nseg1.ts");
+  });
+
+  it("swallows upstream failures into an empty string", async () => {
+    const fetcher = new StubFetcher({ responses: { [MANIFEST]: { status: 500 } } });
+    expect(await safeFetchText(MANIFEST, { fetcher })).toBe("");
+    // a dead manifest costs attempts, not an exception
+    expect(fetcher.calls).toHaveLength(3);
+    expect(fetcher.aborted).toHaveLength(3);
+  });
+
+  it("refuses off-allowlist URLs without fetching", async () => {
+    const fetcher = new StubFetcher();
+    expect(await safeFetchText("https://evil.example/main.m3u8", { fetcher })).toBe("");
+    expect(fetcher.calls).toHaveLength(0);
+  });
+
+  it("follows a redirect that stays on the allowlist", async () => {
+    const target = "https://video.twimg.com/spaces/real.m3u8";
+    const fetcher = new StubFetcher({
+      responses: {
+        [MANIFEST]: { status: 302, headers: { location: target } },
+        [target]: { body: "#EXTM3U" },
+      },
+    });
+    expect(await safeFetchText(MANIFEST, { fetcher })).toBe("#EXTM3U");
+    expect(fetcher.calls).toEqual([MANIFEST, target]);
   });
 });

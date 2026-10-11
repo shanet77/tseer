@@ -56,6 +56,9 @@ plan-vs-reality deltas discovered during implementation.
   - [x] `unsupported` route plugin (`/about/feature`, `/login`, `/:name/lists`,
         `/intent*`, `/i*`) + `views/feature.tsx` (`renderFeature`) — static
         panel, no `twitter` seam; wired into `apps/tseer`
+  - [x] `space` route plugin (`/i/spaces/:id`, `/i/spaces/:id/stream`) +
+        `views/space.tsx` (`renderSpace`, `renderParticipant`) — manifest
+        fetch via `@tseer/media` `safeFetchText`; wired into `apps/tseer`
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
 Update this checklist as phases land.
@@ -633,6 +636,47 @@ docs/TS_PORT_PLAN.md  # the spec
 - **Cordis quirk (same as every route plugin so far):** rc.10 doesn't run a
   plugin's returned disposer through `fiber.dispose()`, so cleanup is a
   `ctx.effect` and the return value is belt-and-braces.
+
+## space notes (plan §5, `routes/space.nim` + `views/space.nim` port)
+
+- **`spacePlugin` is the four-seam route-plugin shape** (`server` + `twitter` +
+  `render` + `prefs` via static `.inject`, `ctx.effect` cleanup, `guard`
+  mapping) registering `/i/spaces/:id` and `/i/spaces/:id/stream`. The static
+  `spaces` segment beats the unsupported plugin's `/i/:i/:j` param in the
+  radix router regardless of mount order, and that plugin's deny list
+  (`["status", "lists", "user"]`) is upstream-verbatim — **not** extended with
+  `spaces`: with the space plugin unmounted, `/i/spaces/x` rendering the
+  "Unsupported feature" panel is correct upstream-shaped behavior.
+- **The alnum cond runs in-handler.** Jester's
+  `cond @"id".allCharsInSet({'a'..'z','A'..'Z','0'..'9'})` is a match-time skip
+  upstream (fall through to the global 404 handler); here both routes check
+  `/^[A-Za-z0-9]+$/` in the handler and answer `showError("Page not found")`,
+  so `:id` stays dot-allowing at match time (nitter has no match-time cond on
+  it). The stream route's own 404/502 are **bare** (`reply.text("", …)`, no
+  error page), verbatim; only thrown fetch errors ride the `guard` pages.
+- **Manifest fetching is `@tseer/media` `safeFetchText`** (nitter's
+  `safeFetch`, now shared with the media route's `.vmap`/`.m3u8` path —
+  promoted from a private in `media/routes.ts` to a public export in
+  `proxy.ts`). Never `ctx.http`: buffering + CF-retry semantics are wrong for
+  manifests. The plugin owns its own `UndiciMediaFetcher` (same shape as
+  `mediaRoutePlugin`, config `proxy`/`proxyAuth`/`httpMaxConns` handed over at
+  mount) and closes it on unload — a second pool is the price of keeping the
+  allowlist/abort invariants local to `@tseer/media`.
+- **Content-type divergence:** the stream answers `VideoType.m3u8`
+  (`application/x-mpegURL`, the enum's wire value in `@tseer/types` and the
+  pinned test value). Upstream answers `m3u8Mime`
+  (`application/vnd.apple.mpegurl`, the media route's own constant) — the two
+  were never the same string in nitter; the media route port kept its
+  constant, the space route carries the enum value.
+- **Segment rewriting signs through the views' process-global `getVidUrl`**
+  (installed by `renderPlugin`), exactly like nitter's process-global
+  `getVidUrl` — no fifth (`media`) seam, matching the sibling route plugins.
+- **`views/space.tsx` divergences:** the HLS overlay's
+  `onclick="playAudio(this)"` is a raw-HTML sink (same rule as `tweet.tsx`'s
+  video overlay); `year > 1` date guards map to empty-string guards, and
+  `format("MMM d, YYYY")` is hand-rendered in UTC (no Intl; short month names
+  are local — formatters' `monthsShort` is private). `insertSep` already lives
+  in `formatters.ts`, so listener counts needed no new helper.
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 

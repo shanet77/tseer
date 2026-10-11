@@ -18,6 +18,7 @@ import {
   resolverPlugin,
   rssPlugin,
   searchPlugin,
+  spacePlugin,
   statusPlugin,
   timelinePlugin,
   unsupportedPlugin,
@@ -119,6 +120,11 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     await ctx.plugin(statusPlugin);
     await ctx.plugin(searchPlugin);
     await ctx.plugin(rssPlugin);
+    await ctx.plugin(spacePlugin, {
+      proxy: ctx.config.proxy,
+      proxyAuth: ctx.config.proxyAuth,
+      maxConns: ctx.config.httpMaxConns,
+    });
     await ctx.plugin(resolverPlugin);
   }
   // The settings page and the static "unsupported feature" panel need no X

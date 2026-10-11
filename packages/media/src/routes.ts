@@ -20,7 +20,7 @@ import type { AppReply, AppRequest, HttpServer } from "@tseer/server";
 import type { Context } from "cordis";
 import { UndiciMediaFetcher } from "./fetcher.ts";
 import { getM3u8Url, PROXYABLE_EXTENSIONS, proxifyVideo } from "./hls.ts";
-import { collect, DEFAULT_CACHE_CONTROL, proxyMedia } from "./proxy.ts";
+import { collect, DEFAULT_CACHE_CONTROL, proxyMedia, safeFetchText } from "./proxy.ts";
 import type { MediaFetcher, MediaRoutePluginOptions, MediaSigner } from "./types.ts";
 import { decodeSegment, isTwitterUrl, normalizeImgUrl, type SegmentEncoding } from "./urls.ts";
 
@@ -155,30 +155,6 @@ async function servePic(
 }
 
 /**
- * Fetch a playlist body as text (nitter's `safeFetch`).
- *
- * Swallows every failure and yields `""` — a dead manifest is an empty playlist,
- * not a 500. The allowlist is re-checked here because this is a second,
- * separately-controlled fetch: a `.vmap` resolves to a *different* URL than the
- * one that was signed.
- */
-async function safeFetchText(url: string, deps: HandlerDeps): Promise<string> {
-  if (!isTwitterUrl(url)) return "";
-  const result = await proxyMedia(url, {
-    fetcher: deps.fetcher,
-    maxAttempts: deps.maxAttempts,
-    headersTimeoutMs: deps.headersTimeoutMs,
-    onRetry: deps.onRetry,
-  });
-  if (!result.ok) return "";
-  try {
-    return (await collect(result.body)).toString("utf8");
-  } catch {
-    return "";
-  }
-}
-
-/**
  * Serve `/video/(enc)?/:sig/:url` — the signed route.
  *
  * Three shapes, checked in nitter's order:
@@ -230,15 +206,24 @@ async function serveVideo(
   }
 
   if (hasExtension(url, MANIFEST_EXTENSIONS)) {
+    // The shared `safeFetch` (see `proxy.safeFetchText`) over this route's
+    // fetcher/deps.
+    const fetchText = (target: string): Promise<string> =>
+      safeFetchText(target, {
+        fetcher: deps.fetcher,
+        maxAttempts: deps.maxAttempts,
+        headersTimeoutMs: deps.headersTimeoutMs,
+        onRetry: deps.onRetry,
+      });
     // `.vmap` is an indirection: follow it to the manifest, then sign *that* URL
     // for the rewritten segments, so each link we emit is independently valid.
     let manifestUrl = url;
     if (url.includes(".vmap")) {
-      const resolved = getM3u8Url(await safeFetchText(url, deps));
+      const resolved = getM3u8Url(await fetchText(url));
       if (resolved.length === 0) return fail(reply, 404);
       manifestUrl = resolved;
     }
-    const playlist = await safeFetchText(manifestUrl, deps);
+    const playlist = await fetchText(manifestUrl);
     if (playlist.length === 0) return fail(reply, 404);
 
     const rewritten = proxifyVideo(playlist, {

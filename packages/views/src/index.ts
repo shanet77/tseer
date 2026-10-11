@@ -109,6 +109,7 @@ export {
   renderTweetSearch,
   renderUserSearch,
 } from "./search.tsx";
+export { renderParticipant, renderSpace } from "./space.tsx";
 export { findThemes, viewsPublicDir } from "./static.ts";
 export {
   getThreadLink,

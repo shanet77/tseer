@@ -5,8 +5,14 @@ export { DEFAULT_HEADERS_TIMEOUT_MS, UndiciMediaFetcher } from "./fetcher.ts";
 export type { ProxifyVideoOptions } from "./hls.ts";
 export { getM3u8Url, PROXYABLE_EXTENSIONS, proxifyVideo } from "./hls.ts";
 export { default as mediaPlugin } from "./plugin.ts";
-export type { ProxyFailure, ProxyMediaOptions, ProxyResult, ProxySuccess } from "./proxy.ts";
-export { collect, DEFAULT_CACHE_CONTROL, proxyMedia } from "./proxy.ts";
+export type {
+  ProxyFailure,
+  ProxyMediaOptions,
+  ProxyResult,
+  ProxySuccess,
+  SafeFetchOptions,
+} from "./proxy.ts";
+export { collect, DEFAULT_CACHE_CONTROL, proxyMedia, safeFetchText } from "./proxy.ts";
 export { default as mediaRoutePlugin } from "./routes.ts";
 export type { MediaSignerOptions } from "./sign.ts";
 export { MediaSignerImpl } from "./sign.ts";

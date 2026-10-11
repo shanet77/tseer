@@ -5,6 +5,7 @@ export { default as preferencesPlugin, registerPreferencesRoutes } from "./prefe
 export { default as resolverPlugin, registerResolverRoutes } from "./resolver.ts";
 export { default as rssPlugin, registerRssRoutes } from "./rss.ts";
 export { default as searchPlugin, registerSearchRoutes } from "./search.ts";
+export { default as spacePlugin, registerSpaceRoutes } from "./space.ts";
 export { default as statusPlugin, registerStatusRoutes } from "./status.ts";
 export { default as timelinePlugin, registerTimelineRoutes } from "./timeline.ts";
 export { default as unsupportedPlugin, registerUnsupportedRoutes } from "./unsupported.ts";
