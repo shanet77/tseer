@@ -13,3 +13,10 @@ export {
   preferencesSchema,
   themeOptions,
 } from "./schema.ts";
+export type { PrefCookieWrite } from "./update.ts";
+export {
+  applyPrefCookies,
+  parsePrefsParam,
+  resetPrefCookies,
+  updatePrefCookies,
+} from "./update.ts";

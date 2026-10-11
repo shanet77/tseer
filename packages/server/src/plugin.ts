@@ -17,6 +17,7 @@ declare module "cordis" {
 
 class ContextHttpServer implements HttpServer {
   readonly route: HttpServer["route"];
+  readonly hook: HttpServer["hook"];
   readonly address: HttpServer["address"];
   readonly inject: HttpServer["inject"];
   private readonly inner: FastifyHttpServer;
@@ -35,6 +36,7 @@ class ContextHttpServer implements HttpServer {
     this.bindPort = options.port;
     this.onListening = onListening;
     this.route = (spec) => this.inner.route(spec);
+    this.hook = (handler) => this.inner.hook(handler);
     this.address = () => this.inner.address();
     this.inject = (options) => this.inner.inject(options);
     this.static = ((prefixOrSpec: string | StaticSpec, dir?: string) => {

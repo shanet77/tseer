@@ -1,9 +1,22 @@
 /** Fastify-backed `HttpServer` (default provider); disposed routes answer 404 (fastify can't unregister). */
-import Fastify, { type FastifyInstance } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { toAppReply } from "./reply.ts";
-import { normalizeMethod, normalizePath, normalizePrefix, toAppRequest } from "./request.ts";
+import {
+  normalizeMethod,
+  normalizePath,
+  normalizePrefix,
+  parseFormBody,
+  toAppRequest,
+} from "./request.ts";
 import { notFound, sendStaticFile } from "./static.ts";
-import type { InjectOptions, InjectResult, RouteSpec, ServerAddress, StaticSpec } from "./types.ts";
+import type {
+  InjectOptions,
+  InjectResult,
+  RequestHook,
+  RouteSpec,
+  ServerAddress,
+  StaticSpec,
+} from "./types.ts";
 
 export { httpMethods, normalizeMethod } from "./request.ts";
 
@@ -15,6 +28,7 @@ type HttpServerStatic = {
 /** Implementation behind `ctx.server` (created by `serverPlugin`). */
 export class FastifyHttpServer {
   readonly route: (spec: RouteSpec) => () => void;
+  readonly hook: (handler: RequestHook) => () => void;
   readonly address: () => ServerAddress | undefined;
   readonly start: (address: string, port: number) => Promise<ServerAddress>;
   readonly close: () => Promise<void>;
@@ -35,6 +49,19 @@ export class FastifyHttpServer {
       reply.header("content-type", "text/plain; charset=utf-8");
       reply.send(`internal server error: ${error.message}`);
     });
+    // Forms post urlencoded bodies (the preferences routes); fastify ships
+    // JSON/text parsers only, so the seam parses them into `req.form` itself.
+    this.fastify.addContentTypeParser(
+      "application/x-www-form-urlencoded",
+      { parseAs: "string" },
+      (_request, body, done) => {
+        try {
+          done(null, parseFormBody(body as string));
+        } catch (error) {
+          done(error as Error, undefined);
+        }
+      },
+    );
 
     this.route = (spec) => {
       const method = normalizeMethod(spec.method);
@@ -51,6 +78,22 @@ export class FastifyHttpServer {
           await spec.handler(toAppRequest(request), toAppReply(reply));
         },
       });
+      return () => {
+        active = false;
+      };
+    };
+
+    this.hook = (handler) => {
+      // Jester's `before`: runs before every handler, may reply itself
+      // (redirect short-circuits routing via `reply.sent`) or continue.
+      // Like routes, a disposed hook becomes a no-op — fastify can't remove
+      // an instance hook after registration.
+      let active = true;
+      const wrapped = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+        if (!active) return;
+        await handler(toAppRequest(request), toAppReply(reply));
+      };
+      this.fastify.addHook("onRequest", wrapped);
       return () => {
         active = false;
       };

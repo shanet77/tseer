@@ -28,8 +28,9 @@ export function toAppReply(reply: FastifyReply): AppReply {
       reply.header("content-type", "application/json; charset=utf-8");
       reply.send(JSON.stringify(body));
     },
-    redirect(to, status) {
-      reply.code(status ?? 302);
+    redirect(to, options) {
+      applyReplyOptions(reply, options);
+      reply.code(options?.status ?? 302);
       reply.header("location", to);
       reply.send("");
     },

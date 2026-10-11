@@ -52,6 +52,28 @@ export function parseCookies(header: string | undefined): Record<string, string>
   return cookies;
 }
 
+/**
+ * Parse an `application/x-www-form-urlencoded` body into a name/value map.
+ * `+` means space here — that is form encoding (deliberately unlike the
+ * media-URL round trip, where a literal `+` must survive intact). Later
+ * values win for repeated keys, like repeated query keys.
+ */
+export function parseFormBody(body: string): Record<string, string> {
+  const form: Record<string, string> = {};
+  for (const part of body.split("&")) {
+    if (part.length === 0) continue;
+    const eq = part.indexOf("=");
+    const name = decodeFormComponent(eq === -1 ? part : part.slice(0, eq));
+    if (name.length === 0) continue;
+    form[name] = decodeFormComponent(eq === -1 ? "" : part.slice(eq + 1));
+  }
+  return form;
+}
+
+function decodeFormComponent(value: string): string {
+  return decodeURIComponentSafe(value.replaceAll("+", " "));
+}
+
 function decodeURIComponentSafe(value: string): string {
   try {
     return decodeURIComponent(value);
@@ -93,6 +115,17 @@ function toHeaders(raw: unknown): Record<string, string | undefined> {
   return headers;
 }
 
+/** The parsed body as strings (urlencoded forms arrive as a record from the
+ * content-type parser; JSON bodies stringify field-wise). */
+function toForm(raw: unknown): Record<string, string> {
+  if (typeof raw !== "object" || raw === null) return {};
+  const form: Record<string, string> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (value !== undefined) form[key] = String(value);
+  }
+  return form;
+}
+
 /** Map a fastify request onto the seam's `AppRequest`. */
 export function toAppRequest(request: FastifyRequest): AppRequest {
   const rawUrl = request.raw.url ?? "/";
@@ -105,5 +138,6 @@ export function toAppRequest(request: FastifyRequest): AppRequest {
     params: toParams(request.params),
     headers: toHeaders(request.headers),
     cookies: parseCookies(request.headers.cookie),
+    form: toForm(request.body),
   };
 }

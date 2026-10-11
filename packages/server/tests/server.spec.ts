@@ -8,6 +8,7 @@ import {
   normalizePath,
   normalizePrefix,
   parseCookies,
+  parseFormBody,
   serverPlugin,
 } from "../src/index.ts";
 
@@ -45,7 +46,7 @@ describe("route registry", () => {
       path: "/user/:name",
       handler: (req, reply) => {
         if (req.query["format"] === "json") return reply.json({ name: req.params["name"] });
-        if (req.query["go"] !== undefined) return reply.redirect("/about", 301);
+        if (req.query["go"] !== undefined) return reply.redirect("/about", { status: 301 });
         return reply.text(`${req.params["name"]}:${req.cookies["theme"] ?? ""}`, {
           headers: { "x-echo": req.query["echo"] ?? "" },
         });
@@ -66,6 +67,83 @@ describe("route registry", () => {
     const redirect = await ctx.server.inject({ url: "/user/c?go=1" });
     expect(redirect.status).toBe(301);
     expect(redirect.headers["location"]).toBe("/about");
+  });
+
+  it("parses urlencoded form bodies into req.form and sends cookie redirects", async () => {
+    const ctx = new Context();
+    await ctx.plugin(serverPlugin, { port: 0 });
+    ctx.server.route({
+      method: "POST",
+      path: "/saveprefs",
+      handler: (_req, reply) =>
+        reply.redirect("/settings", {
+          headers: { "set-cookie": ["theme=Dracula; Path=/", "hlsPlayback=on; Path=/"] },
+        }),
+    });
+    ctx.server.route({
+      method: "POST",
+      path: "/echo-form",
+      handler: (req, reply) => reply.json(req.form),
+    });
+
+    // The preferences flow: a form POST answers a redirect carrying Set-Cookie
+    // headers — one header per value, not a joined string.
+    const saved = await ctx.server.inject({
+      method: "POST",
+      url: "/saveprefs",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      payload: "theme=Dracula",
+    });
+    expect(saved.status).toBe(302);
+    expect(saved.headers["location"]).toBe("/settings");
+    expect(saved.headers["set-cookie"]).toBe("theme=Dracula; Path=/, hlsPlayback=on; Path=/");
+
+    // `+` is a space in form encoding; later values win for repeated keys.
+    const echoed = await ctx.server.inject({
+      method: "POST",
+      url: "/echo-form",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      payload: "referer=%2Fnasa&note=hello+world&theme=first&theme=Dracula",
+    });
+    expect(echoed.json()).toEqual({ referer: "/nasa", note: "hello world", theme: "Dracula" });
+
+    // Bodyless POSTs parse to an empty form, not an error.
+    const empty = await ctx.server.inject({ method: "POST", url: "/echo-form" });
+    expect(empty.json()).toEqual({});
+  });
+
+  it("runs request hooks before handlers and stops when a hook replies", async () => {
+    const ctx = new Context();
+    await ctx.plugin(serverPlugin, { port: 0 });
+    const seen: string[] = [];
+    const disposeHook = ctx.server.hook((req, reply) => {
+      seen.push(req.path);
+      if (req.query["prefs"] !== undefined) {
+        void reply.redirect(req.path, { headers: { "set-cookie": ["theme=Dracula; Path=/"] } });
+      }
+    });
+    ctx.server.route({
+      method: "GET",
+      path: "/page",
+      handler: (_req, reply) => reply.text("page"),
+    });
+
+    // A hook that replies short-circuits the route (Jester's `before` redirect).
+    const hooked = await ctx.server.inject({ url: "/page?prefs=theme%3DDracula" });
+    expect(hooked.status).toBe(302);
+    expect(hooked.headers["location"]).toBe("/page");
+    expect(hooked.headers["set-cookie"]).toBe("theme=Dracula; Path=/");
+    expect(hooked.body).toBe("");
+
+    const passed = await ctx.server.inject({ url: "/page" });
+    expect(passed.status).toBe(200);
+    expect(passed.body).toBe("page");
+
+    // Unloading the hook restores plain routing.
+    disposeHook();
+    const after = await ctx.server.inject({ url: "/page?prefs=x" });
+    expect(after.body).toBe("page");
+    expect(seen).toEqual(["/page", "/page"]);
   });
 
   it("unregisters a route when its disposer runs", async () => {
@@ -155,6 +233,14 @@ describe("validation", () => {
     expect(normalizePrefix("/static/")).toBe("/static");
     expect(parseCookies("a=1; a=2; broken")).toEqual({ a: "1" });
     expect(parseCookies(undefined)).toEqual({});
+    expect(parseFormBody("a=1&broken&c=%2B&d=x+y&=skipped&e=a%3Db")).toEqual({
+      a: "1",
+      broken: "",
+      c: "+",
+      d: "x y",
+      e: "a=b",
+    });
+    expect(parseFormBody("")).toEqual({});
   });
 
   it("start() is idempotent, close() resets, plugin dispose closes", async () => {

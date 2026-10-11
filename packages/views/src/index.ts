@@ -40,6 +40,7 @@ export type {
 export { doctype, renderError, renderHead, renderMain, renderNavbar, toHtml } from "./page.tsx";
 export type { RenderPluginOptions } from "./plugin.ts";
 export { default as renderPlugin } from "./plugin.ts";
+export { renderPreferences } from "./preferences.tsx";
 export {
   emptyAccountInfo,
   renderBanner,
@@ -107,7 +108,7 @@ export {
   renderTweetSearch,
   renderUserSearch,
 } from "./search.tsx";
-export { viewsPublicDir } from "./static.ts";
+export { findThemes, viewsPublicDir } from "./static.ts";
 export {
   getThreadLink,
   getUrlPrefix as getStatusUrlPrefix,

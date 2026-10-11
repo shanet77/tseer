@@ -22,12 +22,22 @@ export interface AppRequest {
   headers: Record<string, string | undefined>;
   /** Parsed cookies (`Cookie` header only; no signed-cookie support yet). */
   cookies: Record<string, string>;
+  /**
+   * The parsed body as strings, for `application/x-www-form-urlencoded`
+   * POSTs (the preferences routes; Jester merges form fields into
+   * `request.params`). Empty for bodyless requests.
+   */
+  form: Record<string, string>;
 }
 
 /** Options accepted by `AppReply` helpers. */
 export interface ReplyOptions {
   status?: number | undefined;
-  headers?: Record<string, string> | undefined;
+  /**
+   * Extra response headers. Array values become repeated headers (fastify
+   * appends each `set-cookie` separately rather than joining with ", ").
+   */
+  headers?: Record<string, string | string[]> | undefined;
 }
 
 /** Framework-agnostic response builder handed to route handlers. */
@@ -38,8 +48,9 @@ export interface AppReply {
   text(body: string, options?: ReplyOptions): Promise<void> | void;
   /** Send JSON (`application/json; charset=utf-8`). */
   json(body: unknown, options?: ReplyOptions): Promise<void> | void;
-  /** Issue a redirect (default `302`). */
-  redirect(to: string, status?: number | undefined): Promise<void> | void;
+  /** Issue a redirect (default `302`); `options` carries an explicit status
+   * or extra headers (e.g. the pref cookies on `/saveprefs`' redirect). */
+  redirect(to: string, options?: ReplyOptions): Promise<void> | void;
   /** Send a raw body with an explicit content type. */
   send(
     body: string | Buffer | Uint8Array,
@@ -62,6 +73,14 @@ export interface AppReply {
 
 /** Route handler: framework-agnostic request in, reply out. */
 export type RouteHandler = (req: AppRequest, reply: AppReply) => Promise<void> | void;
+
+/**
+ * A request hook (nitter's Jester `before` block): runs before every route
+ * handler. It may reply itself (redirect/error — short-circuiting the
+ * route) or return to continue. Mount hooks before `start()` — fastify
+ * binds instance hooks when the instance becomes ready.
+ */
+export type RequestHook = (req: AppRequest, reply: AppReply) => Promise<void> | void;
 
 /** Route registration accepted by `HttpServer.route()`. */
 export interface RouteSpec {
@@ -111,10 +130,13 @@ export interface ServerAddress {
   port: number;
 }
 
-/** The `ctx.server` seam: `route()`/`static()` register, `start()`/`close()` bind, `inject()` tests. */
+/** The `ctx.server` seam: `route()`/`static()` register, `hook()` runs before
+ * every handler, `start()`/`close()` bind, `inject()` tests. */
 export interface HttpServer {
   /** Register a route; returns a disposer that unregisters it. */
   route(spec: RouteSpec): () => void;
+  /** Register a request hook (Jester's `before`); returns a disposer. */
+  hook(handler: RequestHook): () => void;
   /** Serve files under `dir` at URL `prefix` (or via a `StaticSpec`). */
   static(prefix: string, dir: string): () => void;
   static(spec: StaticSpec): () => void;

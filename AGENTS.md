@@ -45,6 +45,11 @@ plan-vs-reality deltas discovered during implementation.
         `cachedRss` on `ctx.twitter` — wired into `apps/tseer`
 - [ ] Phase 5 — long-tail route plugins
   - [x] `web-routes` package + timeline route plugin (profile/followers/following/about, `/:name/:tab?`, `intent/*`, `i/user`) — first `prefs`+`render`+`twitter` consumer, inject-based fastify tests
+  - [x] `preferences` route plugin (`/settings`, `/settings/:i`, `/saveprefs`,
+        `/resetprefs`, `/enablehls`, `/enablemp4`, the `?prefs=` hook) +
+        `views/preferences.tsx` (`renderPreferences`) + `prefs` `update.ts`
+        (`genUpdatePrefs`/`genResetPrefs`/`genApplyPrefs` ports) — no `twitter`
+        seam; wired into `apps/tseer`
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
 Update this checklist as phases land.
@@ -356,9 +361,13 @@ docs/TS_PORT_PLAN.md  # the spec
   Mastodon` config encodes a Mastodon-theme request as `""` (it *is* the
   default). Checkbox form: `name=on` / `name=`, non-defaults only, joined with
   `,`.
-- **Deliberately deferred to the preferences route (Phase 5):**
-  `genUpdatePrefs`/`genResetPrefs`/`genApplyPrefs` — those write per-pref
-  cookies onto a response, which is route-plugin territory (`savePref`).
+- **The cookie-write trio landed in `src/update.ts`** (Phase 5's preferences
+  route): `updatePrefCookies`/`resetPrefCookies`/`applyPrefCookies` are pure
+  ports of `genUpdatePrefs`/`genResetPrefs`/`genApplyPrefs` — they report the
+  full `PrefCookieWrite` set (value + expire flag), and the route plugin owns
+  the HTTP half: `Set-Cookie` serialization and `savePref`'s presence guard
+  (only expire a cookie the request actually carried). `parsePrefsParam` is
+  the `?prefs=` pair-splitting from `router_utils.nim`'s `applyUrlPrefs`.
 
 ## views notes (plan §1/§4, `general.nim` + `formatters.nim` port)
 
@@ -580,6 +589,44 @@ docs/TS_PORT_PLAN.md  # the spec
   `web-routes/tests/rss.spec.ts` follows the search spec's boot pattern
   (stubbed `ctx.twitter` with a passthrough `cachedRss`, key-shape and
   `Min-Id` assertions, gates, redirects, unload).
+
+## preferences notes (plan §5, `routes/preferences.nim` + `views/preferences.nim` port)
+
+- **The settings routes are the first `server`+`render`+`prefs`-only plugin**
+  (no `twitter`): the form and the cookie writes never touch X. That absence
+  is what lets `apps/tseer` mount it regardless of
+  `withoutTwitter`/`withoutSessions`.
+- **The split between `@tseer/prefs` and the route is the same
+  decision-as-data rule as everywhere else:** `update.ts` reports *which*
+  cookies get *what* values and which expire (`PrefCookieWrite[]`); the plugin
+  serializes each write into a `Set-Cookie` header and applies `savePref`'s
+  presence guard (`if not expire or pref in cookies(req)`) — the guard needs
+  the request, so it lives at the boundary. Tests pin both halves:
+  `prefs/tests/update.spec.ts` (the macro semantics) and
+  `web-routes/tests/preferences.spec.ts` (headers, guard, redirects).
+- **`savePref` header shape:** `name=value; Expires=<±360d/10d>; Path=/;
+  HttpOnly[; Secure]; SameSite=<None|Lax>` — `Secure`+`SameSite=None` behind
+  `useHttps`, `Lax` otherwise (verbatim). Redirects carry the cookies via the
+  `AppReply.redirect(to, options)` overload added to the server seam (array
+  header values become repeated `set-cookie` headers, never a joined string).
+- **The `?prefs=` hook is the port of Jester's `before` block**
+  (`applyUrlPrefs`), and it needed two new `ctx.server` capabilities: `hook()`
+  (an `onRequest` hook whose disposer makes it a no-op — fastify can't
+  unregister instance hooks) and urlencoded form parsing into `req.form`
+  (`/saveprefs` reads `@"referer"`/pref names from the form body). The
+  before-block's `cond "." notin request.path` is ported as a skip: dotted
+  paths bypass the hook; `/embed/Tweet.html`'s exception belongs to the embed
+  plugin, not yet ported. A prefs URL *replaces* the saved set (absent prefs
+  expire) — that's `genApplyPrefs`, not a merge.
+- **`/settings` renders `prefList` metadata, not a hand-written form** —
+  the same table that drives parsing/encoding drives the widgets
+  (`renderPref` dispatches on `kind`), so a new pref added to `prefs.ts`
+  shows up in the form automatically. `theme`'s options are the one
+  dynamic bit: `findThemes` (`views/static.ts`) lists
+  `staticDir/css/themes/*.css` (`_`→space, titleized, sorted).
+- **Cordis quirk (same as every route plugin so far):** rc.10 doesn't run a
+  plugin's returned disposer through `fiber.dispose()`, so cleanup is a
+  `ctx.effect` and the return value is belt-and-braces.
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 
