@@ -433,6 +433,11 @@ docs/TS_PORT_PLAN.md  # the spec
 - **`@parcel/watcher` stays denied.** It is dart-sass's watch-mode-only
   native dep; one-shot `compile()` never loads it, so `allowBuilds` records
   `false` with the reason (repo denies builds by default).
+- **`packages/views/public` is excluded in `biome.json`.** The vendored
+  assets are verbatim nitter files (minified JS, SVGs, a webmanifest) —
+  biome would reformat/lint them into something no longer verbatim. The
+  `files.includes` entry is `["**", "!packages/views/public"]` (biome
+  requires the leading `**` before a negation).
 - **Fresh boots serve the ported assets.** `apps/tseer` defaults an
   unconfigured `staticDir` (`./public`, which names a dir that only exists
   when the operator creates it) to `viewsPublicDir()`; any explicit config
