@@ -16,6 +16,7 @@ import { renderPlugin, viewsPublicDir } from "@tseer/views";
 import {
   broadcastPlugin,
   embedPlugin,
+  listPlugin,
   preferencesPlugin,
   resolverPlugin,
   rssPlugin,
@@ -120,6 +121,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     });
     await ctx.plugin(timelinePlugin);
     await ctx.plugin(statusPlugin);
+    await ctx.plugin(listPlugin);
     await ctx.plugin(searchPlugin);
     await ctx.plugin(rssPlugin);
     await ctx.plugin(spacePlugin, {

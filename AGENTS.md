@@ -66,6 +66,9 @@ plan-vs-reality deltas discovered during implementation.
         `/i/status/:id/embed`, `/embed/Tweet.html`, `/api/oembed`) +
         `views/embed.tsx` (`renderVideoEmbed`, `renderTweetEmbed`,
         `renderErrorEmbed`, `renderOembedIframe`) — wired into `apps/tseer`
+  - [x] `list` route plugin (`/:name/lists/:slug`, `/i/lists/:id`,
+        `/i/lists/:id/members`) + `views/list.tsx` (`renderList`,
+        `renderListTabs`) — wired into `apps/tseer`
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
 Update this checklist as phases land.
@@ -784,6 +787,49 @@ docs/TS_PORT_PLAN.md  # the spec
   `path.find('/')` slice. It exists for URLs whose host differs from
   `cfg.hostname` (localhost in dev, a reverse proxy domain).
 
+## list notes (plan §5, `routes/list.nim` + `views/list.nim` port)
+
+- **`listPlugin` is the four-seam route-plugin shape** (`server` + `twitter` +
+  `render` + `prefs` via static `.inject`, `ctx.effect` cleanup, `guard`
+  mapping) registering `/:name/lists/:slug`, `/i/lists/:id`, and
+  `/i/lists/:id/members` — the HTML counterpart of the rss plugin's list feed
+  (same paths + `/rss`). The static `lists` segment beats the timeline
+  plugin's `:tab`, and `/i/lists/*` beats the unsupported plugin's
+  `/i/:i/:j`, regardless of mount order; the unsupported plugin keeps the
+  bare `/:name/lists` panel (only this plugin claims `:slug`).
+- **Upstream's nil-timeline 500 becomes a 404.** `respList`'s gate checks
+  `list.id`/`list.name` but then dereferences a nil `timeline` when
+  `getGraphListTweets` misses on an unknown id — a 500 upstream. The port
+  answers 404 `List "<id>" not found` (the same message `respList` uses for a
+  missing list), matching what the sibling rss id-route port already does.
+- **The list pages render with the zero-default `Query()`** — upstream never
+  assigns one, so `renderListTabs`' active tab keys on kind `posts` and
+  `renderMore` links carry `?cursor=` only. The port's `listQuery()` builds
+  that explicitly: the parser's timeline envelope defaults to kind `tweets`
+  (which would activate the wrong tab and add `f=tweets` to pagination), so
+  the route overwrites `timeline.query`/`members.query` after the fetch.
+- **`/@name/lists/@slug` is a redirect, and the radix router owns the
+  `name != "i"` cond**: every `/i/lists/*` path matches the static-segment id
+  route before the `:name` slug route (Jester's static segments win the same
+  way upstream), so the cond has no reachable failure here — `/i/lists/space`
+  just fails the list lookup as an id. `slug != "memberships"` stays an
+  in-handler 404 (upstream reserves it for a future members-by-slug page).
+- **The slug redirect carries `?cursor=`** when paged (verbatim from
+  upstream); the `decodeUrl(slug)` and `cachedList(name, slug)` pair is the
+  `getCachedList(@"name", slug)` port, and the members tab fetches through
+  `listMembers` (the `getGraphListMembers` port, `userList` query kind).
+- **`views/list.tsx` is the container only**: banner (signed via the media
+  process globals), the auto-escaped `"{name}" by @{owner}` header,
+  description, and the Tweets/Members tabs — the timeline/members body is
+  `renderTimelineTweets`/`renderTimelineUsers` passed in from the route, and
+  the shell rides `render.page` with the banner in the head and the RSS link
+  gated on `enableRSSList` (nitter's `respList`).
+- **Tests:** `views/tests/list.spec.ts` pins the tabs (one active, keyed on
+  the query kind), the header/description, banner signing, and header
+  escaping; `web-routes/tests/list.spec.ts` follows the search spec's boot
+  pattern (stubbed `ctx.twitter` + `inject`), pinning the `respList` gate,
+  both tabs' fetchers and query kinds, the slug redirect (+cursor), the rss
+  gate, the 404/429 mapping, and unload.
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 

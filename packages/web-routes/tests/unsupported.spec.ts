@@ -64,7 +64,7 @@ describe("unsupportedPlugin", () => {
     }
   });
 
-  it("keeps the list timeline path for the future list plugin", async () => {
+  it("keeps the list timeline path for the list plugin", async () => {
     // Upstream's unsupported router claims only the bare `/@name/lists`;
     // `/@name/lists/@slug` is list.nim's. Without the list plugin mounted it
     // answers 404, not the misleading "unsupported" panel.

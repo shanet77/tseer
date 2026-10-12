@@ -13,8 +13,8 @@
  *                                     segment + optional param).
  *   /:name/lists                    → Jester's `/@name/lists/?`. The bare
  *                                     path only — upstream's list timeline
- *                                     (`/@name/lists/@slug`, list.nim) stays
- *                                     with the future list plugin, so this
+ *                                     (`/@name/lists/@slug`, list.nim) is the
+ *                                     list plugin's (`./list.ts`), so this
  *                                     route must not claim `:slug`.
  *   /intent, /intent/:i             → Jester's `/intent/?@i?`.
  *   /i, /i/:i, /i/:i/:j             → Jester's `/i/@i?/@j?`.
@@ -92,7 +92,8 @@ export function registerUnsupportedRoutes(deps: UnsupportedRouteDeps): () => voi
   route({ method: "GET", path: "/login/:i", handler: feature });
 
   // /:name/lists (Jester `/@name/lists/?`). The bare path only; upstream's
-  // list timeline (`/@name/lists/@slug`, list.nim) is the list plugin's job.
+  // list timeline (`/@name/lists/@slug`, list.nim) is the list plugin's job
+  // (./list.ts).
   route({ method: "GET", path: `/${NAME_PARAM}/lists`, handler: feature });
 
   // /intent + /intent/:i (Jester `/intent/?@i?`); `user`/`follow` are timeline's.

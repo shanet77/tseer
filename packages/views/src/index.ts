@@ -10,7 +10,7 @@ export {
   renderVideoEmbed,
 } from "./embed.tsx";
 export { renderFeature } from "./feature.tsx";
-export {
+export { renderList, renderListTabs } from "./list.tsx";export {
   getDuration,
   getJoinDate,
   getJoinDateFull,
