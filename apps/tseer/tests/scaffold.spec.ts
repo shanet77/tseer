@@ -1,12 +1,12 @@
+import { helloPlugin } from "@tseer/profile-web";
 import { Context } from "cordis";
 import { describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/index.ts";
-import hello from "../src/plugins/hello.ts";
 
 describe("scaffold boot", () => {
   it("mounts the scaffold plugin list on a kernel-booted context", async () => {
     const ctx = await createApp({ configText: "" });
-    expect(ctx.registry.has(hello)).toBe(true);
+    expect(ctx.registry.has(helloPlugin)).toBe(true);
     expect(ctx.get("hello")).toBe("tseer");
     expect(ctx.config.port).toBe(8080);
     expect(ctx.server).toBeDefined();
@@ -67,7 +67,7 @@ describe("scaffold boot", () => {
 
   it("unwinds plugin effects when a plugin unloads", async () => {
     const ctx = new Context();
-    const fiber = await ctx.plugin(hello, { name: "vitest" });
+    const fiber = await ctx.plugin(helloPlugin, { name: "vitest" });
     expect(ctx.get("hello")).toBe("vitest");
 
     await fiber.dispose();

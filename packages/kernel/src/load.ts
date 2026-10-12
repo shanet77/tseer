@@ -6,7 +6,7 @@ import type { ConfigWarning, LoadedConfig } from "./schema.ts";
 export type { ConfigWarning, LoadedConfig, TseerConfig, TseerPreferences } from "./schema.ts";
 export { configSchema, preferencesSchema } from "./schema.ts";
 
-export const iniSections = ["Server", "Cache", "Config", "Preferences"] as const;
+export const iniSections = ["Server", "Cache", "Config", "Plugins", "Preferences"] as const;
 export type IniSectionName = (typeof iniSections)[number];
 
 interface FieldSource {
@@ -78,6 +78,16 @@ function findValue(section: { values: Map<string, { value: string; line: number 
 const truthy = new Set(["1", "true", "yes", "on"]);
 const falsy = new Set(["0", "false", "no", "off", ""]);
 
+/** One `[Plugins]` list entry: trimmed, with one pair of surrounding double
+ * quotes stripped (each comma-separated segment is quoted independently). */
+function cleanListEntry(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
 type Coerced = { ok: true; value: string | number | boolean } | { ok: false; reason: string };
 
 function coerce(raw: string, kind: "string" | "int" | "bool"): Coerced {
@@ -130,6 +140,21 @@ export function loadConfigFromIni(doc: IniDocument): LoadedConfig {
 
   const rawPrefs = extractPreferences(doc, consumed, warnings);
   if (Object.keys(rawPrefs).length > 0) raw.preferences = rawPrefs;
+
+  const pluginsSection = findSection(doc, "Plugins");
+  if (pluginsSection) {
+    const lists: Record<string, string[]> = {};
+    for (const key of ["add", "remove"] as const) {
+      const stored = findValue(pluginsSection, key);
+      if (!stored) continue;
+      consumed.add(`${lower(pluginsSection.name)} ${lower(stored.name)}`);
+      lists[key] = stored.value
+        .split(",")
+        .map(cleanListEntry)
+        .filter((entry) => entry !== "");
+    }
+    if (Object.keys(lists).length > 0) raw.plugins = lists;
+  }
 
   for (const section of doc.sections.values()) {
     const known = iniSections.some((name) => lower(name) === lower(section.name));

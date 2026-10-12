@@ -11,10 +11,10 @@ with an *everything-is-a-plugin* architecture, built on
 | 0 | Scaffold: workspace, tooling, CI, hello-cordis app | **done** |
 | 1 | Kernel + types + config service (`tseer web`) | **done** |
 | 2 | Platform seams (http-client, cache, sessions, server, media) | **done** |
-| 3 | Provider + parsers (`twitter-api`, `twitter-parser`) | **in progress** (`twitter-api` landed) |
-| 4 | Web parity, core routes (views, prefs, render) | not started |
-| 5 | Long tail (embed, list, community, article, space, …) | not started |
-| 6 | Extensibility proof (out-of-tree example plugin) | not started |
+| 3 | Provider + parsers (`twitter-api`, `twitter-parser`) | **done** |
+| 4 | Web parity, core routes (views, prefs, render) | **done** |
+| 5 | Long tail (embed, list, community, article, space, …) | **done** |
+| 6 | Extensibility proof (`profile-web` config-driven plugin list, out-of-tree example plugin) | **done** |
 
 ## Quickstart
 

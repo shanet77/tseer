@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "license": "AGPL-3.0-only",
-  "description": "tseer composition root: boots the cordis context and mounts the plugin list. A TypeScript port of nitter (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
+  "description": "tseer bin: `tseer web` / `tseer debug` — boots @tseer/profile-web's composition. A TypeScript port of nitter (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
   "bin": {
     "tseer": "./dist/cli.js"
   },
@@ -15,17 +15,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@tseer/cache": "workspace:*",
-    "@tseer/http-client": "workspace:*",
-    "@tseer/kernel": "workspace:*",
-    "@tseer/media": "workspace:*",
-    "@tseer/prefs": "workspace:*",
-    "@tseer/server": "workspace:*",
+    "@tseer/profile-web": "workspace:*",
     "@tseer/twitter-api": "workspace:*",
-    "@tseer/twitter-parser": "workspace:*",
-    "@tseer/twitter-sessions": "workspace:*",
-    "@tseer/views": "workspace:*",
-    "@tseer/web-routes": "workspace:*",
     "cordis": "4.0.0-rc.10"
   }
 }

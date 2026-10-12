@@ -115,6 +115,25 @@ describe("nitter.conf compatibility", () => {
   it("rejects out-of-range numbers with zod detail", () => {
     expect(() => parseConfigText("[Server]\nport = 99999\n")).toThrow(/port/);
   });
+
+  it("parses the [Plugins] add/remove lists as comma-separated specifiers", () => {
+    const loaded = parseConfigText(
+      '[Plugins]\nadd = ./plugins/a.ts, "./plugins/my plugin.ts"\nremove = broadcast, space\n',
+    );
+    expect(loaded.config.plugins).toEqual({
+      add: ["./plugins/a.ts", "./plugins/my plugin.ts"],
+      remove: ["broadcast", "space"],
+    });
+    expect(loaded.warnings).toEqual([]);
+  });
+
+  it("defaults the plugin lists and warns on unknown [Plugins] keys", () => {
+    const loaded = parseConfigText("[Plugins]\nmystery = 1\n");
+    expect(loaded.config.plugins).toEqual({ add: [], remove: [] });
+    expect(loaded.warnings.map((w) => w.message)).toEqual([
+      expect.stringContaining("[Plugins]mystery: unknown key"),
+    ]);
+  });
 });
 
 describe("kernel boot", () => {

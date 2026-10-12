@@ -78,6 +78,20 @@ plan-vs-reality deltas discovered during implementation.
         and `/:name/status/:id/article` redirects) + `views/article.tsx`
         (`renderArticle`) — wired into `apps/tseer`
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
+  - [x] `profile-web` package: the ordered parity plugin list extracted from
+        `apps/tseer/src/index.ts` (entries carry stable names, `requires`
+        edges, and option derivations from `ctx.config`)
+  - [x] config-file plugin list: kernel `[Plugins]` INI section (`add` =
+        comma-separated file paths/npm names resolved relative to the conf
+        file, `remove` = built-in names) → `ctx.config.plugins`;
+        `remove` cascades through `requires` (dropping `sessions` unmounts
+        the whole X stack, matching the old `withoutSessions` behavior)
+  - [x] out-of-tree example plugin (`profile-web/examples/json-api.ts`, the
+        `/status/:id.json` JSON-API route) loaded from a config path;
+        load/unload at runtime pinned by test; "write your first plugin"
+        walkthrough in `packages/profile-web/README.md`
+  - [x] `apps/tseer` is now a thin re-export of `profile-web`'s `createApp`
+        (the scaffold `hello` plugin moved into `profile-web`)
 
 Update this checklist as phases land.
 
@@ -147,10 +161,10 @@ runtime:
 ## Repo layout today (Phase 0)
 
 ```
-apps/tseer/          # bin `tseer`; src/index.ts (createApp), src/cli.ts (boot),
-                      # src/plugins/hello.ts (scaffold plugin), tests/
+apps/tseer/          # bin `tseer`; src/index.ts re-exports @tseer/profile-web,
+                      # src/cli.ts (boot), tests/
 packages/             # kernel, types, server, http-client, twitter-sessions, cache,
-                      # media, twitter-api — more seams per plan §2
+                      # media, twitter-api, profile-web — more seams per plan §2
 docs/TS_PORT_PLAN.md  # the spec
 ```
 
@@ -1023,3 +1037,43 @@ docs/TS_PORT_PLAN.md  # the spec
   pinning the digit cond, the `Article not found` gate, the TWEET-only batch,
   the swallow fallback, both redirects, the canonical "Open in X" link
   (`x.com/<user>/article/<id>`), the 429 mapping, and unload.
+
+## profile-web notes (plan §2/§6, the `nitter.nim` boot composition)
+
+- **`profile-web` owns the composition; `apps/tseer` only re-exports it.**
+  `createApp(options)` (kernel boot + `mountProfile`) moved here so the app is
+  the bin alone (plan §3: boot only, no route definitions inline). The
+  scaffold `hello` plugin moved with it — it is part of the default list now.
+- **Entries are data, not code.** Each `ProfileEntry` carries a stable `name`
+  (addressable from `[Plugins] remove`), an option derivation
+  `(ctx, state) => options` evaluated at mount time, optional `requires`
+  edges, and a `when` guard for the test-only `without*` flags. The list is
+  the original `apps/tseer/src/index.ts` composition, order preserved.
+- **`resolveProfile` = when-filter → name-removal → requires cascade.** The
+  cascade is a fixed-point sweep, so config-removing `sessions` unmounts
+  `media`, `media-routes`, `parsers`, and `twitter-api` exactly like the old
+  `withoutSessions` flag did. Route families stay mounted-but-pending when
+  only `twitter-api` is removed (their cordis `inject` never fires) — that
+  leaves room for a swapped `ctx.twitter` provider without a code change.
+- **The media signers ride `state.mounted`.** The old composition passed
+  `picUrl` closures to `renderPlugin` whenever sessions were on — even with
+  `withoutTwitter`, where `ctx.media` never mounted and a render would have
+  thrown. The render entry now checks `mounted.has("media")`, which fixes
+  that latent divergence while keeping every working case identical.
+- **`[Plugins]` is a kernel config section** (`add`/`remove`, comma-separated
+  — the INI reader resolves duplicate keys last-wins, so one key carries the
+  whole list). Lists live on `ctx.config.plugins` as `string[]`; the loader
+  is profile-web's `loadPluginEntry(specifier, base)`: path specifiers
+  (`./`, `../`, absolute, `file:`) resolve against the conf file's directory,
+  bare specifiers import as npm names, and the module's default export must
+  be the plugin function. Import failures warn and skip — a bad entry costs
+  that plugin, not the boot (same rule as the sessions pool and cache).
+- **Added entries mount after the built-ins**, so they see the full platform;
+  route precedence never depends on mount order (fastify radix static beats
+  param, per the earlier route notes). The example plugin's
+  `/status/:id.json` is conflict-free: the timeline's dotless `:tab` pattern
+  rejects it and the status family needs three segments — verified against
+  find-my-way (`:id.json` static suffix wins and strips the suffix).
+- **`createApp` still returns the bare `Context`** (cli + scaffold contract);
+  unload proofs go through `mountProfile`'s `{ names, fibers }` or a manual
+  `loadPluginEntry` + `ctx.plugin` — the pattern the tests pin.

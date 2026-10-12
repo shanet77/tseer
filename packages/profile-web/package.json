@@ -1,0 +1,35 @@
+{
+  "name": "@tseer/profile-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "description": "tseer default composition: the ordered plugin list = full nitter parity, driven by a config-file plugin list ([Plugins] add/remove + out-of-tree plugins). A TypeScript port of nitter (https://github.com/zedeus/nitter). Licensed AGPL-3.0.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tseer/cache": "workspace:*",
+    "@tseer/http-client": "workspace:*",
+    "@tseer/kernel": "workspace:*",
+    "@tseer/media": "workspace:*",
+    "@tseer/prefs": "workspace:*",
+    "@tseer/server": "workspace:*",
+    "@tseer/twitter-api": "workspace:*",
+    "@tseer/twitter-parser": "workspace:*",
+    "@tseer/twitter-sessions": "workspace:*",
+    "@tseer/views": "workspace:*",
+    "@tseer/web-routes": "workspace:*",
+    "cordis": "4.0.0-rc.10"
+  }
+}

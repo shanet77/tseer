@@ -184,39 +184,12 @@ importers:
 
   apps/tseer:
     dependencies:
-      '@tseer/cache':
+      '@tseer/profile-web':
         specifier: workspace:*
-        version: link:../../packages/cache
-      '@tseer/http-client':
-        specifier: workspace:*
-        version: link:../../packages/http-client
-      '@tseer/kernel':
-        specifier: workspace:*
-        version: link:../../packages/kernel
-      '@tseer/media':
-        specifier: workspace:*
-        version: link:../../packages/media
-      '@tseer/prefs':
-        specifier: workspace:*
-        version: link:../../packages/prefs
-      '@tseer/server':
-        specifier: workspace:*
-        version: link:../../packages/server
+        version: link:../../packages/profile-web
       '@tseer/twitter-api':
         specifier: workspace:*
         version: link:../../packages/twitter-api
-      '@tseer/twitter-parser':
-        specifier: workspace:*
-        version: link:../../packages/twitter-parser
-      '@tseer/twitter-sessions':
-        specifier: workspace:*
-        version: link:../../packages/twitter-sessions
-      '@tseer/views':
-        specifier: workspace:*
-        version: link:../../packages/views
-      '@tseer/web-routes':
-        specifier: workspace:*
-        version: link:../../packages/web-routes
       cordis:
         specifier: 4.0.0-rc.10
         version: 4.0.0-rc.10
@@ -283,6 +256,45 @@ importers:
       zod:
         specifier: ^4.6.5
         version: 4.6.5
+
+  packages/profile-web:
+    dependencies:
+      '@tseer/cache':
+        specifier: workspace:*
+        version: link:../cache
+      '@tseer/http-client':
+        specifier: workspace:*
+        version: link:../http-client
+      '@tseer/kernel':
+        specifier: workspace:*
+        version: link:../kernel
+      '@tseer/media':
+        specifier: workspace:*
+        version: link:../media
+      '@tseer/prefs':
+        specifier: workspace:*
+        version: link:../prefs
+      '@tseer/server':
+        specifier: workspace:*
+        version: link:../server
+      '@tseer/twitter-api':
+        specifier: workspace:*
+        version: link:../twitter-api
+      '@tseer/twitter-parser':
+        specifier: workspace:*
+        version: link:../twitter-parser
+      '@tseer/twitter-sessions':
+        specifier: workspace:*
+        version: link:../twitter-sessions
+      '@tseer/views':
+        specifier: workspace:*
+        version: link:../views
+      '@tseer/web-routes':
+        specifier: workspace:*
+        version: link:../web-routes
+      cordis:
+        specifier: 4.0.0-rc.10
+        version: 4.0.0-rc.10
 
   packages/server:
     dependencies:

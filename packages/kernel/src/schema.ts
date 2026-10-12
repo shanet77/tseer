@@ -47,6 +47,12 @@ export const configSchema = z.object({
   maxConcurrentReqs: z.number().int().min(1).default(2),
   maxRetries: z.number().int().min(0).default(1),
   retryDelayMs: z.number().int().min(0).default(150),
+  plugins: z
+    .object({
+      add: z.array(z.string()).default([]),
+      remove: z.array(z.string()).default([]),
+    })
+    .prefault({}),
   preferences: preferencesSchema.prefault({}),
 });
 

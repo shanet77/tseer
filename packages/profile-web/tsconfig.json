@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "paths": {
+      "@tseer/cache": ["../cache/src/index.ts"],
+      "@tseer/http-client": ["../http-client/src/index.ts"],
+      "@tseer/kernel": ["../kernel/src/index.ts"],
+      "@tseer/media": ["../media/src/index.ts"],
+      "@tseer/prefs": ["../prefs/src/index.ts"],
+      "@tseer/server": ["../server/src/index.ts"],
+      "@tseer/twitter-api": ["../twitter-api/src/index.ts"],
+      "@tseer/twitter-parser": ["../twitter-parser/src/index.ts"],
+      "@tseer/twitter-sessions": ["../twitter-sessions/src/index.ts"],
+      "@tseer/views": ["../views/src/index.ts"],
+      "@tseer/web-routes": ["../web-routes/src/index.ts"]
+    }
+  },
+  "include": ["src", "tests", "examples", "tsdown.config.ts", "../cache/src/ioredis-optional.d.ts"]
+}
