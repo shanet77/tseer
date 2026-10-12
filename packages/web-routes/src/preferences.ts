@@ -35,7 +35,9 @@
  *   preferences plugin registers one hook that all requests pass through, and
  *   a disposed plugin takes it down with the routes. The param is stripped
  *   from the query before redirecting, so the bookmark URL redirects to itself
- *   minus `?prefs=` rather than re-applying on every load.
+ *   minus `?prefs=` rather than re-applying on every load. The dotted-path
+ *   skip keeps upstream's single exception: `/embed/Tweet.html` passes the
+ *   hook (ported from nitter.nim's `before` block).
  */
 
 import {
@@ -178,13 +180,13 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
   // The write set comes from `applyPrefCookies` (params win, everything else
   // expires); the redirect goes back to the same path minus `prefs`.
   //
-  // The before block's `cond "." notin request.path` is ported as a skip:
-  // dotted paths (static assets) fall through untouched, and
-  // `/embed/Tweet.html` — the before block's one dot-allowing exception —
-  // belongs to the embed plugin, not yet ported.
+  // The before block's `cond "." notin request.path or request.path ==
+  // "/embed/Tweet.html"` is ported as a skip: dotted paths (static assets)
+  // fall through untouched, except the Twitter widget compatibility path
+  // `/embed/Tweet.html`, which is handled by the embed plugin.
   disposers.push(
     server.hook((req, reply) => {
-      if (req.path.includes(".")) return;
+      if (req.path.includes(".") && req.path !== "/embed/Tweet.html") return;
       const code = req.query["prefs"] ?? "";
       if (code.length === 0) return;
       const writes = applyPrefCookies(parsePrefsParam(code));

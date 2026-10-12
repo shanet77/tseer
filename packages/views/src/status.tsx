@@ -263,7 +263,7 @@ export function renderEditHistory(
 }
 
 export function getVideoEmbed(urlPrefix: string, id: string): string {
-  return `${urlPrefix}/i/videos/${id}`;
+  return `${urlPrefix}/i/videos/tweet/${id}`;
 }
 
 export function getUrlPrefix(cfg: {

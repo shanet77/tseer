@@ -3,6 +3,12 @@
 
 export { renderAboutAccount } from "./about-account.tsx";
 export { renderBroadcast } from "./broadcast.tsx";
+export {
+  renderErrorEmbed,
+  renderOembedIframe,
+  renderTweetEmbed,
+  renderVideoEmbed,
+} from "./embed.tsx";
 export { renderFeature } from "./feature.tsx";
 export {
   getDuration,
@@ -133,4 +139,4 @@ export {
   renderTimelineUsers,
   timelineViewClass,
 } from "./timeline.tsx";
-export { renderTweet } from "./tweet.tsx";
+export { renderTweet, renderVideo } from "./tweet.tsx";

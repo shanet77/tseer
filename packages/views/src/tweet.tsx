@@ -260,7 +260,12 @@ function renderVideoAttachment(
   );
 }
 
-function renderVideo(video: Video, prefs: TseerPreferences, path: string, bigThumb = false): VNode {
+export function renderVideo(
+  video: Video,
+  prefs: TseerPreferences,
+  path: string,
+  bigThumb = false,
+): VNode {
   const hasCardContent = video.description.length > 0 || video.title.length > 0;
   return (
     <div class="attachments card">

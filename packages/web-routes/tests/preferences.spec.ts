@@ -245,10 +245,20 @@ describe("preferencesPlugin", () => {
     });
     expect(cookiesHeader(sticky)).toContain("stickyNav=; ");
 
-    // Dotted paths skip the hook entirely (nitter's before-block cond).
+    // Dotted paths skip the hook entirely (nitter's before-block cond) —
+    // except /embed/Tweet.html, the before block's one dot-allowing exception.
     const asset = await ctx.server.inject({ url: "/style.css?prefs=theme%3DDracula" });
     expect(asset.status).toBe(404);
     expect(asset.headers["set-cookie"]).toBeUndefined();
+  });
+
+  it("runs the ?prefs= hook on /embed/Tweet.html despite the dotted path", async () => {
+    const { ctx } = await boot();
+
+    const res = await ctx.server.inject({ url: "/embed/Tweet.html?prefs=theme%3DMastodon&id=123" });
+    expect(res.status).toBe(302);
+    expect(res.headers["location"]).toBe("/embed/Tweet.html?id=123");
+    expect(cookiesHeader(res)).toContain("theme=Mastodon; ");
   });
 
   it("secure https instances get Secure; SameSite=None cookies", async () => {

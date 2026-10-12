@@ -15,6 +15,7 @@ import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
 import { renderPlugin, viewsPublicDir } from "@tseer/views";
 import {
   broadcastPlugin,
+  embedPlugin,
   preferencesPlugin,
   resolverPlugin,
   rssPlugin,
@@ -132,6 +133,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
       maxConns: ctx.config.httpMaxConns,
     });
     await ctx.plugin(resolverPlugin);
+    await ctx.plugin(embedPlugin);
   }
   // The settings page and the static "unsupported feature" panel need no X
   // session — they render from `prefs` + `render` alone, so they mount

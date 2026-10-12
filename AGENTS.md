@@ -62,6 +62,10 @@ plan-vs-reality deltas discovered during implementation.
   - [x] `broadcast` route plugin (`/i/broadcasts/:id`, `/i/broadcasts/:id/stream`)
         + `views/broadcast.tsx` (`renderBroadcast`) — manifest fetch via
         `@tseer/media` `safeFetchText`; wired into `apps/tseer`
+  - [x] `embed` route plugin (`/i/videos/tweet/:id`, `/:name/status/:id/embed`,
+        `/i/status/:id/embed`, `/embed/Tweet.html`, `/api/oembed`) +
+        `views/embed.tsx` (`renderVideoEmbed`, `renderTweetEmbed`,
+        `renderErrorEmbed`, `renderOembedIframe`) — wired into `apps/tseer`
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
 Update this checklist as phases land.
@@ -626,10 +630,11 @@ docs/TS_PORT_PLAN.md  # the spec
   (an `onRequest` hook whose disposer makes it a no-op — fastify can't
   unregister instance hooks) and urlencoded form parsing into `req.form`
   (`/saveprefs` reads `@"referer"`/pref names from the form body). The
-  before-block's `cond "." notin request.path` is ported as a skip: dotted
-  paths bypass the hook; `/embed/Tweet.html`'s exception belongs to the embed
-  plugin, not yet ported. A prefs URL *replaces* the saved set (absent prefs
-  expire) — that's `genApplyPrefs`, not a merge.
+  before-block's `cond "." notin request.path or request.path ==
+  "/embed/Tweet.html"` is ported as a skip: dotted paths bypass the hook;
+  the one exception lets the embed plugin's widget-compatibility redirect
+  through. A prefs URL *replaces* the saved set (absent prefs expire) —
+  that's `genApplyPrefs`, not a merge.
 - **`/settings` renders `prefList` metadata, not a hand-written form** —
   the same table that drives parsing/encoding drives the widgets
   (`renderPref` dispatches on `kind`), so a new pref added to `prefs.ts`
@@ -722,6 +727,62 @@ docs/TS_PORT_PLAN.md  # the spec
   playback URLs expire while the metadata (title/state/views) does not. The
   route never signs or caches the stream URL itself.
 
+## embed notes (plan §5, `routes/embed.nim` + `views/embed.nim` + `views/oembed.nimf` port)
+
+- **`embedPlugin` is the four-seam route-plugin shape** (`server` + `twitter` +
+  `render` + `prefs` via static `.inject`, `ctx.effect` cleanup, `guard`
+  mapping) registering `/i/videos/tweet/:id`, `/:name/status/:id/embed`,
+  `/i/status/:id/embed`, `/embed/Tweet.html`, and `/api/oembed`. The bare
+  `/i/status/:id/embed` (the `/embed/Tweet.html` redirect target) needs its
+  own registration because the unsupported plugin's `/i/:i/:j` would
+  otherwise win the radix node — same precedent as status.ts's
+  `/i/status/:id`.
+- **Upstream bug fixed: `getVideoEmbed` emits `/i/videos/tweet/{id}`**, the
+  video handler this port actually registers, where upstream's
+  `formatters.nim` emits `/i/videos/{id}` — a URL that lands on the
+  unsupported panel upstream and would break the og:video meta on every
+  video-embed page. `views/status.tsx`'s `getVideoEmbed` is the one
+  definition; the status route's og:video and the embed plugin's
+  `renderVideoEmbed` both go through it. Test pins the meta tag.
+- **Video-embed prefs divergence:** upstream builds the video embed's prefs
+  as `Prefs(hlsPlayback: true, mp4Playback: true, proxyVideos:
+  defaultPrefs.proxyVideos)` — a Nim constructor that takes *type* defaults
+  for every other field, ignoring `[Preferences]` config overrides. The port
+  spreads `prefs.defaults` (config-derived, the same defaults
+  `requestPrefs()` would read) over the two forced playback flags, so the
+  remaining fields honor config instead of Nim zero-values.
+- **The oEmbed iframe URL is XML-escaped before interpolation**
+  (`escapeXml` from `views/rss.ts`): the field lands in third-party pages,
+  and `?url=` query text is attacker-influenced; upstream interpolates it
+  raw into `oembed.nimf`'s template.
+- **`/api/oembed` errors are verbatim plain text / bare bodies**: 501 "Only
+  JSON format is supported", 400 "Missing url parameter", 400 "Invalid tweet
+  URL", and a bare empty 404 when the tweet is missing — no `showError`
+  page. Success sends the JSON body with an exact `application/json`
+  content type (the seam's `send()`, matching `respJson`; the seam's `json()`
+  helper would append `; charset=utf-8`). Every response carries
+  `access-control-allow-origin: *`.
+- **No digit validation on the embed routes' `:id`** (upstream has none):
+  a non-digit id reaches `tweetByRestId`, misses, and renders the
+  "Tweet not found" error embed — unlike the status routes, whose
+  `isValidTweetId` answers "Invalid tweet ID" in-handler.
+- **The `/embed/Tweet.html` prefs-hook exception now lives in the
+  preferences plugin's hook** (`"." notin path or path ==
+  "/embed/Tweet.html"` ported as a skip condition): upstream's single
+  `before` block in `nitter.nim` runs for every route, so the exception
+  belongs to the hook, not to the embed plugin, which stays route-only.
+- **`views/embed.tsx` inlines the static resizer** via a lazily memoized
+  read of `viewsPublicDir()/js/embedResize.js` (the `staticRead` port),
+  emitted through `dangerouslySetInnerHTML` — a raw-HTML sink over vendored
+  static content, same rule as `tweet.tsx`'s video overlay. The three embed
+  pages share the shell's `renderHead` with everything empty (video/images
+  on the video embed) plus `<base target="_blank">`; there is no navbar or
+  container — upstream's embed pages are head + base + body only.
+- **`parseTweetUrl`'s host-mismatch fallback needs a host**: the fallback
+  strips everything up to the *first* `/`, so a hostless `nasa/status/1001`
+  yields `parts[1] == "1001"` and parses empty — exactly like Nim's
+  `path.find('/')` slice. It exists for URLs whose host differs from
+  `cfg.hostname` (localhost in dev, a reverse proxy domain).
 
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)

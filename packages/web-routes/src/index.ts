@@ -1,6 +1,12 @@
 /** `@tseer/web-routes` — route plugins, one per nitter route family. */
 
 export { default as broadcastPlugin, registerBroadcastRoutes } from "./broadcast.ts";
+export {
+  default as embedPlugin,
+  parseTweetPath,
+  parseTweetUrl,
+  registerEmbedRoutes,
+} from "./embed.ts";
 export { NAME_PARAM, TAB_PARAM } from "./params.ts";
 export { default as preferencesPlugin, registerPreferencesRoutes } from "./preferences.ts";
 export { default as resolverPlugin, registerResolverRoutes } from "./resolver.ts";
