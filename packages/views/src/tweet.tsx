@@ -440,7 +440,8 @@ function formatStat(stat: number): string {
   return stat > 0 ? insertSep(String(stat)) : "";
 }
 
-function renderStats(stats: TweetStats): VNode {
+/** tweet.nim `renderStats` (public upstream; the article page reuses it). */
+export function renderStats(stats: TweetStats): VNode {
   return (
     <div class="tweet-stats">
       <span class="tweet-stat">{icon("comment", formatStat(stats.replies))}</span>

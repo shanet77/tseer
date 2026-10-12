@@ -74,6 +74,9 @@ plan-vs-reality deltas discovered during implementation.
         `views/community.tsx` (`renderCommunity`, `renderCommunityTabs`,
         `renderMemberTabs`, `renderHashtagHeader`, `renderCommunityAbout`) —
         wired into `apps/tseer`
+  - [x] `article` route plugin (`/i/article/:id`, the `/:name/article/:id`
+        and `/:name/status/:id/article` redirects) + `views/article.tsx`
+        (`renderArticle`) — wired into `apps/tseer`
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
 Update this checklist as phases land.
@@ -969,3 +972,54 @@ docs/TS_PORT_PLAN.md  # the spec
   parser behavior with hand-built payload fixtures per kind
   (`packages/twitter-parser/tests/fixtures`). Swap in captured payloads when
   a live smoke test happens (plan §6's optional job).
+
+## article notes (plan §5, `routes/article.nim` + `views/article.nim` port)
+
+- **`articlePlugin` is the four-seam route-plugin shape** (`server` +
+  `twitter` + `render` + `prefs` via static `.inject`, `ctx.effect` cleanup,
+  `guard` mapping) registering `/i/article/:id`, `/:name/article/:id`, and
+  `/:name/status/:id/article` (the last two redirect to the first). The
+  static `article` segment wins the radix node over the status plugin's
+  `/:name/:s/:id/:m` catch-all and the timeline plugin's `:tab`, regardless
+  of mount order — same precedent as the list/community/space/broadcast
+  plugins.
+- **No cache seam — verbatim.** Upstream `getGraphArticle` has no redis
+  wrapper (the `ai:` prefix is *AccountInfo*), so the route calls
+  `twitter.article(id)` (the `getGraphArticle` port) directly; embedded
+  tweets ride `twitter.tweetResults` (the `getGraphTweetResults` batch port).
+- **Conds are in-handler** (space/community treatment): the digit cond
+  (`allCharsInSet(Digits)`) answers the global 404 page (`Page not found`)
+  for a non-digit id, and `:id` stays dot-allowing at match time; the
+  redirects' `:name` uses the shared dotless param, so dotted names fall
+  through to static. Redirects carry no cursor (upstream's bare
+  `redirect("/i/article/" & @"id")`).
+- **The embedded-tweet batch keeps upstream's `try/except CatchableError:
+  discard`:** any `tweetResults` failure collapses to an empty tweet table
+  and the article body renders without its embedded tweets — the opposite of
+  the main fetch, whose errors map to 429/500 pages via `guard`.
+  `web-routes/tests/article.spec.ts` pins that divergence (a rate-limited
+  batch still renders 200) so it cannot be "fixed" into parity by accident.
+  TWEET-kind entities alone feed the batch; the tweet table keys on
+  `BigInt`-normalized ids (Nim: int64 table).
+- **`views/article.tsx` divergences:** Nim's imperative VNode mutation
+  (`target.add`, the swapped `list` node) becomes child arrays and a
+  list-kind flush — same tree; `target="_blank"` anchors carry
+  `rel="noopener"` (the convention `renderPhotoAttachment` established over
+  upstream's bare target); the atomic `ApiGif`/`ApiVideo` videos use the
+  `<source>` child form the rest of the views use (upstream writes a bare
+  `src` attribute); and `tweet.nim`'s public `renderStats` is now exported
+  from `views/tweet.tsx` instead of being reimplemented. Everything else is
+  preact-auto-escaped (title, paragraph text, captions); mentions
+  linkify inside `addContent` (≤15 word chars, not preceded by a word char),
+  LINK entities unwrap twitter URLs to their path (`@tseer/media`
+  `isTwitterUrl`), and the blockquote-attribution class lands on a trailing
+  bold text run.
+- **Tests:** `views/tests/article.spec.ts` pins the shell (cover signing,
+  author row, date link, to-top), the inline-style nesting order
+  (code/strong/em/del/u), mention linkification, LINK unwrapping, the
+  blockquote attribution, list grouping, code blocks, and every atomic kind
+  (media/gif/video/markdown/divider/tweet); `web-routes/tests/article.spec.ts`
+  follows the sibling boot pattern (stubbed `ctx.twitter` + `inject`),
+  pinning the digit cond, the `Article not found` gate, the TWEET-only batch,
+  the swallow fallback, both redirects, the canonical "Open in X" link
+  (`x.com/<user>/article/<id>`), the 429 mapping, and unload.

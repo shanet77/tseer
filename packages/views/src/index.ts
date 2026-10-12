@@ -2,6 +2,7 @@
  * profile/search view components, and formatters. */
 
 export { renderAboutAccount } from "./about-account.tsx";
+export { renderArticle } from "./article.tsx";
 export { renderBroadcast } from "./broadcast.tsx";
 export {
   renderCommunity,
@@ -147,4 +148,4 @@ export {
   renderTimelineUsers,
   timelineViewClass,
 } from "./timeline.tsx";
-export { renderTweet, renderVideo } from "./tweet.tsx";
+export { renderStats, renderTweet, renderVideo } from "./tweet.tsx";
