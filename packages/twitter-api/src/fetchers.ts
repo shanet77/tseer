@@ -1,20 +1,3 @@
-/**
- * The `getGraph*` fetchers — a port of nitter's `api.nim`, split the way
- * nitter splits it: this module does *request construction + fetch only* and
- * returns raw upstream bodies; the `parse*` half lands in `twitter-parser`
- * (plan §2 `ctx.parsers`) and will wrap these into plan §3's domain types.
- *
- * Naming: the plan §3 `TwitterApi` seam names are used where they map
- * (`user`, `tweets`, `tweet`, `search`, `list`, `community`, `space`, …);
- * the nitter proc each one ports is named in its doc comment. Extra nitter
- * fetchers outside plan §3 (followers, list metadata, edit history, …) keep
- * shortened nitter names so Phase 5 routes can find them.
- *
- * Guards mirror nitter's early returns (`if id.len == 0: return`): a skipped
- * fetch yields `undefined` (nitter yields a default-constructed object), and
- * `fetch`'s non-JSON `null` is preserved as-is, so callers can still tell
- * "not fetched" from "fetched junk".
- */
 import { type Query, QueryKind, RankingMode, TimelineKind } from "@tseer/types";
 import {
   apiReq,
@@ -67,13 +50,6 @@ import {
 import type { Fetcher, Json } from "./fetch.ts";
 import { EMPTY_QUERY, genQueryParam, validateNumber } from "./search-query.ts";
 
-/**
- * Raw search payload. `beginning` is nitter's composed value: `true` when the
- * query compiled to nothing (no request was made) or when `cursor` is empty
- * (parsers set it from `after.len == 0`). The repeat-page workaround (#1372)
- * compares the extracted bottom cursor with `after` *after* parsing, so it
- * lands with `twitter-parser`.
- */
 export interface RawSearch {
   json: Json | undefined;
   beginning: boolean;
@@ -84,101 +60,42 @@ export interface TwitterApiFetchers {
   fetchRaw: Fetcher["fetchRaw"];
 }
 
-/**
- * The raw half of the provider seam: methods return the upstream body (JSON
- * for nitter's `fetch` procs, text for `fetchRaw`). The domain-flavoured
- * `TwitterApi` (plan §3) composes these with `ctx.parsers` in `domain.ts`.
- */
 export interface RawTwitterApi {
-  /** Port of `api.nim` `getGraphUser` (`fetchRaw`). */
   user(username: string): Promise<string | undefined>;
-  /** Port of `api.nim` `getGraphUserById` (`fetchRaw`). */
   userById(id: string): Promise<string | undefined>;
-  /** Port of `api.nim` `getAboutAccount`. */
   aboutAccount(username: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphUserTweets` with `TimelineKind.tweets`. */
   tweets(userId: string, cursor?: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphUserTweets` with `TimelineKind.replies`. */
   tweetsAndReplies(userId: string, cursor?: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphUserTweets` with `TimelineKind.media`. */
   media(userId: string, cursor?: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphUserTweets` with `TimelineKind.articles`. */
   articles(userId: string, cursor?: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getPhotoRail`. */
   photoRail(userId: string): Promise<Json | undefined>;
-  /**
-   * Port of `api.nim` `getGraphTweet`: one ConversationTimeline request.
-   * nitter's `getTweet` composes a second cursor request into
-   * `Conversation.replies` — that composition needs the parse layer.
-   */
   tweet(id: string, cursor?: string, mode?: RankingMode): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphTweetResult`. */
   tweetResult(id: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getTweetByRestId`. */
   tweetByRestId(id: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphTweetResults` (article batch). */
   tweetResults(ids: readonly string[]): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphEditHistory`. */
   editHistory(id: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphTweetSearch` (incl. the `maxid:` workaround). */
   search(query: Query, cursor?: string): Promise<RawSearch>;
-  /** Port of `api.nim` `getGraphUserSearch` (`product=People`). */
   userSearch(query: Query, cursor?: string): Promise<RawSearch>;
-  /** Port of `api.nim` `getGraphListSearch` (`product=Lists`). */
   listSearch(query: Query, cursor?: string): Promise<RawSearch>;
-  /** Port of `api.nim` `getGraphListTweets` (plan §3 `list`). */
   list(id: string, cursor?: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphList` (list metadata, not its timeline). */
   listInfo(id: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphListBySlug`. */
   listBySlug(name: string, slug: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphListMembers` (`fetchRaw`). */
   listMembers(id: string, cursor?: string): Promise<string | undefined>;
-  /** Port of `api.nim` `getGraphFollowers` (`fetchRaw`). */
   followers(userId: string, cursor?: string): Promise<string | undefined>;
-  /** Port of `api.nim` `getGraphFollowing` (`fetchRaw`). */
   following(userId: string, cursor?: string): Promise<string | undefined>;
-  /** Port of `api.nim` `getGraphCommunityTweets` (plan §3 `community`). */
   community(id: string, cursor?: string, rankingMode?: RankingMode): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphCommunity` (community metadata). */
   communityInfo(id: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphCommunityMedia`. */
   communityMedia(id: string, cursor?: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphCommunityMembers`. */
   communityMembers(id: string, cursor?: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphCommunityModerators`. */
   communityModerators(id: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphCommunityHashtags`. */
   communityHashtags(id: string, hashtag: string, cursor?: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getGraphArticle` (`fetchRaw`). */
   article(id: string): Promise<string | undefined>;
-  /** Port of `api.nim` `getAudioSpace`. */
   space(id: string): Promise<Json | undefined>;
-  /** Port of `api.nim` `getBroadcastInfo`. */
   broadcast(id: string): Promise<Json | undefined>;
-  /**
-   * Port of `api.nim` `fetchBroadcastStream`: dig `source.noRedirectPlaybackUrl`
-   * (fallback `source.location`) out of the REST response. nitter returns `""`
-   * when absent; `undefined` is this layer's empty.
-   */
   broadcastStream(mediaKey: string): Promise<string | undefined>;
-  /**
-   * Port of `api.nim` `resolve`: `HEAD` with no redirects, returning the
-   * `location` header (`""` on any failure). Not session-bound — the route
-   * plugin applies `replaceUrls` to the result.
-   */
   resolve(url: string): Promise<string>;
 }
 
-/**
- * Port of `api.nim` `resolve`: `HEAD` with no redirect following, returning
- * the `location` header (or `""` on any failure — nitter's `except: discard`).
- *
- * Deliberately bypasses `ctx.http` (like `tid.ts`'s `fetchPairs`): nitter
- * uses a private `AsyncHttpClient` here, not the pooled/proxied session
- * transport — a short-link hop must never consume a session lease or get
- * rewritten by `apiProxy`. `fetchFn` is injectable for tests.
- */
 export type ResolveFetch = (
   url: string,
   init: { method: string; redirect: "manual" },
@@ -196,7 +113,6 @@ export async function resolveUrl(
   }
 }
 
-/** Port of `api.nim`'s inline `%*{...}` variable objects (key order included). */
 function vars(value: Record<string, Json>): string {
   return JSON.stringify(value);
 }
@@ -212,7 +128,6 @@ function searchVariables(rawQuery: string, product: string): Record<string, Json
   };
 }
 
-/** Port of `api.nim` `getGraphProductSearch`: `query.text`, no compilation. */
 function productSearch(
   fetcher: TwitterApiFetchers,
   query: Query,
@@ -323,8 +238,6 @@ export function createTwitterApi(fetcher: TwitterApiFetchers): RawTwitterApi {
     },
 
     async search(query, cursor = "") {
-      // Port of `getGraphTweetSearch`: the `maxid:` cursor workaround (#1372)
-      // replaces pagination with `max_id` inside the compiled query.
       const after = cursor;
       const maxId = after.startsWith("maxid:") ? validateNumber(after.slice(6)) : "";
       const rawQuery = genQueryParam(query, maxId);

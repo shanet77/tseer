@@ -1,4 +1,3 @@
-/** Merge raw INI values over the zod defaults: unknown/invalid warn, out-of-range fails. */
 import type { IniDocument } from "./ini.ts";
 import { extractPreferences, finalizeConfig } from "./preferences.ts";
 import type { ConfigWarning, LoadedConfig } from "./schema.ts";
@@ -15,7 +14,6 @@ interface FieldSource {
   kind: "string" | "int" | "bool";
 }
 
-/** Flat config field -> `[Section]key` lookup (read order per key list). */
 const fieldSources: Record<string, FieldSource> = {
   address: { section: "Server", keys: ["address"], kind: "string" },
   port: { section: "Server", keys: ["port"], kind: "int" },
@@ -78,8 +76,6 @@ function findValue(section: { values: Map<string, { value: string; line: number 
 const truthy = new Set(["1", "true", "yes", "on"]);
 const falsy = new Set(["0", "false", "no", "off", ""]);
 
-/** One `[Plugins]` list entry: trimmed, with one pair of surrounding double
- * quotes stripped (each comma-separated segment is quoted independently). */
 function cleanListEntry(raw: string): string {
   const trimmed = raw.trim();
   if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
@@ -106,7 +102,6 @@ function coerce(raw: string, kind: "string" | "int" | "bool"): Coerced {
   return { ok: true, value: Number.parseInt(text, 10) };
 }
 
-/** Merge raw INI values over zod defaults; unknown keys warn, invalid warn. */
 export function loadConfigFromIni(doc: IniDocument): LoadedConfig {
   const warnings: ConfigWarning[] = doc.warnings.map((w) => ({ ...w }));
   const raw: Record<string, unknown> = {};

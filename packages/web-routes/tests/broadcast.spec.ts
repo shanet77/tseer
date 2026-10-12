@@ -1,7 +1,3 @@
-/** Broadcast route plugin tests — fastify `inject` against a context with a
- * stubbed `ctx.twitter` and a scripted manifest fetcher, proving the seams are
- * real (plan §6). */
-
 import { Buffer } from "node:buffer";
 import type { MediaFetcher, MediaFetchResponse } from "@tseer/media";
 import { prefsPlugin } from "@tseer/prefs";
@@ -58,8 +54,6 @@ function makeBroadcast(overrides: Partial<Broadcast> = {}): Broadcast {
   };
 }
 
-/** A `MediaFetcher` scripted per URL — the manifest source the broadcast
- * plugin's `safeFetchText` runs against (no test ever reaches the network). */
 function stubManifestFetcher(
   responses: Record<string, { status: number; body?: string }>,
 ): MediaFetcher {
@@ -128,12 +122,10 @@ describe("broadcastPlugin", () => {
     expect(res.headers["content-type"]).toContain("text/html");
     expect(res.body).toContain("<title>Starship launch | nitter</title>");
     expect(res.body).toContain('<meta property="og:title" content="Starship launch"');
-    // the HLS player card: poster, replay start offset, raw-HTML play overlay
     expect(res.body).toContain('<video poster="/pic/https://pbs.twimg.com/broadcast/thumb.jpg"');
     expect(res.body).toContain('data-start="0"');
     expect(res.body).toContain('onclick="playVideo(this)"');
     expect(res.body).toContain('<div class="broadcast-live">LIVE</div>');
-    // the user row
     expect(res.body).toContain('href="/nasa"');
     expect(res.body).toContain("@nasa");
     expect(twitter.cachedBroadcast).toHaveBeenCalledWith("1yNGaLwepgeJB");
@@ -154,7 +146,6 @@ describe("broadcastPlugin", () => {
     const res = await ctx.server.inject({ url: "/i/broadcasts/1yNGaLwepgeJB?hlsPlayback=on" });
     expect(res.body).toContain("12,345 views");
     expect(res.body).toContain("Ended Oct 1, 2026");
-    // 65 min recording minus the 60 s replay offset → the replay length
     expect(res.body).toContain('<div class="overlay-duration">1:04:00</div>');
   });
 
@@ -180,7 +171,6 @@ describe("broadcastPlugin", () => {
   });
 
   it("falls back to the enablehls button when hls is off", async () => {
-    // hlsPlayback defaults to off; the m3u8 branch then renders the form.
     const { ctx } = await boot(
       stubBroadcastTwitter(makeBroadcast({ m3u8Url: M3U8, availableForReplay: true })),
     );
@@ -220,7 +210,6 @@ describe("broadcastPlugin", () => {
     const res = await ctx.server.inject({ url: "/i/broadcasts/1yNGaLwepgeJB/stream" });
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("application/x-mpegURL");
-    // segments resolve against the manifest URL and sign through getVidUrl
     expect(res.body).toContain('/video/sig/https://video.twimg.com/broadcast/init.mp4"');
     expect(res.body).toContain("/video/sig/https://video.twimg.com/broadcast/seg1.ts");
   });
@@ -232,12 +221,10 @@ describe("broadcastPlugin", () => {
     });
     const res = await ctx.server.inject({ url: "/i/broadcasts/1yNGaLwepgeJB/stream" });
     expect(res.status).toBe(404);
-    // bare 404: no error page, and no HTML in the reply
     expect(res.body).toBe("");
   });
 
   it("answers a bare 502 when the manifest fetch fails", async () => {
-    // dead upstream: every attempt fails, safeFetchText swallows it into ""
     const { ctx } = await bootStream(makeBroadcast({ m3u8Url: M3U8 }), { status: 500 });
     const res = await ctx.server.inject({ url: "/i/broadcasts/1yNGaLwepgeJB/stream" });
     expect(res.status).toBe(502);
@@ -245,8 +232,6 @@ describe("broadcastPlugin", () => {
   });
 
   it("answers a bare 502 when the manifest is off-allowlist", async () => {
-    // isTwitterUrl rejects the URL before any fetch — the same swallow, and
-    // the fetcher is never called.
     const off = "https://evil.example/main.m3u8";
     const fetcher = stubManifestFetcher({ [off]: { status: 200, body: "#EXTM3U" } });
     const { ctx } = await boot(stubBroadcastTwitter(makeBroadcast({ m3u8Url: off })), { fetcher });
@@ -255,8 +240,6 @@ describe("broadcastPlugin", () => {
   });
 
   it("maps broadcast fetch failures to the 404 page (verbatim except-discard)", async () => {
-    // Unlike the space routes, nitter's broadcast route swallows *every*
-    // getCachedBroadcast failure — a rate limit is a 404, not a 429 page.
     const twitter = stubBroadcastTwitter(undefined, {
       cachedBroadcast: vi.fn(async () => {
         throw new RateLimitError("limited");

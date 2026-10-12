@@ -1,11 +1,5 @@
-/**
- * Typed loader for `fixtures/golden.json` — generated from nitter @ 376f149
- * by `fixtures/generate_goldens.nim` (see the header there for regeneration).
- * CI never runs the generator; the JSON is committed (plan §6).
- */
 import { readFileSync } from "node:fs";
 
-/** A `Query` as serialized by the harness (`kind` is the Nim enum name). */
 export interface GoldenQuery {
   kind: string;
   view: string;

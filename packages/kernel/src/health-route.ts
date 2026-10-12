@@ -1,22 +1,8 @@
-/**
- * `/.health` + `/.sessions` route plugin — port of nitter's debug router
- * (`routes/debug.nim`: `get "/.health"` → `respJson getSessionPoolHealth()`,
- * `get "/.sessions"` → `getSessionPoolDebug()` when `enableDebug`).
- *
- * The payloads are injected as callbacks so the kernel never imports
- * `twitter-sessions` (import boundaries are seams). The composition root wires
- * them to `ctx.accounts.health()` / `ctx.accounts.debug()`; with no provider
- * mounted, `/.health` serves the empty-pool shape (byte-identical to Nim
- * `getSessionPoolHealth()` with an empty session pool, including the
- * `fromUnix(0)` timestamps).
- */
 import type { HttpServer } from "@tseer/server";
 import type { Context } from "cordis";
 
-/** `fromUnix(0)` in Nim's `$` conversion — the empty-pool timestamp. */
 const EPOCH = "1970-01-01T00:00:00Z";
 
-/** Port of `getSessionPoolHealth()`'s JSON shape (nitter `auth.nim`). */
 export interface SessionPoolHealth {
   sessions: {
     total: number;
@@ -33,7 +19,6 @@ export interface SessionPoolHealth {
   };
 }
 
-/** Health payload for an empty session pool (matches Nim's empty output). */
 export function emptySessionHealth(): SessionPoolHealth {
   return {
     sessions: {
@@ -50,18 +35,8 @@ export function emptySessionHealth(): SessionPoolHealth {
 }
 
 export interface HealthRouteOptions {
-  /**
-   * Supplies session-pool health. Wired to `ctx.accounts.health()` by the
-   * composition root once `twitter-sessions` is mounted; when omitted the
-   * route serves the empty-pool shape.
-   */
   sessionHealth?: (() => SessionPoolHealth) | undefined;
-  /**
-   * Per-session detail for `GET /.sessions`, gated on `enableDebug`
-   * (nitter `routes/debug.nim`). Omit to skip the route entirely.
-   */
   sessionDebug?: (() => unknown) | undefined;
-  /** `config.enableDebug` — gates `/.sessions`. */
   enableDebug?: boolean | undefined;
 }
 
@@ -73,8 +48,6 @@ export default function healthRoute(ctx: Context, options: HealthRouteOptions = 
     path: "/.health",
     handler: (_req, reply) => {
       const health = options.sessionHealth?.() ?? emptySessionHealth();
-      // fastify normalizes JSON media types to include `charset=utf-8`
-      // (semantically identical to nitter's `respJson` — JSON implies UTF-8).
       reply.send(JSON.stringify(health), "application/json");
     },
   });
@@ -90,7 +63,6 @@ export default function healthRoute(ctx: Context, options: HealthRouteOptions = 
       }),
     );
   }
-  // Tie route removal to this fiber's scope (see about-route.ts).
   const disposeEffect = ctx.effect(() => () => {
     for (const dispose of disposers) dispose();
   });
@@ -100,5 +72,4 @@ export default function healthRoute(ctx: Context, options: HealthRouteOptions = 
   };
 }
 
-// Cordis inject metadata: this plugin requires `ctx.server`.
 healthRoute.inject = ["server"];

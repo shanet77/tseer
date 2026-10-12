@@ -1,13 +1,3 @@
-/**
- * Card parsing — the port of `parser.nim`'s `parsePoll`, `parseVideoVariants`,
- * `parseVideo`, `parsePromoVideo`, `parseBroadcast`, `parseCard` and the
- * `getCard*` helpers from `parserutils.nim`, plus
- * `experimental/parser/unifiedcard.nim`.
- *
- * Divergence: upstream garbage that would raise in Nim (`parseInt` of a
- * non-number) yields the 0/`""` default instead — a malformed card must not
- * take down a timeline.
- */
 import {
   type Card,
   CardKind,
@@ -34,7 +24,6 @@ import {
 import { getPicUrl } from "./media.ts";
 import { shorten } from "./slices.ts";
 
-/** Port of `getImageStr`-prefixed access over a raw string (utils.nim `getImageUrl`). */
 function stripImageStr(url: string): string {
   let result = url;
   if (result.startsWith("https://")) result = result.slice("https://".length);
@@ -42,7 +31,6 @@ function stripImageStr(url: string): string {
   return result;
 }
 
-/** Port of `getMp4Resolution`: the height out of `/vid/<w>x<h>/`. */
 export function getMp4Resolution(url: string): number {
   const vidSep = "/vid/";
   const vidIdx = url.indexOf(vidSep);
@@ -54,7 +42,6 @@ export function getMp4Resolution(url: string): number {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
-/** `v{"bit_rate"}.getInt(v{"bitrate"}.getInt(0))` — alternate keys, not a path. */
 function numAlt(node: Json, first: string, second: string): number {
   const a = at(node, first);
   return typeof a === "number" ? a : num(node, second);
@@ -65,7 +52,6 @@ function videoContentType(s: string): VideoType {
   return found ?? VideoType.mp4;
 }
 
-/** Port of `parseVideoVariants`. */
 export function parseVideoVariants(variants: Json): VideoVariant[] {
   const result: VideoVariant[] = [];
   for (const v of each(variants)) {
@@ -80,7 +66,6 @@ export function parseVideoVariants(variants: Json): VideoVariant[] {
   return result;
 }
 
-/** Port of `parseVideo` (a legacy `extended_entities` video). */
 export function parseVideo(js: Json): Video {
   const result: Video = {
     durationMs: num(js, "video_info", "duration_millis"),
@@ -110,7 +95,6 @@ export function parseVideo(js: Json): Video {
   return result;
 }
 
-/** Port of `parsePromoVideo` (amplify/player cards). */
 export function parsePromoVideo(js: Json): Video {
   const url =
     strVal(js, "", "player_hls_url") ||
@@ -136,13 +120,11 @@ export function parsePromoVideo(js: Json): Video {
   };
 }
 
-/** Port of `parsePoll` (the `pollNchoice_*` card family). */
 export function parsePoll(js: Json): Poll {
   const result: Poll = { options: [], values: [], votes: 0, leader: 0, status: "" };
   const vals = at(js, "binding_values");
   const name = str(js, "name");
 
-  // name format is pollNchoice_*: the choice count is the digit at index 4
   const choices = Number.parseInt(name[4] ?? "", 10);
   for (let i = 1; Number.isFinite(choices) && i <= choices; i += 1) {
     const count = Number.parseInt(strVal(vals, "0", `choice${i}_count`), 10);
@@ -166,10 +148,6 @@ export function parsePoll(js: Json): Poll {
   return result;
 }
 
-/**
- * Nim's `$` of a `Duration` prints only its non-zero components, largest
- * first, comma-separated; nitter keeps the first segment (`[0 ..< find(",")]`).
- */
 function formatDurationLeft(ms: number): string {
   const seconds = Math.floor(ms / 1000);
   if (seconds >= 86_400) return `${Math.floor(seconds / 86_400)} days`;
@@ -178,7 +156,6 @@ function formatDurationLeft(ms: number): string {
   return `${seconds} seconds`;
 }
 
-/** Port of `parseBroadcast` (the broadcast *card*, not `parseBroadcastInfo`). */
 export function parseBroadcastCard(js: Json): Card {
   const image = imageVal(js, "broadcast_thumbnail_large");
   const broadcastUrl = strVal(js, "", "broadcast_url");
@@ -205,7 +182,6 @@ export function parseBroadcastCard(js: Json): Card {
   };
 }
 
-/** `getCardUrl` (parserutils.nim). */
 function getCardUrl(vals: Json, kind: CardKind): string {
   let result = strVal(vals, "", "website_url");
   if (kind === CardKind.promoVideoConvo) {
@@ -215,7 +191,6 @@ function getCardUrl(vals: Json, kind: CardKind): string {
   return result;
 }
 
-/** `getCardDomain`. */
 function getCardDomain(vals: Json, kind: CardKind): string {
   let result = strVal(vals, str(vals, "domain"), "vanity_url");
   if (kind === CardKind.promoVideoConvo) {
@@ -224,7 +199,6 @@ function getCardDomain(vals: Json, kind: CardKind): string {
   return result;
 }
 
-/** `getCardTitle`. */
 function getCardTitle(vals: Json, kind: CardKind): string {
   if (kind === CardKind.promoVideoConvo) return strVal(vals, "", "thank_you_text");
   if (kind === CardKind.liveEvent) return strVal(vals, "", "event_category");
@@ -238,7 +212,6 @@ function emptyCard(kind: CardKind): Card {
   return { kind, url: "", title: "", dest: "", text: "", image: "" };
 }
 
-/** Port of `parseCard`. `urls` is the tweet's `entities.urls` for the t.co rewrite. */
 export function parseCard(js: Json, urls: Json): Card | undefined {
   const IMAGE_TYPES = [
     "summary_photo_image",
@@ -347,10 +320,6 @@ export function parseCard(js: Json, urls: Json): Card | undefined {
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// Unified cards (experimental/parser/unifiedcard.nim)
-// ---------------------------------------------------------------------------
-
 interface VideoInfo {
   durationMillis: number;
   variants: Json[];
@@ -370,7 +339,6 @@ const COMPONENT_KINDS: Record<string, string> = {
   grok_share: "grokShare",
 };
 
-/** Port of `parseUnifiedCard`. Returns `undefined` on an empty payload (Nim returns a default card). */
 export function parseUnifiedCard(json: string): Card | undefined {
   let card: Json;
   try {
@@ -457,8 +425,6 @@ function parseDetails(d: Json, card: Json, result: Card): void {
 function parseMediaDetails(d: Json, card: Json, result: Card): void {
   parseDestination(str(d, "destination"), card, result);
   result.kind = CardKind.summary;
-  // Nim reads `data.mediaId` (jsony's exact-name match); upstream also sends
-  // the snake_case `media_id`, so both are accepted.
   const media = at(card, "media_entities", str(d, "mediaId") || str(d, "media_id"));
   result.image = stripImageStr(str(media, "media_url_https"));
   result.text = str(d, "topic_detail", "title");

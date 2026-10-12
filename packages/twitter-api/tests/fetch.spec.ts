@@ -25,7 +25,6 @@ function cookiePool(): SessionPool {
   ]);
 }
 
-/** Wrap the pool so the test can assert the lease selector, like routes will. */
 function spyAccounts(pool: SessionPool): { accounts: Accounts; selectors: ApiSelector[] } {
   const selectors: ApiSelector[] = [];
   return {
@@ -301,8 +300,6 @@ describe("createFetcher", () => {
   });
 
   it("keeps the lease selector's endpoint identical to the pool exemption key", () => {
-    // The pool's `graphUserTweetsV2` exemption matches on this exact string,
-    // so the fetcher's dual selector must carry endpoints verbatim.
     expect(GRAPH_USER_TWEETS_V2).toBe("LE3eTyeqhBh2g-fX85O2eQ/UserWithProfileTweetsQueryV2");
   });
 });

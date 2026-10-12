@@ -36,7 +36,7 @@ describe("createTidGenerator", () => {
     const gen = createTidGenerator({
       fetchPairs: async () => pairsBody([PAIR]),
       now,
-      random: () => 0, // pair index 0, xor byte 0
+      random: () => 0,
     });
     const tid = await gen.genTid("/i/api/graphql/abc/User");
 
@@ -47,7 +47,7 @@ describe("createTidGenerator", () => {
       .update(`GET!/i/api/graphql/abc/User!${timeNow}${KEYWORD}${PAIR.animationKey}`, "utf8")
       .digest();
     const expected = Buffer.concat([
-      Buffer.from([0]), // random byte 0 → no visible xor
+      Buffer.from([0]),
       Buffer.from(PAIR.verification, "base64"),
       timeBytes,
       hash.subarray(0, 16),
@@ -60,7 +60,7 @@ describe("createTidGenerator", () => {
 
   it("xors every byte with the leading random byte", async () => {
     let call = 0;
-    const values = [0, 0b10101010]; // pair sample, then xor byte
+    const values = [0, 0b10101010];
     const gen = createTidGenerator({
       fetchPairs: async () => pairsBody([PAIR]),
       now: () => TID_EPOCH + 1,
@@ -75,7 +75,6 @@ describe("createTidGenerator", () => {
     expect(randomNum).toBe(0b10101010);
     const body = Buffer.alloc(decoded.length - 1);
     for (let i = 0; i < body.length; i++) body[i] = (decoded[i + 1] as number) ^ randomNum;
-    // Body layout: key bytes + 4 time bytes + 16 hash bytes + the trailing 3.
     expect(body[body.length - 1]).toBe(3);
     const keyBytes = Buffer.from(PAIR.verification, "base64");
     expect(body.subarray(0, keyBytes.length)).toEqual(keyBytes);
@@ -90,7 +89,7 @@ describe("createTidGenerator", () => {
     const gen = createTidGenerator({
       fetchPairs,
       now: () => clock,
-      random: () => 0.75, // pair index floor(0.75 * 2) = 1 → SECOND_PAIR
+      random: () => 0.75,
       ttlSec: 3600,
     });
 
@@ -117,7 +116,7 @@ describe("createTidGenerator", () => {
       ttlSec: 1,
     });
     await gen.genTid("/p");
-    clock += 2; // past the ttl → refresh attempted → non-200 → serve stale
+    clock += 2;
     expect(await gen.genTid("/p")).toBeTruthy();
     expect(calls).toBe(2);
   });

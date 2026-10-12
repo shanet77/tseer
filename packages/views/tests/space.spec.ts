@@ -1,6 +1,3 @@
-/** Space renderer tests — port fidelity for `views/space` (the
- * `views/space.nim` port: `renderSpace` + `renderParticipant`). */
-
 import { preferencesSchema, type TseerPreferences } from "@tseer/prefs";
 import type { AudioSpace, SpaceParticipant, User } from "@tseer/types";
 import { VerifiedType } from "@tseer/types";
@@ -86,10 +83,8 @@ describe("renderSpace", () => {
     expect(html).toContain('onclick="playAudio(this)"');
     expect(html).toContain('<div class="space-live">LIVE</div>');
     expect(html).toContain("overlay-circle");
-    // data-url is the signed video proxy link, not the raw m3u8
     expect(html).toContain(`data-url="/video/sig/${M3U8}"`);
     expect(html).toContain('data-autoload="false"');
-    // meta line repeats the badge next to the listener count
     expect(html).toContain('<span class="space-live">LIVE</span>');
   });
 
@@ -168,7 +163,6 @@ describe("renderSpace", () => {
     expect(html).toContain('action="/enablehls"');
     expect(html).toContain('name="referer"');
     expect(html).toContain("Enable hls playback");
-    // LIVE badge still shows in the overlay + meta
     expect(html).toContain('<div class="space-live">LIVE</div>');
   });
 
@@ -199,7 +193,6 @@ describe("renderSpace", () => {
     expect(html.match(/host-badge/g)).toHaveLength(2);
     expect(html).toContain('<span class="host-badge">Host</span>');
     expect(html).toContain('<span class="host-badge">Co-host</span>');
-    // avatars switch _normal → _bigger and go through the pic signer
     expect(html).toContain("/pic/https://pbs.twimg.com/profile_images/nasa_bigger.jpg");
     expect(html).toContain('<span class="participant-username">@guest</span>');
   });

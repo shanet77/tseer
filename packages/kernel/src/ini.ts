@@ -1,45 +1,24 @@
-/**
- * Minimal INI reader compatible with `nitter.conf` (Nim `parsecfg` dialect).
- *
- * Supported syntax:
- * - `[Section]` headers (case-insensitive when matched by the config loader).
- * - `key = value` pairs (`:` is also accepted as a separator, like parsecfg).
- * - Full-line comments starting with `#` or `;`.
- * - Trailing comments starting with `#` or `;` when preceded by whitespace and
- *   outside double quotes.
- * - Double-quoted values with `\"` and `\\` escapes (quotes are stripped).
- *
- * The parser is intentionally lenient: malformed lines are skipped with a
- * warning and duplicate keys resolve last-wins with a warning. Semantic
- * validation (known sections/keys, value coercion) lives in `config.ts`.
- */
-
 export interface IniValue {
   value: string;
-  /** 1-based line number where the key was defined. */
   line: number;
 }
 
 export interface IniSection {
   name: string;
-  /** 1-based line number of the section header. */
   line: number;
   values: Map<string, IniValue>;
 }
 
 export interface IniWarning {
-  /** 1-based line number related to the warning. */
   line: number;
   message: string;
 }
 
 export interface IniDocument {
-  /** Sections in file order. */
   sections: Map<string, IniSection>;
   warnings: IniWarning[];
 }
 
-/** Index of the first `=`/`:` separator outside quotes, or -1. */
 function findSeparator(line: string): number {
   let inQuotes = false;
   for (let i = 0; i < line.length; i++) {
@@ -56,7 +35,6 @@ function findSeparator(line: string): number {
   return -1;
 }
 
-/** Cut a trailing `#`/`;` comment when it starts outside quotes. */
 function stripInlineComment(fragment: string): string {
   let inQuotes = false;
   for (let i = 0; i < fragment.length; i++) {

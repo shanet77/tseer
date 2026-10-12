@@ -1,33 +1,3 @@
-/**
- * The timeline/user routes — port of nitter's `src/routes/timeline.nim`
- * (`/i/user/:id`, `/intent/*`, `/:name/about`, `/:name/followers|following`,
- * and the profile timeline `/:name/:tab?`), plus the error pages nitter's
- * `nitter.nim` maps the fetch errors to.
- *
- * First real consumer of `ctx.prefs` + `ctx.render` + `ctx.twitter` together:
- * handlers parse per-request prefs, fetch domain objects through the provider
- * seam, and render through the page shell. Inject-based like
- * `mediaRoutePlugin`, so mounting defers until all four seams exist — and
- * unloading the plugin removes exactly these routes.
- *
- * Divergences from the Nim original (documented at the call sites):
- * - Jester's optional `@tab` group becomes two registrations (`/:name`,
- *   `/:name/:tab`); fastify's radix router gives the static subpaths
- *   (`/about`, `/followers`, `/following`) precedence over `:tab`, mirroring
- *   nitter's dedicated routes. Every `:name`/`:tab` here uses the shared
- *   dotless params (`./params.ts`, the port of nitter's match-time
- *   `cond '.' notin name`), so asset URLs fall through to `staticDir`
- *   instead of 404ing as usernames.
- * - `cond` failures fall through to nitter's global 404 error page — the
- *   handlers answer 404 with `Page not found` directly (dotted names never
- *   reach a handler: they fall through to static first).
- * - `getUserId`'s pid-bucket lookup + "suspended" sentinel collapses into
- *   `cachedUser` (one cached user fetch instead of two; the suspended flag
- *   carries the sentinel).
- * - A user with an empty id renders 404 `User "x" not found` (nitter leaks an
- *   empty 200 body through `respTimeline` before the same message fires).
- */
-
 import { decodeUrl } from "@tseer/media";
 import type { PrefsService, TseerPreferences } from "@tseer/prefs";
 import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
@@ -74,8 +44,6 @@ import type { Context } from "cordis";
 import { createShowError } from "./errors.ts";
 import { NAME_PARAM, TAB_PARAM } from "./params.ts";
 
-/** Subset of `ctx.config` the timeline routes read (declared locally so the
- * package never imports `@tseer/kernel`). */
 interface TimelineConfig {
   enableRSSUserTweets?: boolean | undefined;
   enableRSSUserReplies?: boolean | undefined;
@@ -84,8 +52,6 @@ interface TimelineConfig {
   enableRSSSearch?: boolean | undefined;
 }
 
-/** router_utils.nim `nitterParams`: path/route params that never reappear in
- * the query strings timeline links build (`getPath`). */
 const NITTER_PARAMS = ["name", "tab", "id", "list", "referer", "scroll", "prefs"];
 
 const RESERVED_NAMES = new Set([
@@ -102,8 +68,6 @@ const NAME_CHARS = /^[A-Za-z0-9_,]+$/;
 const SINGLE_NAME_CHARS = /^[A-Za-z0-9_]+$/;
 const TABS = new Set(["with_replies", "media", "search", "articles"]);
 
-/** router_utils.nim `getPath`: path + non-empty query params (minus nitter's
- * route params), the URL tabs/"load more" links point back at. */
 export function getPath(req: AppRequest): string {
   const query = Object.entries(req.query)
     .filter(([key, value]) => value.length > 0 && !NITTER_PARAMS.includes(key))
@@ -112,13 +76,11 @@ export function getPath(req: AppRequest): string {
   return query.length > 0 ? `${req.path}?${query}` : req.path;
 }
 
-/** router_utils.nim `getCursor`: `?cursor=` (legacy `max_position`), decoded. */
 export function getCursor(req: AppRequest): string {
   const cursor = req.query["cursor"] ?? req.query["max_position"] ?? "";
   return decodeUrl(cursor);
 }
 
-/** router_utils.nim `getNames`: `/name1,name2` → both (no empty parts). */
 export function getNames(name: string): string[] {
   return name
     .replace(/^\/+|\/+$/g, "")
@@ -126,7 +88,6 @@ export function getNames(name: string): string[] {
     .filter((part) => part.length > 0);
 }
 
-/** timeline.nim's bare `Query(fromUser: @[name])` (posts kind). */
 export function postsQuery(name: string): Query {
   return {
     kind: QueryKind.posts,
@@ -143,7 +104,6 @@ export function postsQuery(name: string): Query {
   };
 }
 
-/** timeline.nim `getQuery`: the tab's query (view override for media). */
 export function timelineQuery(
   tab: string,
   name: string,
@@ -169,7 +129,6 @@ export function timelineQuery(
   }
 }
 
-/** timeline.nim `tabRssEnabled` + the route's rss URL construction. */
 export function tabRssUrl(config: TimelineConfig, tab: string, name: string, query: Query): string {
   const enabled =
     tab === ""
@@ -189,7 +148,6 @@ export function tabRssUrl(config: TimelineConfig, tab: string, name: string, que
   return `/${name}/${tab}/rss`;
 }
 
-/** Nim's zero-default `User(username: name)` (fetchProfile's empty profile). */
 export function emptyUser(name: string): User {
   return {
     id: "",
@@ -244,7 +202,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
 
   const showError = createShowError(render);
 
-  /** nitter.nim's error pages: the fetch loop's failures get real pages. */
   async function guard(
     reply: AppReply,
     requestPrefs: TseerPreferences | undefined,
@@ -288,8 +245,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
     }
   }
 
-  /** `fetchProfile` (routes/timeline.nim): resolve the user, then the
-   * timeline for the query kind (search when not a profile tab). */
   async function fetchProfile(
     query: Query,
     after: string,
@@ -298,8 +253,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
     const name = query.fromUser[0] ?? "";
     const user = (await twitter.cachedUser(name)) ?? emptyUser(name);
 
-    // temporary fix to prevent errors from people browsing timelines
-    // during/immediately after deployment
     let cursor = after;
     if (
       (query.kind === QueryKind.posts || query.kind === QueryKind.replies) &&
@@ -349,8 +302,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
     return profile;
   }
 
-  /** `showTimeline` (routes/timeline.nim): the profile page (or 404/suspended
-   * error page). Returns false when the reply was already sent. */
   async function showTimeline(
     reply: AppReply,
     query: Query,
@@ -400,8 +351,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
     return true;
   }
 
-  // ---- /i/user/:user_id + /intent/user (respUserId) -----------------------
-
   async function respUserId(req: AppRequest, reply: AppReply): Promise<void> {
     const requestPrefs = prefs.parse(req.cookies, req.query);
     const userId = req.params["user_id"] ?? req.query["user_id"] ?? "";
@@ -428,8 +377,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
     handler: (req, reply) => guard(reply, undefined, () => respUserId(req, reply)),
   });
 
-  // ---- /intent/follow ------------------------------------------------------
-
   route({
     method: "GET",
     path: "/intent/follow",
@@ -444,8 +391,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
         await reply.redirect(`/${username}`);
       }),
   });
-
-  // ---- /:name/about --------------------------------------------------------
 
   route({
     method: "GET",
@@ -477,8 +422,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
         );
       }),
   });
-
-  // ---- /:name/followers | /:name/following ---------------------------------
 
   async function showConnections(
     req: AppRequest,
@@ -544,8 +487,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
       guard(reply, undefined, () => showConnections(req, reply, "following")),
   });
 
-  // ---- /:name/:tab? (the timeline) -----------------------------------------
-
   async function showIndex(req: AppRequest, reply: AppReply, tab: string): Promise<void> {
     const name = req.params["name"] ?? "";
     const requestPrefs = prefs.parse(req.cookies, req.query);
@@ -566,7 +507,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
 
     const path = getPath(req);
 
-    // used for the infinite scroll feature
     if (req.query["scroll"] !== undefined) {
       if (names.length !== 1) {
         const timeline = (await twitter.search(query, after)) ?? emptyTimeline(query);
@@ -609,8 +549,6 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
   };
 }
 
-/** The timeline route plugin: `ctx.server` + `ctx.twitter` + `ctx.render` +
- * `ctx.prefs`. Unload it and only these routes disappear. */
 export default function timelinePlugin(ctx: Context): () => void {
   const server = ctx.get("server" as never) as HttpServer | undefined;
   const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
@@ -625,9 +563,6 @@ export default function timelinePlugin(ctx: Context): () => void {
     throw new Error("timeline: ctx.render is not mounted (load renderPlugin first)");
   if (prefs === undefined)
     throw new Error("timeline: ctx.prefs is not mounted (load prefsPlugin first)");
-  // cordis rc.10 does not run a plugin's returned disposer through
-  // fiber.dispose(); the cleanup must be a real effect (same as
-  // mediaRoutePlugin).
   const disposeRoutes = registerTimelineRoutes({ server, twitter, render, prefs, config });
   const disposeEffect = ctx.effect(() => () => {
     disposeRoutes();

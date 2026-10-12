@@ -1,16 +1,6 @@
-/** Ports of `prefs.nim`'s `getPrefs`/`genParsePrefs` and `genEncodePrefs`. */
 import { allPrefs, type PrefMeta } from "./prefs.ts";
 import { preferencesSchema, type TseerPreferences } from "./schema.ts";
 
-/**
- * `defaultPrefs` overridden by cookies, then URL params (params win).
- * Presence semantics are ported verbatim from `genParsePrefs`:
- * - input and theme take the raw string (theme accepts anything, even
- *   non-option values — the Nim macro special-cases it).
- * - checkboxes are true only for "on"/"true"/"1"; any other present value
- *   (including "off") is false — presence is what matters, not the value.
- * - other selects apply only if the value is in their options.
- */
 export function parsePrefs(
   defaults: TseerPreferences,
   cookies: Record<string, string>,
@@ -30,12 +20,6 @@ export function parsePrefs(
   return preferencesSchema.parse(prefs);
 }
 
-/**
- * Serialize non-default prefs to the compact `name=value` form (joined with
- * commas) that nitter uses for the shareable prefs string: checkboxes as
- * `name=on` / `name=`, everything else as `name=<value>`. Compared against the
- * config-derived defaults, like `genEncodePrefs` against `defaultPrefs`.
- */
 export function encodePrefs(defaults: TseerPreferences, prefs: TseerPreferences): string {
   const values = prefs as unknown as Record<string, unknown>;
   const defaultValues = defaults as unknown as Record<string, unknown>;

@@ -1,20 +1,11 @@
-/** Port of nitter's `src/views/preferences.nim` — the settings form. The
- * `renderPrefs` macro (which iterates the `prefList` DSL at compile time)
- * becomes a map over the same metadata at render time: one legend per
- * category, then the `genCheckbox`/`genInput`/`genSelect` widget per pref.
- * `theme` is the one special case — its select options are the themes
- * discovered on disk, not the static list (the macro's `themes` argument). */
-
 import { type PrefMeta, prefList, type TseerPreferences } from "@tseer/prefs";
 import { Fragment, type VNode } from "preact";
 import { buttonReferer, genCheckbox, genInput, genSelect, refererField } from "./renderutils.tsx";
 
-/** The state slot for one pref: booleans for checkboxes, strings otherwise. */
 function prefState(prefs: TseerPreferences, pref: PrefMeta): boolean | string {
   return (prefs as unknown as Record<string, boolean | string>)[pref.name] ?? pref.default;
 }
 
-/** `genCheckbox`/`genInput`/`genSelect` dispatch, ported from the macro. */
 function renderPref(pref: PrefMeta, prefs: TseerPreferences, themes: readonly string[]): VNode {
   const state = prefState(prefs, pref);
   if (pref.kind === "checkbox") return genCheckbox(pref.name, pref.label, state === true);
@@ -25,11 +16,6 @@ function renderPref(pref: PrefMeta, prefs: TseerPreferences, themes: readonly st
   return genSelect(pref.name, pref.label, String(state), options);
 }
 
-/**
- * `renderPreferences`: the `/settings` page body. `path` is the referer the
- * save/reset redirects return to (`refPath()`), `themes` comes from
- * `findThemes`, `prefsUrl` is the shareable `?prefs=` bookmark URL.
- */
 export function renderPreferences(
   prefs: TseerPreferences,
   path: string,

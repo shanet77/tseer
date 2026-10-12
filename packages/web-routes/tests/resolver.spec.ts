@@ -1,6 +1,3 @@
-/** Resolver route plugin tests — fastify `inject` against a context with a
- * stubbed `ctx.twitter`, proving the seams are real (plan §6). */
-
 import { prefsPlugin } from "@tseer/prefs";
 import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";

@@ -1,5 +1,3 @@
-/** `@tseer/web-routes` — route plugins, one per nitter route family. */
-
 export { default as articlePlugin, registerArticleRoutes } from "./article.ts";
 export { default as broadcastPlugin, registerBroadcastRoutes } from "./broadcast.ts";
 export {

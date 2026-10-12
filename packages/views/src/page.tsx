@@ -1,7 +1,3 @@
-/** Port of nitter's `src/views/general.nim` (the page shell: head, navbar,
- * main). The liberapay donation icon is deliberately not ported — that is
- * upstream's donation button, not part of the route surface. */
-
 import { preferencesSchema } from "@tseer/prefs";
 import type { VNode } from "preact";
 import { renderToString } from "preact-render-to-string";
@@ -9,8 +5,6 @@ import { stripHtml } from "./formatters.ts";
 
 export const doctype = "<!DOCTYPE html>\n";
 
-/** Structural prefs subset the shell reads (theme/stickyNav/hls scripts);
- * full `TseerPreferences` satisfies it. */
 export interface TseerPreferencesLike {
   theme: string;
   stickyNav: boolean;
@@ -43,7 +37,6 @@ function toTheme(theme: string): string {
   return theme.toLowerCase().replace(" ", "_");
 }
 
-/** renderutils.nim's `getSmallPic` — a webp-small variant for preloads. */
 function getSmallPic(picUrl: (url: string) => string, url: string): string {
   if (url.length === 0) return "";
   let result = url;
@@ -156,12 +149,9 @@ export interface NavbarProps {
   canonical: string;
 }
 
-/** nitter's navbar icons: fontello classes, no labels. */
 function icon(name: string, title: string, href: string): VNode {
   return (
     <div class="icon-container">
-      {/* Empty on purpose: the glyph comes from the fontello CSS class; the
-       * accessible name is the title/aria-label. */}
       {/* biome-ignore lint/a11y/useAnchorContent: glyph is the CSS class; name via title/aria-label */}
       <a class={`icon-${name}`} title={title} aria-label={title} href={href} />
     </div>
@@ -218,12 +208,10 @@ export function renderMain(props: MainProps): string {
   return doctype + renderToString(node);
 }
 
-/** Render a component to an HTML fragment (infinite-scroll responses). */
 export function toHtml(node: VNode): string {
   return renderToString(node);
 }
 
-/** renderError: nitter's error panel (`panel-container`/`error-panel`). */
 export function renderError(error: string): VNode {
   return (
     <div class="panel-container">

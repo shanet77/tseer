@@ -1,6 +1,3 @@
-/** The prefs model: zod schema ported from `config.nim`'s `[Preferences]`
- * handling (originally `prefs_impl.nim`). Owned by `@tseer/prefs`; the kernel
- * config schema re-exports it. */
 import { z } from "zod";
 
 export const themeOptions = ["Nitter", "Twitter", "Mastodon", "Auto"] as const;

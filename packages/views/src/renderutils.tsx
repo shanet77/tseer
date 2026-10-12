@@ -1,6 +1,3 @@
-/** Port of nitter's `src/views/renderutils.nim` — the small shared widgets
- * (icons, user links, form inputs) every view composes. */
-
 import type { TseerPreferences } from "@tseer/prefs";
 import type { Query, QueryKind, User } from "@tseer/types";
 import type { VNode } from "preact";
@@ -9,7 +6,6 @@ import { getPicUrl } from "./media.ts";
 export const smallWebp = "?name=small&format=webp";
 export const mediumWebp = "?name=medium&format=webp";
 
-/** renderutils.nim `getSmallPic`. */
 export function getSmallPic(url: string): string {
   if (url.length === 0) return "";
   let result = url;
@@ -17,7 +13,6 @@ export function getSmallPic(url: string): string {
   return getPicUrl(result);
 }
 
-/** renderutils.nim `getMediumPic`. */
 export function getMediumPic(url: string): string {
   if (url.length === 0) return "";
   let result = url;
@@ -25,7 +20,6 @@ export function getMediumPic(url: string): string {
   return getPicUrl(result);
 }
 
-/** renderutils.nim `icon`: a fontello glyph span (or anchor when `href`). */
 export function icon(name: string, label = "", title = "", className = "", href = ""): VNode {
   let c = `icon-${name}`;
   if (className.length > 0) c = `${c} ${className}`;
@@ -45,7 +39,6 @@ export function icon(name: string, label = "", title = "", className = "", href 
   );
 }
 
-/** renderutils.nim `verifiedIcon` template. */
 export function verifiedIcon(user: Pick<User, "verifiedType">): VNode | string {
   if (user.verifiedType === "None") return "";
   const lower = user.verifiedType.toLowerCase();
@@ -57,8 +50,6 @@ export function verifiedIcon(user: Pick<User, "verifiedType">): VNode | string {
   );
 }
 
-/** renderutils.nim `linkUser`: fullname (with a lock for protected
- * accounts) or `@username` depending on the class. */
 export function linkUser(
   user: Pick<User, "username" | "fullname"> & { protected?: boolean | undefined },
   className = "",
@@ -74,7 +65,6 @@ export function linkUser(
   );
 }
 
-/** renderutils.nim `linkText`: text as a link, prefixing https:// when bare. */
 export function linkText(text: string, className = ""): VNode {
   const url = text.includes("http") ? text : `https://${text}`;
   return (
@@ -84,17 +74,14 @@ export function linkText(text: string, className = ""): VNode {
   );
 }
 
-/** renderutils.nim `hiddenField`. */
 export function hiddenField(name: string, value: string): VNode {
   return <input name={name} style="display: none" value={value} />;
 }
 
-/** renderutils.nim `refererField`. */
 export function refererField(path: string): VNode {
   return hiddenField("referer", path);
 }
 
-/** renderutils.nim `buttonReferer`: a submit form carrying the referer path. */
 export function buttonReferer(
   action: string,
   text: string,
@@ -110,7 +97,6 @@ export function buttonReferer(
   );
 }
 
-/** renderutils.nim `genCheckbox`. */
 export function genCheckbox(pref: string, label: string, state: boolean): VNode {
   return (
     <label class="pref-group checkbox-container" title={pref}>
@@ -121,7 +107,6 @@ export function genCheckbox(pref: string, label: string, state: boolean): VNode 
   );
 }
 
-/** renderutils.nim `genInput`. */
 export function genInput(
   pref: string,
   label: string,
@@ -144,7 +129,6 @@ export function genInput(
   );
 }
 
-/** renderutils.nim `genSelect`. */
 export function genSelect(
   pref: string,
   label: string,
@@ -165,7 +149,6 @@ export function genSelect(
   );
 }
 
-/** renderutils.nim `genDate`. */
 export function genDate(pref: string, state: string): VNode {
   return (
     <span class="date-input">
@@ -175,7 +158,6 @@ export function genDate(pref: string, state: string): VNode {
   );
 }
 
-/** renderutils.nim `genNumberInput`. */
 export function genNumberInput(
   pref: string,
   label: string,
@@ -201,17 +183,14 @@ export function genNumberInput(
   );
 }
 
-/** renderutils.nim `genImg`. */
 export function genImg(url: string, className = "", alt = ""): VNode {
   return <img src={getPicUrl(url)} class={className} alt={alt} loading="lazy" />;
 }
 
-/** renderutils.nim `getTabClass`. */
 export function getTabClass(query: Query, tab: QueryKind): string {
   return query.kind === tab ? "tab-item active" : "tab-item";
 }
 
-/** renderutils.nim `getAvatarClass`. */
 export function getAvatarClass(prefs: TseerPreferences): string {
   return prefs.squareAvatars ? "avatar" : "avatar round";
 }

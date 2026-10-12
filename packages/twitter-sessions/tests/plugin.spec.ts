@@ -43,14 +43,11 @@ describe("twitterSessionsPlugin", () => {
     ctx.on("account/limited", (_account, api) => limited.push(api));
     ctx.on("account/invalidated", (account) => invalidated.push(account.id));
 
-    // Two sessions: the first is marked limited (code 88), the second is
-    // invalidated outright (code 89) so the pool drains to empty.
     const lease = await ctx.accounts.lease(DUAL);
     ctx.accounts.reportError(lease, 88);
     expect(limited).toEqual(["gql/cookie"]);
     expect(ctx.accounts.size).toBe(2);
 
-    // The pool picks randomly, so target the session that is still usable.
     const target = ctx.accounts.all().find((s) => !s.limited);
     if (target === undefined) throw new Error("expected one un-limited session");
     const lease2 = await ctx.accounts.lease(DUAL);

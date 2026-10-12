@@ -1,5 +1,3 @@
-/** `@tseer/cache` — `ctx.cache` seam: get/set/cached over memory or redis. */
-
 export {
   allPattern,
   CACHE_VERSION,

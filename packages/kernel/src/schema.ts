@@ -1,8 +1,3 @@
-/** `ctx.config` contract: zod schema ported from `config.nim`. The prefs model
- * (`preferencesSchema`, the option lists, `TseerPreferences`) lives in
- * `@tseer/prefs` — the owner of the `prefs_impl.nim` port — and is re-exported
- * here so the config schema can embed it. */
-
 import {
   gallerySizeOptions,
   mediaViewOptions,
@@ -58,7 +53,6 @@ export const configSchema = z.object({
 
 export type TseerConfig = z.infer<typeof configSchema>;
 export interface ConfigWarning {
-  /** 1-based INI line, when the warning refers to file content. */
   line?: number | undefined;
   message: string;
 }

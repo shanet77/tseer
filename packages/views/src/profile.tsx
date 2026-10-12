@@ -1,6 +1,3 @@
-/** Port of nitter's `src/views/profile.nim` — the profile card, photo rail,
- * banner, protected panel, and `renderProfile`/`renderUserList`. */
-
 import type { TseerPreferences } from "@tseer/prefs";
 import { type AccountInfo, type Profile, type Result, type User, VerifiedType } from "@tseer/types";
 import type { VNode } from "preact";
@@ -19,7 +16,6 @@ import { genImg, icon, linkUser, verifiedIcon } from "./renderutils.tsx";
 import { renderTweetSearch } from "./search.tsx";
 import { renderTimelineUsers } from "./timeline.tsx";
 
-/** Nim's zero-default `AccountInfo()`. */
 export function emptyAccountInfo(): AccountInfo {
   return {
     username: "",
@@ -225,7 +221,6 @@ export function renderUserList(
   path: string,
   activeTab: string,
 ): VNode {
-  // Check if we've loaded all results (for page 1)
   let displayResults = results;
   if (results.beginning) {
     const expectedCount = activeTab === "Followers" ? user.followers : user.following;

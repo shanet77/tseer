@@ -1,6 +1,3 @@
-/** Port of nitter's `src/views/feature.nim` — the "Unsupported feature" panel
- * that every unported route renders. Text kept verbatim from upstream. */
-
 import type { VNode } from "preact";
 
 export function renderFeature(): VNode {

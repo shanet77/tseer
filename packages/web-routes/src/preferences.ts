@@ -1,45 +1,3 @@
-/**
- * The preferences routes — port of nitter's `src/routes/preferences.nim`.
- *
- * Routes:
- *   GET  /settings      — the prefs form (`renderPreferences`), themes discovered
- *                        from `staticDir/css/themes`, plus the `?prefs=` bookmark URL.
- *   GET  /settings/:i   — bare `/settings/:i` (Jester's `@i?`) redirects to `/settings`.
- *   POST /saveprefs     — apply the submitted form (`genUpdatePrefs`) and redirect to the
- *                        referer.
- *   POST /resetprefs    — expire every pref cookie (`genResetPrefs`) and bounce back to
- *                        `/settings?referer=…`.
- *   POST /enablehls     — set `hlsPlayback=on` (`savePref`), redirect to referer.
- *   POST /enablemp4     — set `mp4Playback=on`, redirect to referer.
- *   hook (`?prefs=`)    — `router_utils.nim` `applyUrlPrefs`: persist the bookmarked
- *                        prefs as cookies and strip the param, on every request.
- *
- * The cookie-write decisions (`updatePrefCookies`/`resetPrefCookies`/
- * `applyPrefCookies`) are pure functions in `@tseer/prefs`; this plugin owns
- * the HTTP half — serializing a write into a `Set-Cookie` header and the
- * `savePref` presence guard (only expire a cookie the request actually
- * carried). That split keeps the pref model framework-free while the route
- * stays a thin port of the Nim handlers.
- *
- * Same three-seam shape as the other route plugins (`server` + `render` +
- * `prefs` via static `.inject`, `ctx.effect` cleanup). No `twitter` seam: the
- * settings page and the cookie writes never touch X.
- *
- * Divergences from the Nim original (documented at the call sites):
- * - `/settings/:i` is a separate registration rather than Jester's optional
- *   `@i?`; a bare `/settings/` (trailing slash) is not registered.
- * - Expiry writes are skipped when the request never carried the cookie —
- *   ported verbatim from `savePref`'s `if not expire or pref in cookies(req)`.
- * - The `?prefs=` hook is a `ctx.server` request hook, not Jester's `before`
- *   block. Upstream's block runs before *every* route in one place; here the
- *   preferences plugin registers one hook that all requests pass through, and
- *   a disposed plugin takes it down with the routes. The param is stripped
- *   from the query before redirecting, so the bookmark URL redirects to itself
- *   minus `?prefs=` rather than re-applying on every load. The dotted-path
- *   skip keeps upstream's single exception: `/embed/Tweet.html` passes the
- *   hook (ported from nitter.nim's `before` block).
- */
-
 import {
   applyPrefCookies,
   type PrefsService,
@@ -53,13 +11,11 @@ import { findThemes, renderPreferences, viewsPublicDir } from "@tseer/views";
 import type { Context } from "cordis";
 import { getPath } from "./timeline.ts";
 
-/** `router_utils.nim` `getUrlPrefix`: the absolute origin for the `?prefs=` bookmark. */
 function getUrlPrefix(cfg: { hostname?: string; useHttps?: boolean }): string {
   const host = cfg.hostname ?? "localhost";
   return cfg.useHttps === true ? `https://${host}` : `http://${host}`;
 }
 
-/** `router_utils.nim` `refPath()`: the `referer` form field, defaulting to "/". */
 function refPath(req: AppRequest): string {
   const referer = req.form["referer"] ?? req.query["referer"] ?? "";
   return referer.length > 0 ? referer : "/";
@@ -79,9 +35,6 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     disposers.push(server.route(spec));
   };
 
-  /** `router_utils.nim` `savePref`: one `Set-Cookie` header value. `httpOnly`,
-   * `path=/`, `secure` behind https, `SameSite=None` (secure) or `Lax`, 360d
-   * forward (-10d to expire). Presence-guarded for expiries. */
   function setCookieHeader(name: string, value: string, expire: boolean): string {
     const cfg = deps.config ?? {};
     const sameSite = cfg.useHttps === true ? "None" : "Lax";
@@ -91,8 +44,6 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     return `${name}=${value}; Expires=${expires}; Path=/; HttpOnly${secure}; SameSite=${sameSite}`;
   }
 
-  /** Collect `Set-Cookie` headers for a batch of writes, dropping the
-   * expiries the `savePref` guard skips. */
   function cookieHeaders(
     writes: { name: string; value: string; expire: boolean }[],
     req: AppRequest,
@@ -105,7 +56,6 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     return headers;
   }
 
-  // GET /settings — the prefs form + `?prefs=` bookmark URL.
   route({
     method: "GET",
     path: "/settings",
@@ -121,14 +71,12 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     },
   });
 
-  // GET /settings/:i — Jester's bare `@i?` group; any subpath bounces home.
   route({
     method: "GET",
     path: "/settings/:i",
     handler: (_req, reply) => reply.redirect("/settings"),
   });
 
-  // POST /saveprefs — apply the form, redirect to the referer.
   route({
     method: "POST",
     path: "/saveprefs",
@@ -140,7 +88,6 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     },
   });
 
-  // POST /resetprefs — expire every pref cookie, bounce back to /settings.
   route({
     method: "POST",
     path: "/resetprefs",
@@ -153,7 +100,6 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     },
   });
 
-  // POST /enablehls — set hlsPlayback=on, redirect to the referer.
   route({
     method: "POST",
     path: "/enablehls",
@@ -163,7 +109,6 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
       }),
   });
 
-  // POST /enablemp4 — set mp4Playback=on, redirect to the referer.
   route({
     method: "POST",
     path: "/enablemp4",
@@ -173,17 +118,6 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
       }),
   });
 
-  // `router_utils.nim` `applyUrlPrefs` (Jester's `before` block in nitter.nim):
-  // any request carrying `?prefs=<code>` persists those prefs as cookies and
-  // strips the param, so a bookmarked URL like `/?prefs=theme=Auto,infiniteScroll=on`
-  // configures the instance once and every later request reads the cookies.
-  // The write set comes from `applyPrefCookies` (params win, everything else
-  // expires); the redirect goes back to the same path minus `prefs`.
-  //
-  // The before block's `cond "." notin request.path or request.path ==
-  // "/embed/Tweet.html"` is ported as a skip: dotted paths (static assets)
-  // fall through untouched, except the Twitter widget compatibility path
-  // `/embed/Tweet.html`, which is handled by the embed plugin.
   disposers.push(
     server.hook((req, reply) => {
       if (req.path.includes(".") && req.path !== "/embed/Tweet.html") return;
@@ -205,8 +139,6 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
   };
 }
 
-/** The preferences route plugin: `ctx.server` + `ctx.render` + `ctx.prefs`.
- * Unload it and only the settings routes disappear. */
 export default function preferencesPlugin(
   ctx: Context,
   config?: { hostname?: string; useHttps?: boolean; staticDir?: string },
@@ -220,9 +152,6 @@ export default function preferencesPlugin(
     throw new Error("preferences: ctx.render is not mounted (load renderPlugin first)");
   if (prefs === undefined)
     throw new Error("preferences: ctx.prefs is not mounted (load prefsPlugin first)");
-  // cordis rc.10 does not run a plugin's returned disposer through
-  // fiber.dispose(); the cleanup must be a real effect (same as the other
-  // route plugins).
   const disposeRoutes = registerPreferencesRoutes({ server, render, prefs, config });
   const disposeEffect = ctx.effect(() => () => {
     disposeRoutes();

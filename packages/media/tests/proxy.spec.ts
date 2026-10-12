@@ -16,7 +16,6 @@ describe("proxyMedia", () => {
     if (!result.ok) return;
     expect(result.status).toBe(200);
     expect(result.headers["content-type"]).toBe("image/jpeg");
-    // nitter's own cache header, not upstream's.
     expect(result.headers["cache-control"]).toBe("max-age=604800");
     expect(result.etag).toBe(mediaEtag(IMAGE));
     expect((await drain(result.body)).toString()).toBe("JPEGDATA");
@@ -71,8 +70,6 @@ describe("proxyMedia", () => {
     const result = await proxyMedia(IMAGE, { fetcher });
     expect(result.ok).toBe(true);
     expect(fetcher.calls).toEqual([IMAGE, target]);
-    // The ETag is keyed to the *requested* URL, so the validator is stable
-    // across the redirect (nitter hashes `url`, not `fetchUrl`).
     if (result.ok) expect(result.etag).toBe(mediaEtag(IMAGE));
   });
 
@@ -83,12 +80,10 @@ describe("proxyMedia", () => {
     });
     const result = await proxyMedia(IMAGE, { fetcher });
     expect(result).toMatchObject({ ok: false, reason: "forbiddenRedirect", status: 403 });
-    // The off-allowlist URL must never be requested.
     expect(fetcher.calls).toEqual([IMAGE]);
   });
 
   it("stops a redirect chain rather than looping forever", async () => {
-    // Both hops redirect, so with 3 attempts the chain simply runs out.
     const hop = "https://pbs.twimg.com/media/hop.jpg";
     const fetcher = new StubFetcher({
       responses: {
@@ -155,7 +150,6 @@ describe("safeFetchText", () => {
   it("swallows upstream failures into an empty string", async () => {
     const fetcher = new StubFetcher({ responses: { [MANIFEST]: { status: 500 } } });
     expect(await safeFetchText(MANIFEST, { fetcher })).toBe("");
-    // a dead manifest costs attempts, not an exception
     expect(fetcher.calls).toHaveLength(3);
     expect(fetcher.aborted).toHaveLength(3);
   });

@@ -1,12 +1,3 @@
-/**
- * Tweet parsers — the port of `parser.nim`'s `parseTweet`, `parseGraphTweet`,
- * `parseMediaEntities`, `parseLegacyMediaEntities`, `parseCommunityNote`,
- * and the three unwrappers (`parseGraphTweetResult`, `parseTweetByRestId`,
- * `parseGraphTweetResults`).
- *
- * The "unset" id is `""` (Nim's zero int64); `available: false` marks the
- * empty/tombstone tweets Nim builds as `Tweet()`.
- */
 import { CardKind, type Media, MediaKind, type Tweet, type User, VideoType } from "@tseer/types";
 import { parseCard, parsePoll, parsePromoVideo, parseVideo, parseVideoVariants } from "./card.ts";
 import { fromUnixMilliseconds, parseTwitterDate } from "./dates.ts";
@@ -33,7 +24,6 @@ import {
 import { isTwitterUrl } from "./slices.ts";
 import { newUser, parseGraphUser, parseUser } from "./user.ts";
 
-/** A default-constructed `Tweet` (Nim's `Tweet()`; `available` starts false). */
 export function newTweet(): Tweet {
   return {
     id: "",
@@ -60,7 +50,6 @@ export function newTweet(): Tweet {
   };
 }
 
-/** Port of `parseCommunityNote`. */
 function parseCommunityNote(js: Json): string {
   let result = str(js, "subtitle", "text");
   const entities = at(js, "subtitle", "entities");
@@ -78,7 +67,6 @@ function addMedia(tweet: Tweet, media: Media): void {
   tweet.media.push(media);
 }
 
-/** Port of `parseLegacyMediaEntities` (legacy `extended_entities`). */
 function parseLegacyMediaEntities(js: Json, result: Tweet): void {
   for (const m of each(js, "extended_entities", "media")) {
     const kind = str(m, "__typename") || str(m, "type");
@@ -112,7 +100,6 @@ function parseLegacyMediaEntities(js: Json, result: Tweet): void {
   }
 }
 
-/** `/video/1` suffix strip (attribution links). */
 function videoPath(url: string): string {
   try {
     return new URL(url).pathname.replaceAll("/video/1", "");
@@ -121,7 +108,6 @@ function videoPath(url: string): string {
   }
 }
 
-/** Port of `parseMediaEntities` (the V2 `media_entities` shape). */
 function parseMediaEntities(js: Json, result: Tweet): void {
   const mediaEntities = each(js, "media_entities");
   if (mediaEntities.length === 0) return;
@@ -187,7 +173,6 @@ function parseMediaEntities(js: Json, result: Tweet): void {
   }
 }
 
-/** Port of `parseTweet` (a legacy tweet object). */
 export function parseTweet(
   js: Json,
   jsCard: Json = undefined,
@@ -229,7 +214,6 @@ export function parseTweet(
     result.quote = { ...newTweet(), id: idFromEntry(str(js, "quoted_status_id_str")) };
   }
 
-  // legacy
   const legacyRt = at(js, "retweeted_status_id_str");
   if (legacyRt !== undefined) {
     result.retweet = {
@@ -239,7 +223,6 @@ export function parseTweet(
     return result;
   }
 
-  // graphql
   const rt = pick(at(js, "retweeted_status_result", "result"));
   if (rt !== undefined && (at(rt, "legacy") !== undefined || at(rt, "rest_id") !== undefined)) {
     result.retweet = parseGraphTweet(rt);
@@ -302,12 +285,10 @@ function imageValAt(node: Json, ...keys: string[]): string {
   return imageStr(at(node, ...keys), "image_value", "url");
 }
 
-/** Port of `getTombstone`. */
 function getTombstone(js: Json): string {
   return str(js, "text").replace(/ Learn more$/, "");
 }
 
-/** Port of `parseGraphTweet` — the GraphQL tweet result, both shapes. */
 export function parseGraphTweet(js: Json): Tweet {
   if (isNull(js)) return newTweet();
 
@@ -477,9 +458,7 @@ export function parseGraphTweet(js: Json): Tweet {
           result.card.kind = CardKind.hidden;
         }
       }
-    } catch {
-      // not a parseable URL; no card hiding (Nim's parseUri never throws)
-    }
+    } catch {}
   }
 
   const reposts = pick(at(js, "legacy", "repostedStatusResults"));
@@ -520,19 +499,16 @@ export function parseGraphTweet(js: Json): Tweet {
   return result;
 }
 
-/** Port of `parseGraphTweetResult` (`data.tweet_result.result`). */
 export function parseGraphTweetResult(js: Json): Tweet {
   const tweet = pick(at(js, "data", "tweet_result", "result"));
   return tweet !== undefined ? parseGraphTweet(tweet) : newTweet();
 }
 
-/** Port of `parseTweetByRestId` (`data.tweetResult.result`). */
 export function parseTweetByRestId(js: Json): Tweet {
   const tweet = pick(at(js, "data", "tweetResult", "result"));
   return tweet !== undefined ? parseGraphTweet(tweet) : newTweet();
 }
 
-/** Port of `parseGraphTweetResults` (the article batch). */
 export function parseGraphTweetResults(js: Json): Tweet[] {
   const results = at(js, "data", "tweetResult");
   if (!Array.isArray(results)) return [];

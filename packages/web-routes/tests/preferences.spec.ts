@@ -1,9 +1,3 @@
-/** Preferences route plugin tests — fastify `inject` against the
- * `server` + `prefs` + `render` seams (no `twitter`: the settings page and
- * the cookie writes never touch X). Covers the port of
- * `routes/preferences.nim` + `router_utils.nim`'s `savePref`/`applyUrlPrefs`
- * and the `prefs_impl.nim` macro ports in `@tseer/prefs`. */
-
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -14,7 +8,6 @@ import { Context } from "cordis";
 import { describe, expect, it } from "vitest";
 import { default as preferencesPlugin } from "../src/preferences.ts";
 
-/** A staticDir whose css/themes holds the theme files `findThemes` discovers. */
 async function makeStaticDir(): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "tseer-prefs-"));
   await mkdir(join(dir, "css", "themes"), { recursive: true });
@@ -46,14 +39,10 @@ async function boot(
   return { ctx, unload: () => fiber.dispose() };
 }
 
-/** The seam's inject joins repeated `set-cookie` headers with ", ", and
- * cookie `Expires` dates contain a comma — so assertions match substrings of
- * one cookie (name up to the next `; `) rather than splitting the header. */
 function cookiesHeader(res: { headers: Record<string, string> }): string {
   return res.headers["set-cookie"] ?? "";
 }
 
-/** `Expires` of one named cookie within the joined header (NaN when absent). */
 function cookieExpires(header: string, name: string): number {
   const match = header.match(new RegExp(`${name}=[^;]*; Expires=([^;]+);`));
   return match?.[1] === undefined ? Number.NaN : Date.parse(match[1]);
@@ -69,7 +58,6 @@ describe("preferencesPlugin", () => {
     expect(res.headers["content-type"]).toContain("text/html");
     expect(res.body).toContain("<title>Preferences | nitter</title>");
 
-    // Widgets, one per pref in the metadata (port of the `renderPrefs` macro).
     expect(res.body).toContain('<form method="post" action="/saveprefs" autocomplete="off">');
     expect(res.body).toContain('<input name="referer" style="display: none" value="/"/>');
     expect(res.body).toContain("<legend>Display</legend>");
@@ -78,8 +66,6 @@ describe("preferencesPlugin", () => {
     expect(res.body).toContain('title="squareAvatars"');
     expect(res.body).toContain('placeholder="Nitter hostname"');
 
-    // Default-on checkboxes render checked; theme options come from
-    // staticDir/css/themes (underscore -> space, titleized, sorted).
     expect(res.body).toContain('name="mp4Playback" type="checkbox" checked');
     expect(res.body).toContain('name="squareAvatars" type="checkbox"/>');
     expect(res.body).toContain('<option value="Auto">Auto</option>');
@@ -87,7 +73,6 @@ describe("preferencesPlugin", () => {
     expect(res.body).toContain('<option value="Twitter Dark">Twitter Dark</option>');
     expect(res.body).not.toContain('<option value="Mastodon">');
 
-    // Bookmark panel: all-default prefs encode to an empty prefs code.
     expect(res.body).toContain('<pre class="prefs-code">http://nitter.example/?prefs=</pre>');
     expect(res.body).toContain('action="/resetprefs"');
   });
@@ -137,7 +122,6 @@ describe("preferencesPlugin", () => {
       ["squareAvatars", "on"],
       ["replaceTwitter", "nitter.example"],
     ] as const) {
-      // savePref: 360d forward, HttpOnly, Path=/, SameSite=Lax (no https).
       expect(header, name).toContain(`${name}=${value}; `);
       const days = (cookieExpires(header, name) - Date.now()) / 86_400_000;
       expect(days, name).toBeGreaterThan(350);
@@ -146,16 +130,12 @@ describe("preferencesPlugin", () => {
     }
     expect(header).not.toContain("Secure");
 
-    // mp4Playback is default-on and the form omitted it (unchecked) — that
-    // persists "off" as an empty value, verbatim genUpdatePrefs semantics.
     expect(header).toContain("mp4Playback=; ");
   });
 
   it("expires default-valued prefs only when the request carried the cookie", async () => {
     const { ctx } = await boot();
 
-    // theme=Nitter equals the default: an expiry write, but the request
-    // carried no theme cookie, so `savePref`'s guard drops it.
     const bare = await ctx.server.inject({
       method: "POST",
       url: "/saveprefs",
@@ -163,12 +143,9 @@ describe("preferencesPlugin", () => {
       payload: "theme=Nitter",
     });
     const bareHeader = cookiesHeader(bare);
-    // Only the default-on unchecked boxes persist (see above); no expiry
-    // cookies for prefs the request never carried.
     expect(bareHeader).not.toContain("hlsPlayback=");
     expect(bareHeader).not.toContain("infiniteScroll=");
 
-    // Same submit, but the request carried the (stale) cookie: now it expires.
     const carried = await ctx.server.inject({
       method: "POST",
       url: "/saveprefs",
@@ -200,7 +177,6 @@ describe("preferencesPlugin", () => {
     const header = cookiesHeader(res);
     expect(header).toContain("theme=; ");
     expect(header).toContain("squareAvatars=; ");
-    // Presence guard: prefs the request never carried are not expired.
     expect(header).not.toContain("hlsPlayback=");
   });
 
@@ -233,20 +209,15 @@ describe("preferencesPlugin", () => {
     const header = cookiesHeader(res);
     expect(header).toContain("theme=Dracula; ");
     expect(header).toContain("squareAvatars=on; ");
-    // No other params: the redirect goes to the bare path.
     const alone = await ctx.server.inject({ url: "/nasa?prefs=theme%3DDracula" });
     expect(alone.headers["location"]).toBe("/nasa");
 
-    // A prefs url replaces the saved set: prefs absent from it expire (the
-    // carried cookie makes it past the guard).
     const sticky = await ctx.server.inject({
       url: "/nasa?prefs=theme%3DDracula",
       headers: { cookie: "stickyNav=on" },
     });
     expect(cookiesHeader(sticky)).toContain("stickyNav=; ");
 
-    // Dotted paths skip the hook entirely (nitter's before-block cond) —
-    // except /embed/Tweet.html, the before block's one dot-allowing exception.
     const asset = await ctx.server.inject({ url: "/style.css?prefs=theme%3DDracula" });
     expect(asset.status).toBe(404);
     expect(asset.headers["set-cookie"]).toBeUndefined();
@@ -270,7 +241,6 @@ describe("preferencesPlugin", () => {
       payload: "referer=%2Fnasa",
     });
     expect(cookiesHeader(res)).toContain("Path=/; HttpOnly; Secure; SameSite=None");
-    // The bookmark url follows the scheme too.
     const page = await ctx.server.inject({ url: "/settings" });
     expect(page.body).toContain("https://nitter.example/?prefs=");
   });

@@ -1,11 +1,8 @@
-/** Pino-backed `ctx.logger` exporter; cordis buffers logs until an exporter attaches. */
 import type { Context } from "cordis";
 import pino, { type Logger as PinoLogger } from "pino";
 
 export interface LoggerPluginOptions {
-  /** Human-readable pino transport when true; single-line JSON otherwise. */
   debug?: boolean | undefined;
-  /** Minimum level forwarded to pino (`debug` enables debug logs). */
   level?: string | undefined;
 }
 
@@ -19,7 +16,6 @@ function normalizeLevel(level: string | undefined, debug: boolean): Level {
   return (levelOrder as readonly string[]).includes(lowered) ? (lowered as Level) : fallback;
 }
 
-/** Map a cordis message type onto its pino method. */
 function writeMessage(log: PinoLogger, type: string, name: string, args: unknown[]): void {
   const text = args.map((arg) => (typeof arg === "string" ? arg : String(arg))).join(" ");
   if (type === "error") log.error({ plugin: name }, text);

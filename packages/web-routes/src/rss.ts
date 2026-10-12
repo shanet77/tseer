@@ -1,28 +1,3 @@
-/**
- * The RSS routes — port of nitter's `src/routes/rss.nim` (`/search/rss`,
- * `/:name/rss`, `/:name/:tab/rss`, `/:name/lists/:slug/rss`,
- * `/i/lists/:id/rss`), plus the error pages nitter's `nitter.nim` maps the
- * fetch errors to.
- *
- * Same four-seam shape as the timeline/status/search plugins (`server` +
- * `twitter` + `render` + `prefs` via static `.inject`, `ctx.effect` cleanup,
- * `guard` error mapping). The rendered feed + min cursor ride
- * `twitter.cachedRss` (the `getCachedRss`/`cacheRss` port), so a cache-less
- * context pays latency and nothing worse. Feed HTML comes from `views/rss`
- * (the `rss.nimf` port); this file owns routes, gates, and cache keys.
- *
- * Divergences from the Nim original (documented at the call sites):
- * - `/:name/rss` and `/:name/:tab/rss` are separate registrations (Jester's
- *   `/@name/?@tab?/rss` group); fastify's radix router gives the static `rss`
- *   segment precedence over the timeline plugin's `/:name/:tab` param, so
- *   mount order does not matter.
- * - The search-key `$hash(...)` is FNV-1a, not Nim's `hash` (unstable across
- *   builds; same substitution as the `pid:` buckets in `@tseer/cache`).
- * - `timelineRss` resolves the user through `cachedUser` (one cached fetch)
- *   instead of nitter's `getUserId` pid-bucket lookup + `getCachedUser` pair;
- *   the suspended flag carries the `"suspended"` sentinel.
- */
-
 import { fnv1a32 } from "@tseer/cache";
 import { decodeUrl, encodeUrl } from "@tseer/media";
 import type { PrefsService, TseerPreferences } from "@tseer/prefs";
@@ -62,8 +37,6 @@ import {
   timelineQuery,
 } from "./timeline.ts";
 
-/** Subset of `ctx.config` the RSS routes read (declared locally so the
- * package never imports `@tseer/kernel`). */
 interface RssConfig {
   hostname?: string | undefined;
   useHttps?: boolean | undefined;
@@ -75,7 +48,6 @@ interface RssConfig {
   enableRSSList?: boolean | undefined;
 }
 
-/** rss.nim's `@tab` cond for the `/:name/:tab/rss` route. */
 const RSS_TABS = new Set(["with_replies", "media", "search", "articles"]);
 
 export interface RssRouteDeps {
@@ -86,23 +58,16 @@ export interface RssRouteDeps {
   config: RssConfig | undefined;
 }
 
-/** rss.nim `redisKey`: `<page>:<name>` + `:<cursor>` when paged. */
 export function redisKey(page: string, name: string, cursor: string): string {
   let key = `${page}:${name}`;
   if (cursor.length > 0) key += `:${cursor}`;
   return key;
 }
 
-/**
- * rss.nim's `$hash(genQueryUrl(query))` for the search cache keys. Nim's
- * `hash` is not stable across builds, so this is FNV-1a (the same
- * substitution `@tseer/cache` uses for the `pid:` buckets).
- */
 export function searchKeyHash(query: Query): string {
   return String(fnv1a32(genQueryUrl(query)));
 }
 
-/** timeline.nim `tabRssEnabled` (the `""` tab is the plain `/:name/rss`). */
 export function rssTabEnabled(config: RssConfig, tab: string): boolean {
   switch (tab) {
     case "":
@@ -120,19 +85,12 @@ export function rssTabEnabled(config: RssConfig, tab: string): boolean {
   }
 }
 
-/** Feed-render inputs `timelineRss` needs beyond the query. */
 export interface RssFeedEnv {
   hostname: string;
   useHttps: boolean;
   prefs: TseerPreferences;
 }
 
-/**
- * rss.nim `timelineRss`: the single-name profile fetch (photo rail skipped,
- * like nitter's `skipRail=true`) or the multi-user search fallback with its
- * default-pic stub user. An unknown user yields the empty cursor (the route
- * answers 404); a suspended one yields the `"suspended"` sentinel.
- */
 export async function timelineRss(
   twitter: TwitterApi,
   name: string,
@@ -162,7 +120,6 @@ export async function timelineRss(
   }
 
   const single = names[0] ?? "";
-  // timeline.nim's post-deployment `scroll` guard, kept for the posts/replies kinds.
   let cursor = after;
   if (
     (query.kind === QueryKind.posts || query.kind === QueryKind.replies) &&
@@ -219,7 +176,6 @@ export function registerRssRoutes(deps: RssRouteDeps): () => void {
 
   const showError = createShowError(render);
 
-  /** nitter.nim's error pages: the fetch loop's failures get real pages. */
   async function guard(
     reply: AppReply,
     requestPrefs: TseerPreferences | undefined,
@@ -271,7 +227,6 @@ export function registerRssRoutes(deps: RssRouteDeps): () => void {
     };
   }
 
-  /** rss.nim `respRss`: empty cursor 404s, `"suspended"` names the account. */
   function respondRss(
     reply: AppReply,
     rss: Rss,
@@ -338,7 +293,6 @@ export function registerRssRoutes(deps: RssRouteDeps): () => void {
       showError(reply, "Page not found", 404, requestPrefs);
       return;
     }
-    // articles can't be approximated by search, so multi-user is unsupported
     if (tab === "articles" && name.includes(",")) {
       showError(reply, "Page not found", 404, requestPrefs);
       return;
@@ -441,8 +395,6 @@ export function registerRssRoutes(deps: RssRouteDeps): () => void {
   };
 }
 
-/** The RSS route plugin: `ctx.server` + `ctx.twitter` + `ctx.render` +
- * `ctx.prefs`. Unload it and only these routes disappear. */
 export default function rssPlugin(ctx: Context): () => void {
   const server = ctx.get("server" as never) as HttpServer | undefined;
   const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
@@ -457,9 +409,6 @@ export default function rssPlugin(ctx: Context): () => void {
     throw new Error("rss: ctx.render is not mounted (load renderPlugin first)");
   if (prefs === undefined)
     throw new Error("rss: ctx.prefs is not mounted (load prefsPlugin first)");
-  // cordis rc.10 does not run a plugin's returned disposer through
-  // fiber.dispose(); the cleanup must be a real effect (same as
-  // timelinePlugin/mediaRoutePlugin).
   const disposeRoutes = registerRssRoutes({ server, twitter, render, prefs, config });
   const disposeEffect = ctx.effect(() => () => {
     disposeRoutes();

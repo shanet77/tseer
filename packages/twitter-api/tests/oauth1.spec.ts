@@ -2,11 +2,6 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { getOauthHeader, percentEncode } from "../src/oauth1.ts";
 
-/**
- * Golden vectors generated from nitter's real OAuth1 dependency (CORDEA/oauth
- * `src/oauth1.nim` — nimble `oauth == 0.11`) by
- * `fixtures/generate_oauth_golden.nim`. See that file's header to regenerate.
- */
 interface OauthGoldenCase {
   label: string;
   url: string;

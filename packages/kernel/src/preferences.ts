@@ -2,9 +2,6 @@ import { allPrefs } from "@tseer/prefs";
 import type { IniDocument } from "./ini.ts";
 import { configSchema, gallerySizeOptions, type LoadedConfig, mediaViewOptions } from "./schema.ts";
 
-/** Coercion kinds for the INI reader, derived from the shared pref metadata
- * (`@tseer/prefs`). `theme` is a UI select but reads as free text everywhere —
- * nitter's `genParsePrefs` special-cases it the same way. */
 const preferenceKinds: Record<string, "string" | "bool" | "gallerySize" | "mediaView"> = {};
 for (const pref of allPrefs) {
   preferenceKinds[pref.name] =
@@ -26,7 +23,6 @@ function lower(value: string): string {
 const truthy = new Set(["1", "true", "yes", "on"]);
 const falsy = new Set(["0", "false", "no", "off"]);
 
-/** Extract `[Preferences]` raw values; warn on unknown keys/invalid values. */
 export function extractPreferences(
   doc: IniDocument,
   consumed: Set<string>,
@@ -81,7 +77,6 @@ export function extractPreferences(
   return rawPrefs;
 }
 
-/** Validate merged raw values; apply the master `enableRSS` gate (config.nim). */
 export function finalizeConfig(raw: Record<string, unknown>): LoadedConfig {
   const parsed = configSchema.safeParse(raw);
   if (!parsed.success) {

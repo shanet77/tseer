@@ -1,5 +1,3 @@
-/** `@tseer/kernel` — cordis boot, `ctx.config` contract, logger, `/about`. */
-
 export type { AboutPluginOptions } from "./about.ts";
 export { default as aboutPlugin, renderAbout } from "./about.ts";
 export type { AboutRouteOptions } from "./about-route.ts";

@@ -1,5 +1,3 @@
-/** `@tseer/twitter-sessions` — `ctx.accounts` seam: session pool, JSONL store, lease/release. */
-
 export { default as twitterSessionsPlugin } from "./plugin.ts";
 export { SessionPool, snowflakeToEpoch } from "./pool.ts";
 export {

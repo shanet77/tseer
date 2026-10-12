@@ -17,10 +17,8 @@ const SEGMENT = "https://video.twimg.com/ext_tw_video/1/pu/pl/seg01.m4s";
 const MANIFEST = "https://video.twimg.com/ext_tw_video/1/pu/pl/index.m3u8";
 
 const signer = new MediaSignerImpl({ hmacKey: HMAC_KEY });
-/** The same signer with `config.base64Media = true`, for the `/enc/` routes. */
 const encSigner = new MediaSignerImpl({ hmacKey: HMAC_KEY, base64Media: true });
 
-/** A context with the server + signing plugins mounted and routes registered. */
 async function mount(options: { fetcher?: StubFetcher; base64Media?: boolean } = {}) {
   const fetcher = options.fetcher ?? new StubFetcher();
   const ctx = new Context();
@@ -85,7 +83,6 @@ describe("pic routes", () => {
     });
     expect(res.status).toBe(304);
     expect(res.body).toBe("");
-    // A stale validator must not produce a 304.
     const stale = await ctx.server.inject({
       url: signer.picUrl(IMAGE),
       headers: { "if-none-match": "deadbeef" },
@@ -104,7 +101,6 @@ describe("pic routes", () => {
       const res = await ctx.server.inject({ url: signer.picUrl(evil) });
       expect(res.status, evil).toBe(404);
     }
-    // Nothing off-allowlist was ever fetched.
     expect(fetcher.calls).toEqual([]);
   });
 
@@ -149,7 +145,6 @@ describe("video routes", () => {
       .replace(/^\/video\/[0-9a-f]{13}\//, "/video/0000000000000/");
     const res = await ctx.server.inject({ url: tampered });
     expect(res.status).toBe(403);
-    // Crucially, nothing is fetched for an unverifiable request.
     expect(fetcher.calls).toEqual([]);
   });
 
@@ -159,7 +154,6 @@ describe("video routes", () => {
       responses: { [SEGMENT]: { body: "BYTES" }, [other]: { body: "OTHER" } },
     });
     const { ctx } = await mount({ fetcher });
-    // Right signature, wrong payload: the HMAC binds the URL.
     const forged = `/video/${signer.sign(SEGMENT)}/${encodeUrl(other)}`;
     expect((await ctx.server.inject({ url: forged })).status).toBe(403);
     expect(fetcher.calls).toEqual([]);
@@ -174,10 +168,6 @@ describe("video routes", () => {
   });
 
   it("serves a URL whose path contains a % escape without mangling it", async () => {
-    // Regression: fastify has already percent-decoded `:url` by the time the
-    // handler sees it, so decoding a second time corrupted these. The signature
-    // and the ETag are both computed over the *original* URL, so a mangled path
-    // would also 403 and cache under the wrong validator.
     const escaped = "https://video.twimg.com/ext_tw_video/1/pu/pl/a%2Fb%20c.m4s";
     const fetcher = new StubFetcher({
       responses: { [escaped]: { headers: { "content-type": "video/mp4" }, body: "BYTES" } },
@@ -186,7 +176,6 @@ describe("video routes", () => {
     const res = await ctx.server.inject({ url: signer.vidUrl(escaped) });
     expect(res.status).toBe(200);
     expect(res.body).toBe("BYTES");
-    // Fetched verbatim: the `%2F` and `%20` reached the fetcher intact.
     expect(fetcher.calls).toEqual([escaped]);
     expect(res.headers["etag"]).toBe(mediaEtag(escaped));
   });
@@ -211,7 +200,6 @@ describe("video routes", () => {
     expect(res.headers["content-type"]).toContain("application/vnd.apple.mpegurl");
     expect(res.body).toContain("#EXTM3U");
     expect(res.body).toContain(signer.vidUrl(SEGMENT));
-    // The rewritten link must itself verify through the route.
     expect((await ctx.server.inject({ url: signer.vidUrl(SEGMENT) })).status).toBe(200);
   });
 
@@ -289,7 +277,6 @@ describe("plugin lifecycle", () => {
     const url = signer.picUrl(IMAGE);
     expect((await ctx.server.inject({ url })).status).toBe(200);
     await fiber.dispose();
-    // Disposed routes fall through to the server's 404.
     expect((await ctx.server.inject({ url })).status).toBe(404);
   });
 
@@ -300,14 +287,10 @@ describe("plugin lifecycle", () => {
     await ctx.plugin(mediaPlugin, { hmacKey: HMAC_KEY });
     const fiber = await ctx.plugin(mediaRoutePlugin, { fetcher });
     await fiber.dispose();
-    // Ownership stayed with the caller.
     expect(fetcher.isClosed).toBe(false);
   });
 
   it("throws a helpful error when its dependencies are missing", async () => {
-    // Call the plugin body directly rather than through `ctx.plugin`: cordis
-    // wraps a sync throw into a rejection value that vitest cannot format, and
-    // these guards are plain `throw`s, so a direct call is the honest check.
     const bare = new Context();
     expect(() => mediaRoutePlugin(bare, { fetcher: new StubFetcher() })).toThrow(
       /ctx\.server is not mounted/,

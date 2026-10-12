@@ -1,40 +1,3 @@
-/**
- * The community routes — port of nitter's `src/routes/community.nim`
- * (`/i/communities/@id` + the `latest`/`media`/`about`/`members`/
- * `moderators`/`hashtag/@tag` subpaths), plus the error pages nitter's
- * `nitter.nim` maps the fetch errors to.
- *
- * Same four-seam shape as the list/space plugins (`server` + `twitter` +
- * `render` + `prefs` via static `.inject`, `ctx.effect` cleanup, `guard`
- * error mapping). The community object rides `twitter.cachedCommunity` (the
- * `getCachedCommunity` port, `cm:` key) and the moderators ride
- * `twitter.cachedCommunityModerators` (`cmm:`); the page components come
- * from `views/community`. The static `communities` segment beats the
- * unsupported plugin's `/i/:i/:j` param regardless of mount order; that
- * plugin's deny list stays upstream-verbatim — with this plugin unmounted,
- * `/i/communities/:id` rendering the "Unsupported feature" panel is correct
- * upstream-shaped behavior.
- *
- * Divergences from the Nim original (documented at the call sites):
- * - Jester's `cond '.' notin @"id"` is an in-handler check: a dotted id
- *   answers the 404 page (`Page not found`), which is where a failed cond
- *   falls through upstream.
- * - Upstream fetches the tab's timeline *before* `respCommunity`'s gate
- *   runs, but with an empty `cmty.id` that fetch no-ops (every `getGraph*`
- *   returns on `id.len == 0`); this port gates first and only fetches for a
- *   community that exists.
- * - The moderators tab wraps the cached list in
- *   `Result[User](content: mods)` — Nim's zero-default `beginning: false`
- *   makes `renderTimelineUsers` emit a "Load newest" link, ported verbatim.
- * - The members tab renders with the parser's envelope query (an empty
- *   userList-kind query), whose pagination links are cursor-only — the same
- *   wire shape as upstream's zero-default `Query()`. The tweet timelines get
- *   the same treatment the list plugin applies (upstream renders them with
- *   the zero-default `Query()`, kind `posts`; the parser envelope's default
- *   kind is `tweets`, which would add `f=tweets` to the "Load more" links),
- *   so the route overwrites `timeline.query` after the fetch.
- */
-
 import type { PrefsService, TseerPreferences } from "@tseer/prefs";
 import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
@@ -72,8 +35,6 @@ export interface CommunityRouteDeps {
   prefs: PrefsService;
 }
 
-/** The zero-default `Query(kind)` — the moderators envelope's query and the
- * fallback envelopes (upstream's zero-default `Query()`). */
 export function communityQuery(kind: QueryKind = QueryKind.posts): Query {
   return {
     kind,
@@ -90,7 +51,6 @@ export function communityQuery(kind: QueryKind = QueryKind.posts): Query {
   };
 }
 
-/** The list plugin's `VNodeLike`: the page body's component type. */
 type VNodeLike = Parameters<Render["page"]>[0]["body"];
 
 export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
@@ -102,7 +62,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
 
   const showError = createShowError(render);
 
-  /** nitter.nim's error pages: the fetch loop's failures get real pages. */
   async function guard(
     reply: AppReply,
     requestPrefs: TseerPreferences | undefined,
@@ -146,8 +105,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
     }
   }
 
-  /** The shared in-handler `cond '.' notin @"id"`: a dotted id answers the
-   * global 404 page. */
   function dotCond(req: AppRequest, reply: AppReply): boolean {
     const id = req.params["id"] ?? "";
     if (id.includes(".")) {
@@ -157,8 +114,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
     return false;
   }
 
-  /** community.nim `respCommunity`'s not-found gate, then the shell around
-   * `renderCommunity` (banner in the head, tabs as the nav). */
   async function respondCommunity(
     req: AppRequest,
     reply: AppReply,
@@ -182,8 +137,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
     });
     await reply.html(html);
   }
-
-  // ---- /i/communities/@id (Top) --------------------------------------------
 
   route({
     method: "GET",
@@ -210,8 +163,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
       }),
   });
 
-  // ---- /i/communities/@id/latest --------------------------------------------
-
   route({
     method: "GET",
     path: "/i/communities/:id/latest",
@@ -237,8 +188,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
       }),
   });
 
-  // ---- /i/communities/@id/media ----------------------------------------------
-
   route({
     method: "GET",
     path: "/i/communities/:id/media",
@@ -263,8 +212,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
       }),
   });
 
-  // ---- /i/communities/@id/about -----------------------------------------------
-
   route({
     method: "GET",
     path: "/i/communities/:id/about",
@@ -284,8 +231,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
         );
       }),
   });
-
-  // ---- /i/communities/@id/members ----------------------------------------------
 
   route({
     method: "GET",
@@ -318,8 +263,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
       }),
   });
 
-  // ---- /i/communities/@id/moderators ---------------------------------------------
-
   route({
     method: "GET",
     path: "/i/communities/:id/moderators",
@@ -335,8 +278,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
           (cmty) => `${cmty.name} - Moderators`,
           (cmty) => renderMemberTabs(cmty, true),
           async (cmty) => {
-            // `Result[User](content: mods)`: Nim's zero-default
-            // `beginning: false` renders the "Load newest" link, verbatim.
             const members: Result<User> = {
               content: (await twitter.cachedCommunityModerators(cmty.id)) ?? [],
               top: "",
@@ -349,8 +290,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
         );
       }),
   });
-
-  // ---- /i/communities/@id/hashtag/@tag --------------------------------------------
 
   route({
     method: "GET",
@@ -382,8 +321,6 @@ export function registerCommunityRoutes(deps: CommunityRouteDeps): () => void {
   };
 }
 
-/** The community route plugin: `ctx.server` + `ctx.twitter` + `ctx.render` +
- * `ctx.prefs`. Unload it and only these routes disappear. */
 export default function communityPlugin(ctx: Context): () => void {
   const server = ctx.get("server" as never) as HttpServer | undefined;
   const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
@@ -397,9 +334,6 @@ export default function communityPlugin(ctx: Context): () => void {
     throw new Error("community: ctx.render is not mounted (load renderPlugin first)");
   if (prefs === undefined)
     throw new Error("community: ctx.prefs is not mounted (load prefsPlugin first)");
-  // cordis rc.10 does not run a plugin's returned disposer through
-  // fiber.dispose(); the cleanup must be a real effect (same as the sibling
-  // route plugins).
   const disposeRoutes = registerCommunityRoutes({ server, twitter, render, prefs });
   const disposeEffect = ctx.effect(() => () => {
     disposeRoutes();

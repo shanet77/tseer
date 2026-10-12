@@ -1,22 +1,3 @@
-/**
- * The search routes — port of nitter's `src/routes/search.nim` (`/search`,
- * `/hashtag/:hash`, `/opensearch`), plus the error pages nitter's
- * `nitter.nim` maps the fetch errors to.
- *
- * Consumes `ctx.server` + `ctx.twitter` + `ctx.render` + `ctx.prefs` like the
- * timeline plugin: handlers parse per-request prefs, build the `Query` with
- * `initQuery`, dispatch on its kind to `userSearch`/`search`/`listSearch`,
- * and render through the page shell. Unload it and only these routes
- * disappear.
- *
- * Divergences from the Nim original (documented at the call sites):
- * - The `f=user`/`f=list` x.com-compat remap happens after `initQuery`
- *   (nitter mutates the parsed query in the route; same here).
- * - `cond` failures have no counterpart — Jester's router DSL guards do not
- *   exist here; unknown `f=` kinds fall back to `tweets` inside `initQuery`
- *   except the kinds that legitimately reach the `else` 404 branch.
- */
-
 import { encodeUrl } from "@tseer/media";
 import type { PrefsService, TseerPreferences } from "@tseer/prefs";
 import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
@@ -44,8 +25,6 @@ import type { Context } from "cordis";
 import { createShowError } from "./errors.ts";
 import { getCursor, getPath } from "./timeline.ts";
 
-/** Subset of `ctx.config` the search routes read (declared locally so the
- * package never imports `@tseer/kernel`). */
 interface SearchConfig {
   title?: string | undefined;
   hostname?: string | undefined;
@@ -61,19 +40,16 @@ export interface SearchRouteDeps {
   config: SearchConfig | undefined;
 }
 
-/** search.nim `createSearchRouter`'s title: `Search` + ` (q)` when querying. */
 export function searchTitle(q: string): string {
   return q.length > 0 ? `Search (${q})` : "Search";
 }
 
-/** search.nim's `f=user`/`f=list` x.com-compat remap (route-level, not query.nim). */
 export function remapSearchKind(query: Query, f: string): Query {
   if (f === "user") return { ...query, kind: QueryKind.users };
   if (f === "list") return { ...query, kind: QueryKind.lists };
   return query;
 }
 
-/** search.nim's media view default (mirrors the `/user/media` tab rule). */
 export function defaultMediaView(query: Query, mediaView: string): Query {
   if (query.kind === QueryKind.media && !["timeline", "grid", "gallery"].includes(query.view)) {
     return { ...query, view: mediaView.toLowerCase() };
@@ -81,7 +57,6 @@ export function defaultMediaView(query: Query, mediaView: string): Query {
   return query;
 }
 
-/** opensearch.nimf `generateOpenSearchXML` — the template is a static string. */
 export function generateOpenSearchXml(name: string, hostname: string, url: string): string {
   const escapeXml = (s: string): string =>
     s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -109,7 +84,6 @@ export function registerSearchRoutes(deps: SearchRouteDeps): () => void {
 
   const showError = createShowError(render);
 
-  /** nitter.nim's error pages: the fetch loop's failures get real pages. */
   async function guard(
     reply: AppReply,
     requestPrefs: TseerPreferences | undefined,
@@ -174,8 +148,6 @@ export function registerSearchRoutes(deps: SearchRouteDeps): () => void {
           await reply.redirect(`/${q}`);
           return;
         }
-        // nitter swallows InternalError here and renders the empty page
-        // (a failed people-search is a miss, not a 500).
         let users: Result<User>;
         try {
           users = (await twitter.userSearch(query, after)) ?? emptyUserSearch(query);
@@ -271,8 +243,6 @@ export function registerSearchRoutes(deps: SearchRouteDeps): () => void {
   };
 }
 
-/** The search route plugin: `ctx.server` + `ctx.twitter` + `ctx.render` +
- * `ctx.prefs`. Unload it and only these routes disappear. */
 export default function searchPlugin(ctx: Context): () => void {
   const server = ctx.get("server" as never) as HttpServer | undefined;
   const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
@@ -287,9 +257,6 @@ export default function searchPlugin(ctx: Context): () => void {
     throw new Error("search: ctx.render is not mounted (load renderPlugin first)");
   if (prefs === undefined)
     throw new Error("search: ctx.prefs is not mounted (load prefsPlugin first)");
-  // cordis rc.10 does not run a plugin's returned disposer through
-  // fiber.dispose(); the cleanup must be a real effect (same as
-  // timelinePlugin/mediaRoutePlugin).
   const disposeRoutes = registerSearchRoutes({ server, twitter, render, prefs, config });
   const disposeEffect = ctx.effect(() => () => {
     disposeRoutes();

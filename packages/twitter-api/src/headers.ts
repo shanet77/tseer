@@ -1,13 +1,3 @@
-/**
- * Port of `apiutils.nim` `genHeaders` (+ its private `getOauthHeader`/
- * `getCookieHeader` helpers): the per-request header set, bearer vs OAuth1 vs
- * cookie auth, and the `x-client-transaction-id` fallback chain.
- *
- * Header names are emitted title-cased (Nim's `newHttpHeaders(...,
- * titleCase=true)` does the same); HTTP header names are case-insensitive, so
- * this only pins the wire casing for the golden tests.
- */
-
 import type { Session } from "@tseer/twitter-sessions";
 import { SessionKind } from "@tseer/types";
 import { BEARER_TOKEN, BEARER_TOKEN_2 } from "./endpoints.ts";
@@ -17,21 +7,11 @@ const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36";
 
 export interface GenHeadersOptions {
-  /** nitter `disableTid` config: skip the tid and use the v2 bearer token. */
   disableTid: boolean;
-  /** The `tid.nim` generator; only called on the cookie + non-skipTid path. */
   genTid?: ((path: string) => Promise<string>) | undefined;
-  /** Clock forwarded to OAuth1 signing so tests can pin the timestamp. */
   now?: (() => number) | undefined;
 }
 
-/**
- * Port of `apiutils.nim` `genHeaders(session, url, skipTid)`.
- *
- * The bearer fallback condition is ported verbatim: `disableTid`, the
- * endpoint's own `skipTid`, or a `/1.1/` path all select `BEARER_TOKEN_2`
- * without a transaction id; otherwise `BEARER_TOKEN` + `genTid(path)`.
- */
 export async function genHeaders(
   session: Session,
   url: string,

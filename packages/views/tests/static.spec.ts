@@ -1,6 +1,3 @@
-/** Styles/static port: `sass/**` compiles, `public/**` is complete, and every
- * asset URL the page shell emits resolves to a file `ctx.server.static`
- * can serve. Upstream: nitter `src/sass/**` + `public/**` @ 145ca9e. */
 import { existsSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,7 +21,6 @@ describe("views static assets", () => {
   });
 
   it("covers every asset URL the page shell emits", () => {
-    // renderHead/renderNavbar in page.tsx (href/src attributes).
     const expected = [
       "css/fontello.css",
       "js/hls.min.js",

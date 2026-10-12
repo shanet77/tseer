@@ -1,27 +1,3 @@
-/**
- * The embed routes — port of nitter's `src/routes/embed.nim`
- * (`/i/videos/tweet/@id`, `/@user/status/@id/embed`, `/embed/Tweet.html`,
- * `/api/oembed`), plus the error pages nitter's `nitter.nim` maps the fetch
- * errors to.
- *
- * Same four-seam shape as the timeline/status/search/rss plugins (`server` +
- * `twitter` + `render` + `prefs` via static `.inject`, `ctx.effect` cleanup,
- * `guard` error mapping). The tweet object comes from `twitter.tweetByRestId`
- * (the `api.nim` `getTweetByRestId` port), and the pages come from
- * `views/embed`; this file owns routes, URL parsing, and the oEmbed triage.
- *
- * Divergences from the Nim original:
- * - `getVideoEmbed` points at `/i/videos/tweet/<id>`, this port's real video
- *   handler, where upstream emits `/i/videos/<id>` (which resolves to the
- *   unsupported panel). See the views notes in AGENTS.md.
- * - The video embed rides prefs `{...config-derived defaults, hlsPlayback:
- *   true, mp4Playback: true}`; upstream takes Nim type defaults for the
- *   remaining fields, which ignores `[Preferences]` config overrides.
- * - `/api/oembed` errors are plain text / bare bodies rather than Jester's
- *   JSON `respHttp`, matching the upstream handlers verbatim; the JSON body
- *   is sent with an exact `application/json` content type (`respJson`).
- */
-
 import type { PrefsService, TseerPreferences } from "@tseer/prefs";
 import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
@@ -48,8 +24,6 @@ import { createShowError } from "./errors.ts";
 import { NAME_PARAM } from "./params.ts";
 import { getPath } from "./timeline.ts";
 
-/** Subset of `ctx.config` the embed routes read (declared locally so the
- * package never imports `@tseer/kernel`). */
 interface EmbedConfig {
   title?: string | undefined;
   hostname?: string | undefined;
@@ -64,7 +38,6 @@ export interface EmbedRouteDeps {
   config: EmbedConfig | undefined;
 }
 
-/** embed.nim `parseTweetPath`: `username/status(es)/id` triple. */
 export function parseTweetPath(path: string): { username: string; id: string } {
   const parts = path.split("/");
   if (parts.length >= 3 && (parts[1] === "status" || parts[1] === "statuses")) {
@@ -84,7 +57,6 @@ const TWITTER_PREFIXES = [
   "www.x.com/",
 ];
 
-/** embed.nim `parseTweetUrl`: absolute tweet URL, or bare tweet path. */
 export function parseTweetUrl(
   url: string,
   cfg: { hostname?: string | undefined },
@@ -107,9 +79,6 @@ export function parseTweetUrl(
     return parseTweetPath(path.slice(nitterPrefix.length));
   }
 
-  // Fall back: strip any hostname and try to parse as a tweet path. Handles
-  // requests where the URL's host differs from cfg.hostname (e.g. localhost
-  // in dev/CI, or a reverse proxy with a different domain).
   const slashPos = path.indexOf("/");
   if (slashPos > 0) {
     const parsed = parseTweetPath(path.slice(slashPos + 1));
@@ -130,7 +99,6 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
 
   const showError = createShowError(render);
 
-  /** nitter.nim's error pages: the fetch loop's failures get real pages. */
   async function guard(
     reply: AppReply,
     requestPrefs: TseerPreferences | undefined,
@@ -182,7 +150,6 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
     };
   }
 
-  /** `GET /i/videos/tweet/@id` — a bare video player page. */
   async function showVideoEmbed(req: AppRequest, reply: AppReply): Promise<void> {
     const id = req.params.id ?? "";
     const requestPrefs = prefs.parse(req.cookies, req.query);
@@ -204,9 +171,6 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
       return;
     }
 
-    // `Prefs(hlsPlayback: true, mp4Playback: true, proxyVideos:
-    // defaultPrefs.proxyVideos)`: force both playback modes on; everything
-    // else from the config-derived defaults rather than Nim type defaults.
     const videoPrefs = {
       ...prefs.defaults,
       hlsPlayback: true,
@@ -215,7 +179,6 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
     await reply.html(renderVideoEmbed(tweet, embedConfig(), videoPrefs));
   }
 
-  /** `GET /@user/status/@id/embed` — the tweet iframe. */
   async function showTweetEmbed(req: AppRequest, reply: AppReply): Promise<void> {
     const id = req.params.id ?? "";
     const user = req.params.name ?? "";
@@ -234,15 +197,12 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
     await reply.html(renderTweetEmbed(tweet, getPath(req), requestPrefs, embedConfig()));
   }
 
-  // /i/videos/tweet/@id
   route({
     method: "GET",
     path: "/i/videos/tweet/:id",
     handler: (req, reply) => guard(reply, undefined, () => showVideoEmbed(req, reply)),
   });
 
-  // /@user/status/@id/embed; the bare /i/status/:id/embed (the redirect
-  // target of /embed/Tweet.html) needs its own registration, like status.ts.
   route({
     method: "GET",
     path: `/${NAME_PARAM}/status/:id/embed`,
@@ -254,7 +214,6 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
     handler: (req, reply) => guard(reply, undefined, () => showTweetEmbed(req, reply)),
   });
 
-  // /embed/Tweet.html — Twitter widget compatibility redirect.
   route({
     method: "GET",
     path: "/embed/Tweet.html",
@@ -269,7 +228,6 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
       }),
   });
 
-  // /api/oembed — the oEmbed discovery endpoint.
   route({
     method: "GET",
     path: "/api/oembed",
@@ -350,8 +308,6 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
   };
 }
 
-/** The embed route plugin: `ctx.server` + `ctx.twitter` + `ctx.render` +
- * `ctx.prefs`. Unload it and only these routes disappear. */
 export default function embedPlugin(ctx: Context): () => void {
   const server = ctx.get("server" as never) as HttpServer | undefined;
   const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
@@ -366,9 +322,6 @@ export default function embedPlugin(ctx: Context): () => void {
     throw new Error("embed: ctx.render is not mounted (load renderPlugin first)");
   if (prefs === undefined)
     throw new Error("embed: ctx.prefs is not mounted (load prefsPlugin first)");
-  // cordis rc.10 does not run a plugin's returned disposer through
-  // fiber.dispose(); the cleanup must be a real effect (same as the other
-  // route plugins).
   const disposeRoutes = registerEmbedRoutes({ server, twitter, render, prefs, config });
   const disposeEffect = ctx.effect(() => () => {
     disposeRoutes();

@@ -1,6 +1,3 @@
-/** Search route plugin tests — fastify `inject` against a context with a
- * stubbed `ctx.twitter`, proving the seams are real (plan §6). */
-
 import { prefsPlugin } from "@tseer/prefs";
 import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
@@ -156,8 +153,6 @@ describe("searchPlugin", () => {
     expect(twitter.listSearch).toHaveBeenCalledTimes(1);
     expect(lists.body).toContain("Space lists");
     expect(lists.body).toContain("1,234 members");
-    // list descriptions are plain text: markup must be escaped
-    // (preact escapes `<`/`&`, not `>`)
     expect(lists.body).toContain("cool &lt;b>lists&lt;/b>");
     expect(lists.body).not.toContain("<b>lists</b>");
     expect(lists.body).toContain("cursor=LISTCURSOR");
@@ -245,7 +240,6 @@ describe("searchPlugin", () => {
     const { ctx } = await boot(stubSearchTwitter());
     const res = await ctx.server.inject({ url: "/search?q=%3Cscript%3E" });
     expect(res.status).toBe(200);
-    // preact escapes `<`/`&` in text (not `>`)
     expect(res.body).toContain("Search (&lt;script>)");
     expect(res.body).not.toContain("Search (<script>)");
   });

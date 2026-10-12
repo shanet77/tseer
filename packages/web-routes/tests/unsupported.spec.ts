@@ -1,7 +1,3 @@
-/** Unsupported-feature route plugin tests — static panel, no `twitter` seam.
- * Also pins the radix interplay: the denied `/i` values (`status`, `lists`,
- * `user`) keep resolving to their sibling plugins' real handlers. */
-
 import { prefsPlugin } from "@tseer/prefs";
 import { serverPlugin } from "@tseer/server";
 import { renderPlugin } from "@tseer/views";
@@ -65,9 +61,6 @@ describe("unsupportedPlugin", () => {
   });
 
   it("keeps the list timeline path for the list plugin", async () => {
-    // Upstream's unsupported router claims only the bare `/@name/lists`;
-    // `/@name/lists/@slug` is list.nim's. Without the list plugin mounted it
-    // answers 404, not the misleading "unsupported" panel.
     const { ctx } = await boot();
     const res = await ctx.server.inject({ url: "/nasa/lists/space" });
     expect(res.status).toBe(404);

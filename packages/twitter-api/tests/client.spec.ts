@@ -35,7 +35,6 @@ describe("subst", () => {
   }
 });
 
-// One entry per golden urls case; the labels double as the coverage contract.
 const builders: Record<string, () => ApiReq> = {
   "userUrl simple": () => userUrl("nasa"),
   "userUrl underscore": () => userUrl("foo_bar"),

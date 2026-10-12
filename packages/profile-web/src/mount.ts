@@ -6,20 +6,13 @@ import type { Context, Fiber } from "cordis";
 import { type ProfileEntry, type ProfileOptions, profileEntries } from "./entries.ts";
 
 export interface MountProfileOptions extends ProfileOptions {
-  /** Directory served at the URL root (nitter `staticDir`). Defaults to the
-   * views package's `public/` (compiled theme CSS + vendored assets); an
-   * explicit `staticDir` in config always wins. */
   staticDir?: string;
-  /** Config file path; `add` specifiers resolve relative to its directory. */
   configPath?: string;
-  /** Out-of-tree plugin specifiers; overrides `[Plugins] add` when given. */
   add?: string[];
 }
 
 export interface MountedProfile {
-  /** Mounted entry names in mount order (built-ins first, then `add`). */
   names: string[];
-  /** One fiber per mounted entry, aligned with `names`. */
   fibers: Fiber[];
 }
 
@@ -28,8 +21,6 @@ function pluginLists(ctx: Context): { add: string[]; remove: string[] } {
   return { add: config?.plugins?.add ?? [], remove: config?.plugins?.remove ?? [] };
 }
 
-/** Resolve the built-in list: drop `when`-false entries, drop `remove` names,
- * then cascade drops through `requires` until the set is stable. */
 export function resolveProfile(
   entries: readonly ProfileEntry[],
   options: ProfileOptions,
@@ -68,8 +59,6 @@ function entryName(specifier: string): string {
   return dot > 0 ? base.slice(0, dot) : base;
 }
 
-/** Load one out-of-tree plugin module (file path or npm name). The module's
- * default export must be the plugin function. */
 export async function loadPluginEntry(specifier: string, base: string): Promise<ProfileEntry> {
   const href = isPathSpecifier(specifier)
     ? pathToFileURL(isAbsolute(specifier) ? specifier : resolve(base, specifier)).href
@@ -98,7 +87,6 @@ async function loadAddedEntries(
   return added;
 }
 
-/** Mount the composed plugin list on a kernel-booted context. */
 export async function mountProfile(
   ctx: Context,
   options: MountProfileOptions = {},
@@ -126,13 +114,10 @@ export async function mountProfile(
 }
 
 export interface CreateAppOptions extends MountProfileOptions {
-  /** Raw INI text (preferred in tests; skips file I/O). */
   configText?: string;
-  /** Override for `config.port` (applied before the web plugin binds). */
   port?: number;
 }
 
-/** Boot the kernel, then mount the profile-web composition. */
 export async function createApp(options: CreateAppOptions = {}): Promise<Context> {
   const ctx = await createKernelApp({
     configPath: options.configPath,

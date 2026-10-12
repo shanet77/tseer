@@ -1,17 +1,3 @@
-/** Port of nitter's `src/views/tweet.nim` — `renderTweet` and every
- * attachment renderer (media, quotes, cards, polls, articles).
- *
- * Structural divergences (documented inline):
- * - `verbatim replaceUrls(text)` + `renderLocation` string concatenation
- *   becomes two sibling nodes inside the content div.
- * - The HLS play overlay's inline `onclick="playVideo(this)"` is emitted as
- *   raw HTML (preact would treat the string as a function handler).
- * - `muted` is a real boolean attribute: rendered only when true, because an
- *   attribute named `muted` mutes regardless of its value.
- * - Poll percentages: Nim formats `{perc:>3.0f}` (rounded); `Math.round` here.
- * - Edit history ids are int64 in Nim; string ids compare via BigInt.
- */
-
 import type { TseerPreferences } from "@tseer/prefs";
 import {
   type ArticlePreview,
@@ -326,7 +312,6 @@ function renderMedia(
     if (item.kind === MediaKind.gifMedia) return renderGif(item.gif, prefs, path);
   }
 
-  // Nim's `distribute(2)`: two rows, the first ceil(n/2) items.
   const groups =
     media.length < 3
       ? [media]
@@ -440,7 +425,6 @@ function formatStat(stat: number): string {
   return stat > 0 ? insertSep(String(stat)) : "";
 }
 
-/** tweet.nim `renderStats` (public upstream; the article page reuses it). */
 export function renderStats(stats: TweetStats): VNode {
   return (
     <div class="tweet-stats">
@@ -579,7 +563,6 @@ function renderQuote(quote: Tweet, prefs: TseerPreferences, path: string): VNode
   );
 }
 
-/** Nim `max(tweet.history)` over int64 ids — BigInt compare over strings. */
 function maxHistoryId(history: string[]): string {
   return history.reduce((a, b) => (BigInt(b) > BigInt(a) ? b : a), history[0] ?? "");
 }
@@ -620,7 +603,6 @@ export interface RenderTweetOptions {
   bigThumb?: boolean | undefined;
 }
 
-/** The port of `renderTweet` — the tweet timeline item. */
 export function renderTweet(
   tweet: Tweet,
   prefs: TseerPreferences,

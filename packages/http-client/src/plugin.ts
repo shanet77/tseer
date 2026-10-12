@@ -1,4 +1,3 @@
-/** Default `ctx.http` provider (undici); owns the dispatcher lifecycle. */
 import type { Context } from "cordis";
 import { UndiciHttpClient } from "./client.ts";
 import type {
@@ -12,14 +11,11 @@ import type {
 
 declare module "cordis" {
   interface Context {
-    /** Outbound HTTP client (undici pool + proxy + retry by default). */
     http: HttpClient;
   }
 
   interface Events {
-    /** Fired before each attempt; listeners may rewrite `req.headers`. */
     "http/request": (req: OutboundRequest) => void;
-    /** Fired after each completed attempt. */
     "http/response": (res: OutboundResponse) => void;
   }
 }

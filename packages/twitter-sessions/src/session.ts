@@ -9,7 +9,6 @@ export interface RawSession {
   oauthTokenSecret?: string | undefined;
   authToken?: string | undefined;
   ct0?: string | undefined;
-  /** Snake_case spellings, as written by the session generators in the wild. */
   auth_token?: string | undefined;
   oauth_token?: string | undefined;
   oauth_token_secret?: string | undefined;

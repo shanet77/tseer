@@ -1,4 +1,3 @@
-/** Minimal `GET /about` web plugin on `node:http` (superseded by `ctx.server`). */
 import { createServer, type Server } from "node:http";
 import type { Context } from "cordis";
 
@@ -10,7 +9,6 @@ export interface AboutPluginOptions {
 
 declare module "cordis" {
   interface Context {
-    /** Legacy `node:http` listener handle (superseded by `ctx.server`). */
     aboutServer?: Server | undefined;
   }
 }

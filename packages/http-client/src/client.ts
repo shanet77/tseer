@@ -1,17 +1,3 @@
-/**
- * undici-backed `HttpClient`: connection pooling (`Agent`), proxy
- * (`ProxyAgent`), fixed-delay retry, gzip decoding, and Cloudflare detection.
- *
- * Ported behavior notes (nitter `http_pool.nim` + `apiutils.nim`):
- * - Retryable failures: transport errors (any exception → `RateLimitError` in
- *   Nim), `429`, `503`, transient empty `404`s, and Cloudflare HTML. Once the
- *   attempts are exhausted the request throws `RateLimitError` (nitter's
- *   `retry` template ends with `raise rateLimitError()`).
- * - Deviations from Nim, deliberate: `503` retries count toward `maxRetries`
- *   (nitter's `pool.use` gave one extra immediate "bad client" retry), and a
- *   final `400` is returned to the caller instead of raising `InternalError`
- *   — error mapping belongs to `twitter-api`, not the transport.
- */
 import { Buffer } from "node:buffer";
 import { setTimeout as delay } from "node:timers/promises";
 import { gunzip } from "node:zlib";
@@ -30,13 +16,10 @@ import type {
   OutboundRequest,
 } from "./types.ts";
 
-/** Default per-request timeout (headers + body), in milliseconds. */
 export const DEFAULT_TIMEOUT_MS = 30_000;
 
-/** Default pool size when `maxConns` is unset (nitter `httpMaxConns`). */
 const DEFAULT_MAX_CONNS = 100;
 
-/** Default retry policy when unset (nitter `config.nim` defaults). */
 const DEFAULT_MAX_RETRIES = 1;
 const DEFAULT_RETRY_DELAY_MS = 150;
 
@@ -54,7 +37,6 @@ function gunzipAsync(bytes: Buffer): Promise<Buffer> {
   });
 }
 
-/** Normalize raw undici headers: lowercase names, join multi-value headers. */
 function flattenHeaders(raw: RawHeaders): Record<string, string> {
   const headers: Record<string, string> = {};
   for (const [name, value] of Object.entries(raw)) {
@@ -68,10 +50,6 @@ function hasGzipMagic(bytes: Uint8Array): boolean {
   return bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b;
 }
 
-/**
- * Decode a response body: gunzip when the wire bytes are gzip (undici's
- * `request()` does not decompress on its own — nitter unzips with zippy).
- */
 async function decodeBody(bytes: Uint8Array, contentEncoding: string | undefined): Promise<string> {
   if (contentEncoding?.includes("gzip") && hasGzipMagic(bytes)) {
     return new TextDecoder().decode(await gunzipAsync(Buffer.from(bytes)));
@@ -79,7 +57,6 @@ async function decodeBody(bytes: Uint8Array, contentEncoding: string | undefined
   return new TextDecoder().decode(bytes);
 }
 
-/** Status-based retryable failures (port of the checks in `fetchImpl`). */
 function retryableStatus(status: number, body: string): string | undefined {
   if (status === 429) return "status 429";
   if (body.startsWith("429 Too Many Requests")) return "429 response body";
@@ -108,11 +85,6 @@ function rateLimitFailure(
   );
 }
 
-/**
- * Build the undici dispatcher: pooled `Agent`, or `ProxyAgent` when a proxy is
- * configured (basic-auth `proxyAuth` becomes the `Proxy-Authorization` header —
- * undici's `token` is passed through verbatim).
- */
 export function createDispatcher(options: HttpClientPluginOptions = {}): Dispatcher {
   const connections = options.maxConns ?? DEFAULT_MAX_CONNS;
   const uri = normalizeProxyUrl(options.proxy ?? "");
@@ -123,7 +95,6 @@ export function createDispatcher(options: HttpClientPluginOptions = {}): Dispatc
   return new ProxyAgent(proxyOptions);
 }
 
-/** Default `ctx.http` provider: undici pool + proxy + retry + CF detection. */
 export class UndiciHttpClient implements HttpClient {
   private readonly dispatcher: Dispatcher;
   private readonly apiProxy: string;
@@ -218,13 +189,11 @@ export class UndiciHttpClient implements HttpClient {
     throw failure ?? new RateLimitError(`${method} ${target}: request failed`);
   }
 
-  /** Close the dispatcher (drains pooled connections). */
   close(): Promise<void> {
     return this.dispatcher.close();
   }
 }
 
-/** Ensure a proxy URL carries a scheme (nitter assumes one; we normalize). */
 function normalizeProxyUrl(url: string): string {
   if (url.length === 0) return "";
   return /^https?:\/\//i.test(url) ? url : `http://${url}`;

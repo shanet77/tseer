@@ -1,5 +1,3 @@
-/** RSS renderer tests — port fidelity for `views/rss` (the `rss.nimf` port). */
-
 import { preferencesSchema, type TseerPreferences } from "@tseer/prefs";
 import {
   CardKind,

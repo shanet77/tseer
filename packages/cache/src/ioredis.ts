@@ -1,8 +1,3 @@
-/**
- * ioredis is an optional peer of this seam: only the redis provider needs it,
- * and the memory provider must stay installable without it. It is imported
- * dynamically here so the dependency is loaded on first redis use.
- */
 import type { RedisCacheOptions, RedisLike } from "./types.ts";
 
 export async function createIoredisClient(options: RedisCacheOptions = {}): Promise<RedisLike> {

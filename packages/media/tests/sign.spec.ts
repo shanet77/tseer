@@ -72,20 +72,13 @@ describe("segment encodings", () => {
     const encoded = encodeUrl(url);
     expect(encoded).not.toContain("/");
     expect(encoded).not.toContain("?");
-    // The router hands the handler `encoded` already decoded, which is why
-    // `decodeSegment` is a no-op here — see the test below.
     expect(decodeUrl(encoded)).toBe(url);
   });
 
   it("uses URL-safe base64 in the enc variant, padding included", () => {
-    // Bytes 0xFB 0xFF are `+/8=` in standard base64 and `-_8=` URL-safe. Those
-    // two characters are what nitter's `enc` variant exists to avoid — both are
-    // legal in a path segment, but `+` and `/` are awkward enough in practice
-    // (proxies, logs, some CDNs) that a separate encoding is offered.
     const bytes = Buffer.from([0xfb, 0xff]);
     expect(bytes.toString("base64")).toBe("+/8=");
     expect(bytes.toString("base64url")).toBe("-_8");
-    // Both alphabets decode back to the same bytes (Nim's decode table).
     expect(Buffer.from("-_8=", "base64").equals(bytes)).toBe(true);
     expect(Buffer.from("+/8=", "base64").equals(bytes)).toBe(true);
   });
@@ -97,17 +90,12 @@ describe("segment encodings", () => {
 
   it("round-trips a URL containing a literal + (percent variant)", () => {
     const url = "https://pbs.twimg.com/media/a+b.jpg";
-    // A real `+` must survive as `%2B`, never as a bare `+` that would decode
-    // back as a space under Nim's `usePlus` rules.
     const encoded = encodeUrl(url);
     expect(encoded).toContain("%2B");
     expect(decodeUrl(encoded)).toBe(url);
   });
 
   it("leaves % escapes alone for the percent variant (params arrive decoded)", () => {
-    // `decodeSegment` takes a *fastify param*, which is already percent-decoded.
-    // Decoding again would silently rewrite the path of a URL the HMAC and the
-    // ETag were computed over.
     for (const url of [
       "https://pbs.twimg.com/media/a%2Fb.jpg",
       "https://pbs.twimg.com/media/a%20b.jpg",
@@ -135,7 +123,6 @@ describe("mediaEtag", () => {
       const signer = new MediaSignerImpl({ hmacKey: "hunter2" });
       const sig = signer.sign("https://video.twimg.com/x.m3u8");
       expect(sig).toMatch(/^[0-9a-f]{13}$/);
-      // Deterministic, and key-dependent.
       expect(sig).toBe(
         new MediaSignerImpl({ hmacKey: "hunter2" }).sign("https://video.twimg.com/x.m3u8"),
       );

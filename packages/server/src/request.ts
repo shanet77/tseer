@@ -11,14 +11,12 @@ export const httpMethods: readonly HttpMethod[] = [
   "OPTIONS",
 ];
 
-/** Normalize a user-supplied method to uppercase; throws on unknown values. */
 export function normalizeMethod(method: string): HttpMethod {
   const upper = method.toUpperCase();
   if ((httpMethods as readonly string[]).includes(upper)) return upper as HttpMethod;
   throw new Error(`server: unsupported method "${method}"`);
 }
 
-/** Validate a route path (`/about`, `/user/:name`, never empty/relative). */
 export function normalizePath(path: string): string {
   if (path.length === 0 || !path.startsWith("/")) {
     throw new Error(`server: route path must start with "/", got "${path}"`);
@@ -26,10 +24,6 @@ export function normalizePath(path: string): string {
   return path;
 }
 
-/**
- * Normalize a static prefix (`/static`, or `/` to serve at the URL root like
- * nitter's Jester `staticDir`); trailing slashes are trimmed.
- */
 export function normalizePrefix(prefix: string): string {
   if (!prefix.startsWith("/")) {
     throw new Error(`server: static prefix must start with "/", got "${prefix}"`);
@@ -38,7 +32,6 @@ export function normalizePrefix(prefix: string): string {
   return prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
 }
 
-/** Parse a `Cookie` header into a name/value map (first value wins). */
 export function parseCookies(header: string | undefined): Record<string, string> {
   const cookies: Record<string, string> = {};
   if (!header) return cookies;
@@ -52,12 +45,6 @@ export function parseCookies(header: string | undefined): Record<string, string>
   return cookies;
 }
 
-/**
- * Parse an `application/x-www-form-urlencoded` body into a name/value map.
- * `+` means space here — that is form encoding (deliberately unlike the
- * media-URL round trip, where a literal `+` must survive intact). Later
- * values win for repeated keys, like repeated query keys.
- */
 export function parseFormBody(body: string): Record<string, string> {
   const form: Record<string, string> = {};
   for (const part of body.split("&")) {
@@ -115,8 +102,6 @@ function toHeaders(raw: unknown): Record<string, string | undefined> {
   return headers;
 }
 
-/** The parsed body as strings (urlencoded forms arrive as a record from the
- * content-type parser; JSON bodies stringify field-wise). */
 function toForm(raw: unknown): Record<string, string> {
   if (typeof raw !== "object" || raw === null) return {};
   const form: Record<string, string> = {};
@@ -126,7 +111,6 @@ function toForm(raw: unknown): Record<string, string> {
   return form;
 }
 
-/** Map a fastify request onto the seam's `AppRequest`. */
 export function toAppRequest(request: FastifyRequest): AppRequest {
   const rawUrl = request.raw.url ?? "/";
   const queryIndex = rawUrl.indexOf("?");

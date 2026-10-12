@@ -1,14 +1,3 @@
-/**
- * The plan §3 provider seam: `ctx.twitter` with domain return types. This
- * composes the raw fetchers (`fetchers.ts`, ports of `api.nim`'s request
- * construction) with the `ctx.parsers` registry — nitter's `getGraph*` procs
- * are exactly `fetch → parse`, and this module is that composition.
- *
- * `search`'s repeat-page clearing (nitter #1372) and `tweet`'s two-request
- * replies composition live here because they need *parsed* content, not raw
- * bodies.
- */
-
 import type { ParserKind, Parsers } from "@tseer/twitter-parser";
 import {
   type AccountInfo,
@@ -35,126 +24,63 @@ import { type CachedApiOptions, type CachedMethods, createCachedMethods } from "
 import type { Json } from "./fetch.ts";
 import type { RawSearch, RawTwitterApi } from "./fetchers.ts";
 
-/** `getGraphUserTweets`' return: a Profile without its route-filled halves. */
 export type ProfileTweets = Pick<Profile, "pinned" | "tweets">;
 
-/**
- * Plan §3 provider seam — domain-flavoured. Method docs name the `api.nim`
- * proc each one completes.
- */
 export interface TwitterApi {
-  /** Port of `getGraphUser` (`fetchRaw`): parsed user or `undefined`. */
   user(username: string): Promise<User | undefined>;
-  /** Port of `getGraphUserById` (`fetchRaw`). */
   userById(id: string): Promise<User | undefined>;
-  /** Port of `getAboutAccount`. */
   aboutAccount(username: string): Promise<AccountInfo | undefined>;
-  /** Port of `getGraphUserTweets` with `TimelineKind.tweets`. */
   tweets(userId: string, cursor?: string): Promise<ProfileTweets | undefined>;
-  /** Port of `getGraphUserTweets` with `TimelineKind.replies`. */
   tweetsAndReplies(userId: string, cursor?: string): Promise<ProfileTweets | undefined>;
-  /** Port of `getGraphUserTweets` with `TimelineKind.media`. */
   media(userId: string, cursor?: string): Promise<ProfileTweets | undefined>;
-  /** Port of `getGraphUserTweets` with `TimelineKind.articles`. */
   articles(userId: string, cursor?: string): Promise<ProfileTweets | undefined>;
-  /** Port of `getPhotoRail`. */
   photoRail(userId: string): Promise<PhotoRail | undefined>;
-  /**
-   * Port of `getTweet`: the conversation request, then (when `cursor` is
-   * given) a second request whose replies replace the first page's.
-   */
   tweet(id: string, cursor?: string, mode?: RankingMode): Promise<Conversation | undefined>;
-  /** Port of `getGraphTweetResult`. */
   tweetResult(id: string): Promise<Tweet | undefined>;
-  /** Port of `getTweetByRestId`. */
   tweetByRestId(id: string): Promise<Tweet | undefined>;
-  /** Port of `getGraphTweetResults` (article batch). */
   tweetResults(ids: readonly string[]): Promise<Tweet[] | undefined>;
-  /** Port of `getGraphEditHistory`. */
   editHistory(id: string): Promise<EditHistory | undefined>;
-  /**
-   * Port of `getGraphTweetSearch`: incl. the `maxid:` workaround and the
-   * #1372 repeat-page clearing.
-   */
   search(query: Query, cursor?: string): Promise<TimelineResult | undefined>;
-  /** Port of `getGraphUserSearch` (`product=People`). */
   userSearch(query: Query, cursor?: string): Promise<Result<User> | undefined>;
-  /** Port of `getGraphListSearch` (`product=Lists`). */
   listSearch(query: Query, cursor?: string): Promise<Result<ListSearchResult> | undefined>;
-  /** Port of `getGraphListTweets` (plan §3 `list`): the timeline only. */
   list(id: string, cursor?: string): Promise<TimelineResult | undefined>;
-  /** Port of `getGraphList` (list metadata, not its timeline). */
   listInfo(id: string): Promise<List | undefined>;
-  /** Port of `getGraphListBySlug`. */
   listBySlug(name: string, slug: string): Promise<List | undefined>;
-  /** Port of `getGraphListMembers` (`fetchRaw`). */
   listMembers(id: string, cursor?: string): Promise<Result<User> | undefined>;
-  /** Port of `getGraphFollowers` (`fetchRaw`). */
   followers(userId: string, cursor?: string): Promise<Result<User> | undefined>;
-  /** Port of `getGraphFollowing` (`fetchRaw`). */
   following(userId: string, cursor?: string): Promise<Result<User> | undefined>;
-  /** Port of `getGraphCommunityTweets` (plan §3 `community`). */
   community(
     id: string,
     cursor?: string,
     rankingMode?: RankingMode,
   ): Promise<TimelineResult | undefined>;
-  /** Port of `getGraphCommunity` (community metadata). */
   communityInfo(id: string): Promise<Community | undefined>;
-  /** Port of `getGraphCommunityMedia`. */
   communityMedia(id: string, cursor?: string): Promise<TimelineResult | undefined>;
-  /** Port of `getGraphCommunityMembers`. */
   communityMembers(id: string, cursor?: string): Promise<Result<User> | undefined>;
-  /** Port of `getGraphCommunityModerators`. */
   communityModerators(id: string): Promise<Result<User> | undefined>;
-  /** Port of `getGraphCommunityHashtags`. */
   communityHashtags(
     id: string,
     hashtag: string,
     cursor?: string,
   ): Promise<TimelineResult | undefined>;
-  /** Port of `getGraphArticle` (`fetchRaw`). */
   article(id: string): Promise<Article | undefined>;
-  /** Port of `getAudioSpace`. */
   space(id: string): Promise<AudioSpace | undefined>;
-  /** Port of `getBroadcastInfo`. */
   broadcast(id: string): Promise<Broadcast | undefined>;
-  /** Port of `fetchBroadcastStream` (no parsing; raw playback URL). */
   broadcastStream(mediaKey: string): Promise<string | undefined>;
-  /** Port of `api.nim` `resolve` (`HEAD`, no redirects → `location` header). */
   resolve(url: string): Promise<string>;
 
-  // The redis_cache.nim wrappers (`getCached*`) — outside plan §3's sketch,
-  // but the seam the route plugins consume (Phase 4/5), exactly like nitter's
-  // routes call `getCachedUser` & co. directly.
-
-  /** Port of `getCachedUser`. */
   cachedUser(username: string, fetch?: boolean): Promise<User | undefined>;
-  /** Port of `getCachedUsername` (the `i:` reverse lookup). */
   cachedUsername(userId: string): Promise<string>;
-  /** Port of `getCachedAccountInfo`. */
   cachedAccountInfo(username: string, fetch?: boolean): Promise<AccountInfo | undefined>;
-  /** Port of `getCachedPhotoRail`. */
   cachedPhotoRail(id: string): Promise<PhotoRail | undefined>;
-  /** Port of `getCachedBroadcast`. */
   cachedBroadcast(id: string): Promise<Broadcast | undefined>;
-  /** Port of `getCachedAudioSpace`. */
   cachedSpace(id: string): Promise<AudioSpace | undefined>;
-  /** Port of `getCachedCommunity`. */
   cachedCommunity(id: string): Promise<Community | undefined>;
-  /** Port of `getCachedCommunityModerators`. */
   cachedCommunityModerators(id: string): Promise<User[] | undefined>;
-  /** Port of `getCachedList`. */
   cachedList(username?: string, slug?: string, id?: string): Promise<List | undefined>;
-  /** Port of `getCachedRss`/`cacheRss` (key layout is the route's `redisKey`). */
   cachedRss(key: string, factory: () => Promise<Rss>): Promise<Rss>;
 }
 
-/**
- * `fetchRaw` bodies are only parsed when they look like JSON objects
- * (nitter's `json[0] != '{'` guard); anything else — empty body, CF
- * interstitial — is a miss.
- */
 function parseBody(
   parsers: Parsers,
   body: string | undefined,
@@ -183,7 +109,6 @@ function parseJson(
   return parsers.parse(kind, json, options);
 }
 
-/** Port of `getGraphTweetSearch`'s tail: nitter #1372. */
 function clearRepeatedPage(after: string, bottom: string, result: TimelineResult): void {
   const prefix = Math.min(64, Math.min(after.length, bottom.length));
   if (prefix > 0 && after.slice(0, prefix) === bottom.slice(0, prefix)) {

@@ -1,10 +1,3 @@
-/** Cross-plugin routing: the shared dotless `:name` param (`src/params.ts`,
- * nitter's match-time `cond '.' notin name`) keeps every family on one radix
- * node, so static subpaths (`/about`, `/rss`, `/status`) win over `:tab` and
- * dotted asset URLs fall through to `staticDir`. Mounts timeline + status +
- * rss + unsupported together because the shadowing only manifests across
- * families (unsupported's `/i/:i/:j` must not swallow `/i/status/:id`). */
-
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -71,14 +64,12 @@ describe("cross-plugin routing", () => {
     await writeFile(join(dir, "logo.png"), "png");
     const disposeStatic = ctx.server.static("/", dir);
     try {
-      // Dotted asset URLs fall through to static, not to user routes.
       const css = await ctx.server.inject({ url: "/css/style.css" });
       expect(css.status).toBe(200);
       expect(css.body).toBe("body{}");
       const logo = await ctx.server.inject({ url: "/logo.png" });
       expect(logo.status).toBe(200);
 
-      // Every family still answers on the shared `:name` node.
       expect((await ctx.server.inject({ url: "/nasa" })).status).toBe(200);
       const about = await ctx.server.inject({ url: "/nasa/about" });
       expect(about.status).toBe(200);
@@ -90,14 +81,10 @@ describe("cross-plugin routing", () => {
       expect(status.status).toBe(200);
       expect(status.body).toContain("main tweet here");
 
-      // Invalid tabs still 404 as timeline pages, not as static misses.
       const badTab = await ctx.server.inject({ url: "/nasa/nope" });
       expect(badTab.status).toBe(404);
       expect(badTab.body).toContain("Page not found");
 
-      // The unsupported plugin's `/i/:i/:j` must not swallow sibling routes:
-      // `/i/status/:id` (status) and `/i/user/:id` (timeline) keep winning by
-      // static-segment depth, and the bare panel paths still render.
       const iStatus = await ctx.server.inject({ url: "/i/status/1001" });
       expect(iStatus.status).toBe(200);
       expect(iStatus.body).toContain("main tweet here");

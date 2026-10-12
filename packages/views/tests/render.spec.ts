@@ -108,8 +108,6 @@ describe("renderPlugin (ctx.render)", () => {
     const { ctx } = await mount();
     const html = ctx.render.errorPage('User "jane" has been suspended', 404);
     expect(html).toContain("<title>HTTP 404 | Nitter</title>");
-    // nitter writes the panel with `verbatim` (unescaped); the port keeps the
-    // shell's auto-escaping, so the message arrives entity-encoded.
     expect(html).toContain("has been suspended");
     expect(html).toContain("panel-container");
     expect(html).toContain("error-panel");
@@ -120,8 +118,6 @@ describe("renderPlugin (ctx.render)", () => {
     const html = await ctx.render.page({
       body: h("p", null, '<script>alert("x")</script>'),
     });
-    // preact escapes `<` (but not `>`, which is inert outside a tag) and the
-    // quotes inside the string.
     expect(html).toContain("&lt;script>");
     expect(html).toContain("&quot;x&quot;");
   });

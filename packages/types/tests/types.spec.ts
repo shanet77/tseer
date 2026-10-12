@@ -216,7 +216,6 @@ describe("type-level contract", () => {
       kind: MediaKind.gifMedia;
       gif: Gif;
     }>();
-    // Parameter (not a narrowed local) so both branches are reachable.
     function narrow(media: Media) {
       if (media.kind === MediaKind.photoMedia) {
         expectTypeOf(media.photo).toEqualTypeOf<Photo>();

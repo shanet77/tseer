@@ -1,4 +1,3 @@
-/** Shared test doubles for the cache suite. */
 import { MemoryCacheStore } from "../src/memory.ts";
 import { CacheService } from "../src/service.ts";
 import type { CacheStore, RedisLike } from "../src/types.ts";
@@ -38,7 +37,6 @@ export interface FakeRedis extends RedisLike {
   advance(ms: number): void;
 }
 
-/** In-memory redis double: honors `EX`, and returns a two-page `SCAN` cursor. */
 export function fakeRedis(start = 1_000_000): FakeRedis {
   const data = new Map<string, FakeRedisEntry>();
   const calls: string[] = [];
@@ -82,10 +80,6 @@ export function fakeRedis(start = 1_000_000): FakeRedis {
     },
     scan(cursor: string, match: string, count: number) {
       calls.push(`scan ${cursor} ${match} ${count}`);
-      // Real SCAN pages over a stable snapshot: every key present for the whole
-      // iteration is returned exactly once, even though the caller deletes each
-      // page before asking for the next. The double mirrors that with a
-      // snapshot taken on the first page and a numeric offset as the cursor.
       let snapshot = snapshots.get(match);
       if (snapshot === undefined) {
         const pattern = new RegExp(

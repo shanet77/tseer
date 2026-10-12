@@ -1,21 +1,3 @@
-/** Port of nitter's `src/views/community.nim` — the community page
- * container (`renderCommunity`), its Top/Latest/Media/About tabs
- * (`renderCommunityTabs`), the All/Moderators member tabs
- * (`renderMemberTabs`), the hashtag page header (`renderHashtagHeader`),
- * and the About panel (`renderCommunityAbout`).
- *
- * Deliberate divergences from the Nim original (documented at the call
- * sites):
- * - `community.createdAt.format("MMMM d, yyyy")` is hand-rendered in UTC
- *   (no Intl dependency, deterministic output — the formatters' rule; the
- *   full month names mirror `getJoinDate`'s private table). An unset date
- *   (`""`, Nim's zero DateTime) renders "Created by …" without the date.
- * - `tag.strip(chars={'#'})` strips only leading/trailing `#`; the regex
- *   replacement here does the same on both ends.
- * - The banner link signs through the media process globals (same rule as
- *   `list.tsx`).
- */
-
 import type { Community, Query, User } from "@tseer/types";
 import { QueryKind } from "@tseer/types";
 import type { VNode } from "preact";
@@ -38,16 +20,12 @@ const MONTHS = [
   "December",
 ];
 
-/** Nim `community.createdAt.format("MMMM d, yyyy")`, rendered by hand in
- * UTC. `""` means the date is not set (Nim's zero DateTime). */
 function createdDate(iso: string): string {
   const date = new Date(iso);
   if (iso === "" || Number.isNaN(date.getTime())) return "";
   return `${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
 }
 
-/** The zero-default `Query(kind)` the tabs key their active state on
- * (upstream's `Query(kind: kind)` constructor). */
 function tabQuery(kind: QueryKind): Query {
   return {
     kind,
@@ -64,8 +42,6 @@ function tabQuery(kind: QueryKind): Query {
   };
 }
 
-/** community.nim `renderCommunityTabs`: Top/Latest/Media/About under
- * `/i/communities/:id`, plus the community's trending hashtags. */
 export function renderCommunityTabs(kind: QueryKind, community: Community): VNode {
   const path = `/i/communities/${community.id}`;
   const query = tabQuery(kind);
@@ -101,8 +77,6 @@ export function renderCommunityTabs(kind: QueryKind, community: Community): VNod
   );
 }
 
-/** community.nim `renderMemberTabs`: All/Moderators under
- * `/i/communities/:id`. */
 export function renderMemberTabs(community: Community, isModerators: boolean): VNode {
   const path = `/i/communities/${community.id}`;
   return (
@@ -117,8 +91,6 @@ export function renderMemberTabs(community: Community, isModerators: boolean): V
   );
 }
 
-/** community.nim `renderHashtagHeader` (the `community` param is unused
- * upstream too; the signature is kept for parity). */
 export function renderHashtagHeader(_community: Community, tag: string): VNode {
   return (
     <div class="community-hashtag-header">
@@ -127,8 +99,6 @@ export function renderHashtagHeader(_community: Community, tag: string): VNode {
   );
 }
 
-/** community.nim `renderCommunityAbout`: the join policy, visibility and
- * creation info items, the rules list, and the moderator strip. */
 export function renderCommunityAbout(community: Community, moderators: User[]): VNode {
   const created = createdDate(community.createdAt);
   return (
@@ -202,8 +172,6 @@ export function renderCommunityAbout(community: Community, moderators: User[]): 
   );
 }
 
-/** community.nim `renderCommunity`: banner, name/category/description,
- * member count, then the tabs (nav) and the timeline/about body. */
 export function renderCommunity(body: VNode, nav: VNode, community: Community): VNode {
   return (
     <div class="timeline-container">

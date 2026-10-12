@@ -1,4 +1,3 @@
-/** `@tseer/http-client` — `ctx.http` seam: undici pool, proxy, retry, CF detection. */
 export { applyApiProxy, normalizeApiProxy, usesApiProxy } from "./api-proxy.ts";
 export { createDispatcher, DEFAULT_TIMEOUT_MS, UndiciHttpClient } from "./client.ts";
 export { cfTitle, isCloudflareHtml } from "./cloudflare.ts";

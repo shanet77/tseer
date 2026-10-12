@@ -1,7 +1,3 @@
-/** Article renderer tests — port fidelity for `views/article` (the
- * `views/article.nim` port: `renderArticle` + the paragraph/entity
- * renderers, inline style wrapping, mention linkification, list grouping). */
-
 import { preferencesSchema, type TseerPreferences } from "@tseer/prefs";
 import { type Article, type Tweet, type User, VerifiedType } from "@tseer/types";
 import { renderToString } from "preact-render-to-string";
@@ -206,7 +202,6 @@ describe("renderArticle paragraphs", () => {
       ),
     );
     expect(html).toContain('<a href="/bob_1">@bob_1</a>');
-    // the `@` inside `hi@notament` is preceded by a word character → plain text
     expect(html).toContain("hi@notament");
   });
 

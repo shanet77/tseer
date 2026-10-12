@@ -1,11 +1,3 @@
-/**
- * Redis cache store. Values are JSON text, never flatty/snappy: the plan drops
- * the binary encoding because the parsers already produce plain objects and
- * debuggability beats a few hundred KB on a personal instance.
- *
- * The store talks to the narrow `RedisLike` port, so tests inject a fake and CI
- * never needs a redis server.
- */
 import type { CacheStore, RedisCacheOptions, RedisLike } from "./types.ts";
 
 const DEFAULT_SCAN_COUNT = 500;
@@ -21,7 +13,6 @@ export class RedisCacheStore implements CacheStore {
     this.ownsClient = options.client === undefined;
   }
 
-  /** Builds a store from options, deferring to an injected client when present. */
   static async create(options: RedisCacheOptions = {}): Promise<RedisCacheStore> {
     if (options.client !== undefined) return new RedisCacheStore(options.client, options);
     if (options.createClient === undefined) {

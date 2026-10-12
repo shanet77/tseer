@@ -41,7 +41,6 @@ describe("twitterApiPlugin", () => {
     ctx.provide("http", http);
     ctx.provide("accounts", pool);
     await ctx.plugin(parsersPlugin, {});
-    // disableTid keeps this test off the network (no pair fetch).
     const fiber = await ctx.plugin(twitterApiPlugin, { disableTid: true });
 
     expect(ctx.twitter).toBeDefined();
@@ -49,9 +48,6 @@ describe("twitterApiPlugin", () => {
     expect(user).toMatchObject({ id: "1", username: "nasa" });
     expect(http.calls).toBe(1);
 
-    // Real headers flowed through: the pool recorded the endpoint's rate limit
-    // only if the response headers were fed back (none here), and the lease
-    // came back to zero pending.
     expect(pool.all()[0]?.pending).toBe(0);
 
     await fiber.dispose();

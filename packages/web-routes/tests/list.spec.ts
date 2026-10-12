@@ -1,9 +1,3 @@
-/** List route plugin tests — fastify `inject` against a context with a
- * stubbed `ctx.twitter`, proving the seams are real (plan §6). Pins the
- * `respList` gate, the slug redirect, the members tab, and the upstream
- * divergences documented in `src/list.ts` (404 on unknown lists instead of
- * the nil-timeline 500; the posts-kind envelope query). */
-
 import { prefsPlugin } from "@tseer/prefs";
 import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
@@ -87,10 +81,8 @@ describe("listPlugin", () => {
     expect(res.body).toContain("&quot;Space&quot; by @nasa");
     expect(res.body).toContain('<div class="timeline-description">orbital updates</div>');
     expect(res.body).toContain('href="/i/lists/7/members"');
-    // banner rides the shell head and the signed timeline-banner link
     expect(res.body).toContain("timeline-banner");
     expect(res.body).toContain("/pic/https://pbs.twimg.com/profile_banners/list/1500.jpg");
-    // rss link gated on enableRSSList (default on)
     expect(res.body).toContain('href="/i/lists/7/rss"');
     expect(res.body).toContain("hello world");
 
@@ -104,10 +96,8 @@ describe("listPlugin", () => {
 
     const res = await ctx.server.inject({ url: "/i/lists/7" });
     expect(res.body).toContain('class="tab-item active"');
-    // posts-kind query: the "Load more" link carries only the cursor
     expect(res.body).toContain("cursor=CURSOR123");
     expect(res.body).not.toContain("f=tweets");
-    // the envelope the fetcher returned (tweets-kind) is overwritten
     expect(twitter.list).toHaveBeenCalledTimes(1);
   });
 
@@ -166,15 +156,10 @@ describe("listPlugin", () => {
     expect(idMissing.status).toBe(404);
     expect(idMissing.body).toContain("List &quot;0&quot; not found");
 
-    // `cond @"name" != "i"`: /i/lists/space can't reach the slug route — the
-    // radix router sends every /i/lists/* path to the static-segment id route
-    // (as upstream's Jester does with its own static segments), where it
-    // fails the list lookup instead.
     const slugAsId = await ctx.server.inject({ url: "/i/lists/space" });
     expect(slugAsId.status).toBe(404);
     expect(slugAsId.body).toContain("List &quot;space&quot; not found");
 
-    // `cond @"slug" != "memberships"` reserves the members tab's future name
     const memberships = await ctx.server.inject({ url: "/nasa/lists/memberships" });
     expect(memberships.status).toBe(404);
     expect(memberships.body).toContain("Page not found");

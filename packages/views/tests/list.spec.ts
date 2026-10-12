@@ -1,6 +1,3 @@
-/** List renderer tests — port fidelity for `views/list` (the
- * `views/list.nim` port: `renderListTabs` + `renderList`). */
-
 import type { List } from "@tseer/types";
 import { type Query, QueryKind } from "@tseer/types";
 import { h } from "preact";
@@ -54,15 +51,11 @@ describe("renderListTabs", () => {
 
     const members = renderToString(renderListTabs(makeQuery(QueryKind.userList), "/i/lists/7"));
     expect(members).toContain("Members");
-    // exactly one active tab in each render
     expect(members.match(/tab-item active/g)).toHaveLength(1);
     expect(tweets.match(/tab-item active/g)).toHaveLength(1);
   });
 });
 
-/** The list page body, built with preact's `h` (the DOM-specific VNode
- * overload is not assignable to plain `VNode` under
- * `exactOptionalPropertyTypes`, so the parameter accepts what `h` returns). */
 type AnyVNode = ReturnType<typeof h>;
 
 describe("renderList", () => {
@@ -98,7 +91,6 @@ describe("renderList", () => {
     );
     expect(html).not.toContain("<b>evil</b>");
     expect(html).not.toContain("<script>");
-    // preact escapes `<` (and quotes) but passes `>` through
     expect(html).toContain("&lt;b>evil&lt;/b>");
     expect(html).toContain("&lt;script>alert(1)&lt;/script>");
   });

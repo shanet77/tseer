@@ -1,6 +1,3 @@
-/** `@tseer/views` — `ctx.render` seam (page shell), the tweet/timeline/
- * profile/search view components, and formatters. */
-
 export { renderAboutAccount } from "./about-account.tsx";
 export { renderArticle } from "./article.tsx";
 export { renderBroadcast } from "./broadcast.tsx";

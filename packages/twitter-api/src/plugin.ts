@@ -1,14 +1,3 @@
-/**
- * `twitterApiPlugin` — the default `ctx.twitter` provider (plan §1's
- * "the provider seam"). Wires the platform seams together: `ctx.accounts`
- * (lease/release), `ctx.http` (transport), `tid.nim` (transaction ids), and
- * the `apiutils.nim` fetch loop.
- *
- * `inject` defers execution until `accounts` and `http` are provided (same
- * pattern as `mediaRoutePlugin`), so mount order only needs the seams to
- * exist *eventually* — and a context without sessions never provides
- * `ctx.twitter` at all.
- */
 import type { HttpClient } from "@tseer/http-client";
 import type { Parsers } from "@tseer/twitter-parser";
 import type { Accounts, Session } from "@tseer/twitter-sessions";
@@ -21,16 +10,10 @@ import { createTidGenerator } from "./tid.ts";
 
 declare module "cordis" {
   interface Context {
-    /** Plan §3 provider seam: parsed domain objects (fetch → parse). */
     twitter: TwitterApi;
   }
 }
 
-/**
- * Subset of `ctx.config` this seam reads. Declared locally so `twitter-api`
- * never imports `@tseer/kernel` (import boundaries are seams); the kernel's
- * `TseerConfig` satisfies it structurally.
- */
 interface TwitterConfig {
   disableTid?: boolean | undefined;
   maxRetries?: number | undefined;
@@ -38,11 +21,8 @@ interface TwitterConfig {
 }
 
 export interface TwitterApiPluginOptions {
-  /** nitter `disableTid`: drop `x-client-transaction-id`, use bearer v2. */
   disableTid?: boolean | undefined;
-  /** nitter `maxRetries`: fetch attempts across sessions (default 1). */
   maxRetries?: number | undefined;
-  /** nitter `retryDelayMs`: delay between attempts (default 150). */
   retryDelayMs?: number | undefined;
 }
 
@@ -68,7 +48,6 @@ export default function twitterApiPlugin(
   const maxRetries = options.maxRetries ?? config?.maxRetries ?? 1;
   const retryDelayMs = options.retryDelayMs ?? config?.retryDelayMs ?? 150;
 
-  // Lazy: no network happens until the first tid is needed.
   const tid = createTidGenerator();
   const fetcher = createFetcher(
     {

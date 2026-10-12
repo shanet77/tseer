@@ -1,8 +1,3 @@
-/**
- * Entity-metadata parsers — the port of `parser.nim`'s `parseBroadcastInfo`,
- * `parseSpaceParticipant`, `parseAudioSpace`, `parseGraphCommunity`,
- * `parseListObject`, `parseGraphList`, and `parseGraphSearchList`.
- */
 import type {
   AudioSpace,
   Broadcast,
@@ -16,7 +11,6 @@ import { fromUnixMilliseconds } from "./dates.ts";
 import { at, each, imageStr, type Json, num, numDef, pick, str } from "./json.ts";
 import { parseGraphUser } from "./user.ts";
 
-/** Port of `parseBroadcastInfo`. */
 export function parseBroadcastInfo(js: Json): Broadcast {
   const empty: Broadcast = {
     id: "",
@@ -56,7 +50,6 @@ function bool(js: Json, ...keys: string[]): boolean {
   return typeof value === "boolean" ? value : false;
 }
 
-/** Port of `parseSpaceParticipant`. */
 export function parseSpaceParticipant(js: Json): SpaceParticipant {
   return {
     userId: str(js, "user_results", "rest_id"),
@@ -67,7 +60,6 @@ export function parseSpaceParticipant(js: Json): SpaceParticipant {
   };
 }
 
-/** Port of `parseAudioSpace`. */
 export function parseAudioSpace(js: Json): AudioSpace {
   const empty: AudioSpace = {
     id: "",
@@ -123,7 +115,6 @@ export function parseAudioSpace(js: Json): AudioSpace {
   return result;
 }
 
-/** Port of `parseGraphCommunity`. */
 export function parseGraphCommunity(js: Json): Community {
   const empty: Community = {
     id: "",
@@ -169,7 +160,6 @@ export function parseGraphCommunity(js: Json): Community {
   return result;
 }
 
-/** Port of `parseListObject`. */
 export function parseListObject(js: Json, owner: User): List {
   const banner = pick(
     at(js, "custom_banner_media", "media_info", "original_img_url"),
@@ -186,7 +176,6 @@ export function parseListObject(js: Json, owner: User): List {
   };
 }
 
-/** Port of `parseGraphList`. */
 export function parseGraphList(js: Json): List {
   const list = pick(at(js, "data", "user_by_screen_name", "list"), at(js, "data", "list"));
   if (list === undefined) {
@@ -195,7 +184,6 @@ export function parseGraphList(js: Json): List {
   return parseListObject(list, parseGraphUser(list));
 }
 
-/** Port of `parseGraphSearchList`. */
 export function parseGraphSearchList(js: Json): ListSearchResult {
   const owner: User = parseGraphUser(js);
   const result: ListSearchResult = {

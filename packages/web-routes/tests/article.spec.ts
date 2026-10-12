@@ -1,9 +1,3 @@
-/** Article route plugin tests — fastify `inject` against a context with a
- * stubbed `ctx.twitter`, proving the seams are real (plan §6). Pins the
- * digit cond, the `Article not found` gate, the embedded-tweet batch fetch
- * (with its verbatim swallow-everything fallback), the two redirect routes,
- * and the canonical "Open in X" link. */
-
 import { prefsPlugin } from "@tseer/prefs";
 import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";

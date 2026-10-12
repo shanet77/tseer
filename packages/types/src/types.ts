@@ -1,24 +1,4 @@
-/**
- * Domain model ported from nitter's `src/types.nim` (domain part), plus the
- * error shapes from `src/experimental/types/common.nim`. Pure types + enums —
- * no framework imports. `Config` and `Session` live with their owning packages.
- *
- * Translation decisions vs the Nim original:
- *   - `int64` ids → `string` (ids travel through URLs and JSON).
- *   - Nim `DateTime` → ISO 8601 UTC string (see `DateTime`) so domain objects
- *     survive `JSON.stringify` for the cache seam.
- *   - Nim `Option[T]` → optional property typed `T | undefined` (explicit
- *     `undefined` stays assignable under `exactOptionalPropertyTypes`).
- *   - Nim case objects → discriminated unions (`Media`).
- *   - Nim `Error` → `ApiErrorCode` (the bare name would shadow the global).
- */
-
-/** ISO 8601 UTC timestamp string; port of Nim's `DateTime` (JSON/cache-safe). */
 export type DateTime = string;
-
-// ---------------------------------------------------------------------------
-// Enums
-// ---------------------------------------------------------------------------
 
 export enum TimelineKind {
   tweets = "tweets",
@@ -34,9 +14,7 @@ export enum VerifiedType {
   Government = "Government",
 }
 
-/** Numeric codes X returns in GraphQL error payloads. */
 export enum ApiErrorCode {
-  /** nitter: `null = 0` (no error). */
   none = 0,
   noUserMatches = 17,
   protectedUser = 22,
@@ -102,24 +80,13 @@ export interface Query {
   sep: string;
 }
 
-// ---------------------------------------------------------------------------
-// Rate limits (the `Session` object lives in twitter-sessions; this is the
-// shared vocabulary between http-client, twitter-sessions, and twitter-api)
-// ---------------------------------------------------------------------------
-
 export interface RateLimit {
   limit: number;
   remaining: number;
   reset: number;
 }
 
-/** Raw rate-limit headers passed to `Accounts.release()`. Same shape as `RateLimit`. */
 export type RateLimitHeaders = RateLimit;
-
-// ---------------------------------------------------------------------------
-// Errors — raised by provider packages (api/http/sessions), caught by the
-// server boot's error handlers (nitter.nim `error` blocks) → status codes
-// ---------------------------------------------------------------------------
 
 export class RateLimitError extends Error {
   constructor(message = "rate limited") {
@@ -150,12 +117,10 @@ export class BadClientError extends Error {
 }
 
 export interface ErrorObj {
-  /** Numeric X error code; parsers cast raw JSON numbers at the boundary. */
   code: ApiErrorCode;
   message: string;
 }
 
-/** A GraphQL error payload. */
 export interface Errors {
   errors: ErrorObj[];
 }
@@ -163,10 +128,6 @@ export interface Errors {
 export function containsErrorCode(codes: readonly ApiErrorCode[], errors: Errors): boolean {
   return errors.errors.some((error) => codes.includes(error.code));
 }
-
-// ---------------------------------------------------------------------------
-// Users
-// ---------------------------------------------------------------------------
 
 export interface User {
   id: string;
@@ -207,10 +168,6 @@ export interface AccountInfo {
   overrideVerifiedYear: number;
 }
 
-// ---------------------------------------------------------------------------
-// Broadcasts & audio spaces
-// ---------------------------------------------------------------------------
-
 export interface Broadcast {
   id: string;
   title: string;
@@ -249,10 +206,6 @@ export interface AudioSpace {
   admins: SpaceParticipant[];
   speakers: SpaceParticipant[];
 }
-
-// ---------------------------------------------------------------------------
-// Media
-// ---------------------------------------------------------------------------
 
 export enum VideoType {
   m3u8 = "application/x-mpegURL",
@@ -310,10 +263,6 @@ export interface GalleryPhoto {
 }
 
 export type PhotoRail = GalleryPhoto[];
-
-// ---------------------------------------------------------------------------
-// Cards, polls, tweet stats
-// ---------------------------------------------------------------------------
 
 export enum CardKind {
   amplify = "amplify",
@@ -375,10 +324,6 @@ export interface ArticlePreview {
   tweetId: string;
 }
 
-// ---------------------------------------------------------------------------
-// Tweets
-// ---------------------------------------------------------------------------
-
 export interface Tweet {
   id: string;
   threadId: string;
@@ -386,14 +331,12 @@ export interface Tweet {
   user: User;
   text: string;
   time: DateTime;
-  /** Usernames being replied to ("Replying to @a @b"); nitter: `reply`. */
   reply: string[];
   pinned: boolean;
   hasThread: boolean;
   available: boolean;
   tombstone: string;
   location: string;
-  /** Unused, needed for backwards compat (kept verbatim from nitter). */
   source: string;
   stats: TweetStats;
   retweet?: Tweet | undefined;
@@ -404,7 +347,6 @@ export interface Tweet {
   card?: Card | undefined;
   poll?: Poll | undefined;
   media: MediaEntities;
-  /** Edit-history tweet ids (nitter: `history`). */
   history: string[];
   note: string;
   isAd: boolean;
@@ -419,29 +361,16 @@ export interface EditHistory {
   history: Tweets;
 }
 
-// ---------------------------------------------------------------------------
-// Pagination envelopes & conversations
-// ---------------------------------------------------------------------------
-
-/**
- * nitter's pagination envelope. Kept as `top`/`bottom`/`beginning` cursors
- * (both directions) rather than plan §4's sketched single `cursor?`, because
- * status/profile/search pages paginate in both directions.
- */
 export interface Result<T> {
   content: T[];
-  /** Cursor for loading older items. */
   top: string;
-  /** Cursor for loading newer items. */
   bottom: string;
-  /** True at the start of the list. */
   beginning: boolean;
   query: Query;
 }
 
 export type TimelineResult = Result<Tweet>;
 
-/** Alias of `TimelineResult` matching the Nim name. */
 export type Timeline = TimelineResult;
 
 export type ChainResult = Result<Chain>;
@@ -459,10 +388,6 @@ export interface Conversation {
   after: Chain;
   replies: ChainResult;
 }
-
-// ---------------------------------------------------------------------------
-// Profiles, lists, communities
-// ---------------------------------------------------------------------------
 
 export interface Profile {
   user: User;
@@ -508,10 +433,6 @@ export interface Community {
   hashtags: string[];
 }
 
-// ---------------------------------------------------------------------------
-// Articles (long-form)
-// ---------------------------------------------------------------------------
-
 export interface ArticleStyle {
   offset: number;
   length: number;
@@ -556,11 +477,6 @@ export interface Article {
   media: Record<string, ArticleMedia>;
 }
 
-// ---------------------------------------------------------------------------
-// Misc
-// ---------------------------------------------------------------------------
-
-/** Per-response dedup tables parsers build before assembling domain objects. */
 export interface GlobalObjects {
   tweets: Record<string, Tweet>;
   users: Record<string, User>;

@@ -1,5 +1,3 @@
-/** `@tseer/media` — `ctx.media` seam: HMAC signing + the streaming media proxy. */
-
 export type { UndiciMediaFetcherOptions } from "./fetcher.ts";
 export { DEFAULT_HEADERS_TIMEOUT_MS, UndiciMediaFetcher } from "./fetcher.ts";
 export type { ProxifyVideoOptions } from "./hls.ts";

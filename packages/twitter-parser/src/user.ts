@@ -1,13 +1,3 @@
-/**
- * User parsers — the port of `parser.nim`'s `parseUser`, `parseGraphUser`,
- * `parseVerifiedType`, and `parseAboutAccount`, plus `parserutils.nim`'s
- * `getBanner`/`expandUserEntities` and the experimental
- * `parseUserResult` (both the legacy `legacy` shape and the modern typed
- * `core`/`avatar`/`relationship_counts` shape feed the same domain `User`).
- *
- * Divergence: the empty id/`DateTime` is `""` (see `dates.ts`); the "unset"
- * counters default to `0`.
- */
 import { type AccountInfo, type User, VerifiedType } from "@tseer/types";
 import { fromUnixMilliseconds, parseTwitterDate } from "./dates.ts";
 import {
@@ -33,7 +23,6 @@ import {
   replaceMentions,
 } from "./slices.ts";
 
-/** A default-constructed `User` (Nim's `User()`). */
 export function newUser(): User {
   return {
     id: "",
@@ -57,13 +46,11 @@ export function newUser(): User {
   };
 }
 
-/** Port of `parseVerifiedType`: keep the current value when the string is unknown. */
 export function parseVerifiedType(s: string, current: VerifiedType): VerifiedType {
   const value = Object.values(VerifiedType).find((v) => v === s);
   return value ?? current;
 }
 
-/** Port of `getBanner` (parserutils.nim). */
 export function getBanner(js: Json): string {
   const url = imageStr(js, "profile_banner_url");
   if (url.length > 0) return url + "/1500x500";
@@ -82,11 +69,6 @@ export function getBanner(js: Json): string {
   return "";
 }
 
-/**
- * Port of `expandUserEntities` (parserutils.nim): rewrite the bio's
- * description URLs into anchors and pull the website out of the profile URL
- * entity. `textLen` is `orig.high` (the last codepoint index), as in Nim.
- */
 export function expandUserEntities(user: User, js: Json): void {
   const orig = [...user.bio];
   const ent = at(js, "entities");
@@ -108,7 +90,6 @@ export function expandUserEntities(user: User, js: Json): void {
   );
 }
 
-/** Port of `parseUser`: a legacy user object (`legacy` payload) to the domain type. */
 export function parseUser(js: Json, id = ""): User {
   const result = newUser();
   if (js === undefined || js === null) return result;
@@ -143,7 +124,6 @@ export function parseUser(js: Json, id = ""): User {
   return result;
 }
 
-/** Port of `parseGraphUser` (parser.nim): `user_result.result`, with the typed-shape fallback. */
 export function parseGraphUser(js: Json): User {
   let user = pick(at(js, "user_result", "result"), at(js, "user_results", "result"));
 
@@ -157,10 +137,6 @@ export function parseGraphUser(js: Json): User {
 
   const result = parseUser(at(user, "legacy"), str(user, "rest_id"));
 
-  // Port of the experimental `parseGraphUser`'s suspended check: parser.nim's
-  // JsonNode path has no suspension handling, but nitter's cache sentinel
-  // (`getCachedUsername` returning "suspended") depends on it, so the
-  // experimental logic is ported into both users paths.
   if (str(user, "unavailable_reason") === "Suspended" || str(user, "reason") === "Suspended") {
     return { ...newUser(), suspended: true };
   }
@@ -169,7 +145,6 @@ export function parseGraphUser(js: Json): User {
     result.verifiedType = VerifiedType.Blue;
   }
 
-  // fallback to support UserMedia/recent GraphQL updates
   if (result.username.length === 0) {
     result.id = str(user, "rest_id");
     result.username = str(user, "core", "screen_name");
@@ -194,14 +169,7 @@ export function parseGraphUser(js: Json): User {
   return result;
 }
 
-/**
- * Port of the experimental `parseUserResult` (graphql.nim): a `UserResult`
- * object from the list-members/followers timelines. Handles both shapes —
- * legacy-first, then the modern typed sub-objects.
- */
 export function parseUserResult(userResult: Json): User {
-  // experimental `parseUserResult`: suspended users have neither legacy nor
-  // typed data, only the marker field.
   if (
     str(userResult, "unavailable_reason") === "Suspended" ||
     str(userResult, "reason") === "Suspended"
@@ -211,7 +179,6 @@ export function parseUserResult(userResult: Json): User {
 
   const result = parseUser(at(userResult, "legacy"));
 
-  // experimental `toUser`: first pinned tweet id (lives on `legacy`)
   const pinned = each(at(userResult, "legacy"), "pinned_tweet_ids_str")[0];
   if (typeof pinned === "string") result.pinnedTweet = idString(pinned);
 
@@ -271,7 +238,6 @@ export function parseUserResult(userResult: Json): User {
   return result;
 }
 
-/** A default-constructed `AccountInfo`. */
 function newAccountInfo(): AccountInfo {
   return {
     username: "",
@@ -292,7 +258,6 @@ function newAccountInfo(): AccountInfo {
   };
 }
 
-/** Port of `parseAboutAccount` (the about-account GraphQL payload). */
 export function parseAboutAccount(js: Json): AccountInfo {
   const result = newAccountInfo();
   if (js === undefined || js === null) return result;

@@ -27,36 +27,23 @@ import type { Context, Plugin } from "cordis";
 import helloPlugin from "./hello.ts";
 
 export interface ProfileOptions {
-  /** Name surfaced by the scaffold `hello` plugin. */
   name?: string;
-  /** Cache backend to mount. Default `memory`. */
   cacheProvider?: "memory" | "redis";
-  /** Skip the cache plugin entirely. */
   withoutCache?: boolean;
-  /** Path to the sessions JSONL store (default: `TSEER_SESSIONS_FILE`, `./sessions.jsonl`). */
   sessionsPath?: string;
-  /** Skip the sessions plugin entirely (no pool, `/.health` stays empty). */
   withoutSessions?: boolean;
-  /** Skip the `ctx.twitter` provider and every route family that consumes it. */
   withoutTwitter?: boolean;
 }
 
 export interface ProfileState {
   options: ProfileOptions;
-  /** Names of the built-in entries that survived resolution (`remove` + requires). */
   mounted: ReadonlySet<string>;
 }
 
 export interface ProfileEntry {
-  /** Stable name, addressable from `[Plugins] remove`. */
   name: string;
   plugin: Plugin;
-  /** Derived at mount time from `ctx.config` and the profile state. */
   options?: (ctx: Context, state: ProfileState) => unknown;
-  /**
-   * Built-in names that must survive resolution for this entry to mount.
-   * Drops cascade: removing `sessions` unmounts the whole X stack.
-   */
   requires?: string[];
   when?: (options: ProfileOptions) => boolean;
 }

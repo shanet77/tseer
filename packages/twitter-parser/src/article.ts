@@ -1,9 +1,3 @@
-/**
- * Article parsing — the port of `experimental/parser/article.nim`
- * (`parseGraphArticle`). Field access mirrors the jsony structs, including
- * the rename hooks (`type` → `block_kind`/`entity_kind`, `__typename` →
- * `type_name`).
- */
 import type {
   Article,
   ArticleEntity,
@@ -15,7 +9,6 @@ import type {
 import { fromUnixSeconds, parseTwitterDate } from "./dates.ts";
 import { at, entries, type Json, num, str } from "./json.ts";
 
-/** First key with an array value (jsony exact-name fields vs snake_case upstream). */
 function eachAlt(node: Json, ...keys: string[]): Json[] {
   for (const key of keys) {
     const value = at(node, key);
@@ -24,7 +17,6 @@ function eachAlt(node: Json, ...keys: string[]): Json[] {
   return [];
 }
 
-/** First key with a numeric value. */
 function numAlt(node: Json, ...keys: string[]): number {
   for (const key of keys) {
     const value = at(node, key);
@@ -42,7 +34,6 @@ function stripImageUrl(url: string): string {
   return result;
 }
 
-/** Port of `parseGraphArticle`; `undefined` when there is no article. */
 export function parseGraphArticle(json: Json): Article | undefined {
   if (typeof json === "string") {
     try {

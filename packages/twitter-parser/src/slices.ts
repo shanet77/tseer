@@ -1,32 +1,10 @@
-/**
- * Entity-slice rewriting — the port of `parserutils.nim`'s `ReplaceSlice`
- * machinery (`extractUrls`-produced slices → `replacedWith` HTML) plus the
- * `unRegex`/`htRegex` mention/hashtag post-processing and `formatters.nim`'s
- * `shortLink`.
- *
- * Tweet/user text is rewritten on *codepoints* (Nim's `toRunes`), not UTF-16
- * units — X entity indices are codepoint-based, so `[...text]` is the only
- * correct JS indexing here.
- *
- * Divergence from the Nim original: the hashtag regex is `parserutils.nim`'s
- * `re` version everywhere. `experimental/parser/user.nim` used a slightly
- * different `nre` pattern (possessive quantifiers, negative lookahead) for
- * user bios; the ported pattern covers the same cases without the lookahead.
- */
 import { expandedUrl, type Json } from "./json.ts";
 
-/** `utils.nim`/`formatters.nim` constants used by the parsers. */
 export const TWIMG = "pbs.twimg.com/";
 export const HTTPS = "https://";
 
-/** `formatters.nim` `tco`. */
 export const TCO = "https://t.co";
 
-/**
- * `utils.nim` `twitterDomains` + `isTwitterUrl`: hostname match (exact or a
- * `.video.pscp.tv` subdomain). Unparseable input yields `false` (Nim's
- * `parseUri` of garbage has an empty hostname).
- */
 const TWITTER_DOMAINS = new Set([
   "twitter.com",
   "pic.twitter.com",
@@ -51,30 +29,19 @@ export function isTwitterUrl(url: string): boolean {
   }
 }
 
-/** `formatters.nim` `shorten` (28 chars + ellipsis). */
 export function shorten(text: string, length = 28): string {
   return text.length > length ? text.slice(0, length) + "…" : text;
 }
 
-/** `formatters.nim` `shortLink`: strip the `www0.` host prefix, then shorten. */
 export function shortLink(text: string, length = 28): string {
   return shorten(text.replace(/^https?:\/\/(www[0-9]?\.)?/, ""), length);
 }
 
-/**
- * `htmlgen.a(text, href, title)` — the anchor form the replaced text uses.
- * Ported verbatim: text and href go in raw (Nim escapes neither; the callers
- * escape what parserutils.nim escapes), only `title` is attribute-escaped.
- */
 export function anchor(text: string, href: string, title?: string): string {
   const attrs = `href="${href}"${title === undefined ? "" : ` title="${xmlEscape(title)}"`}`;
   return `<a ${attrs}>${text}</a>`;
 }
 
-/**
- * `xmltree.escape` — the escaping `parserutils.nim` applies to anchor
- * display text (and to note-tweet text at the end of expansion).
- */
 export function xmlEscape(text: string): string {
   return text
     .replaceAll("&", "&amp;")
@@ -87,12 +54,6 @@ export function xmlEscape(text: string): string {
 export type ReplaceSliceKind = "remove" | "url" | "hashtag" | "mention";
 
 export interface ReplaceSlice {
-  /**
-   * Codepoint range, half-open (`a` inclusive, `b` exclusive) — Twitter's
-   * raw entity indices. Nim's `..<` folds the exclusivity into `slice.b` at
-   * construction; this port keeps the raw index and translates each Nim rune
-   * expression (`a.succ .. b` → `slice(a+1, b)`) at its use site.
-   */
   a: number;
   b: number;
   kind: ReplaceSliceKind;
@@ -100,7 +61,6 @@ export interface ReplaceSlice {
   display?: string;
 }
 
-/** Port of `parserutils.nim` `extractSlice`: a URL/hashtag entity's `indices`. */
 export function extractSlice(entity: { indices?: unknown }): { a: number; b: number } {
   const indices = Array.isArray(entity.indices) ? entity.indices : [];
   const a = typeof indices[0] === "number" ? indices[0] : 0;
@@ -108,7 +68,6 @@ export function extractSlice(entity: { indices?: unknown }): { a: number; b: num
   return { a, b };
 }
 
-/** Port of `extractUrls` (the `parserutils.nim` version, with the article/hideTwitter removal cases). */
 export function extractUrls(
   result: ReplaceSlice[],
   entity: Json,
@@ -128,13 +87,11 @@ export function extractUrls(
   }
 }
 
-/** Port of `extractHashtags`. */
 export function extractHashtags(result: ReplaceSlice[], entity: { indices?: unknown }): void {
   const slice = extractSlice(entity);
   result.push({ kind: "hashtag", a: slice.a, b: slice.b });
 }
 
-/** Port of `deduplicate`: drop later slices sharing the same start. */
 export function deduplicate(slices: ReplaceSlice[]): void {
   for (let i = 0; i < slices.length; i += 1) {
     for (let j = i + 1; j < slices.length; ) {
@@ -144,18 +101,10 @@ export function deduplicate(slices: ReplaceSlice[]): void {
   }
 }
 
-/** Port of the `cmp` proc: sorts by `x.slice.a` against `y.slice.b` (kept verbatim, quirk included). */
 export function cmpSlice(x: ReplaceSlice, y: ReplaceSlice): number {
   return x.a < y.b ? -1 : x.a > y.b ? 1 : 0;
 }
 
-/**
- * Port of `replacedWith`: splice the slices into the rune array as HTML
- * anchors. The validity filter (`rep.slice.a >= 0 and rep.slice.b >= 0 and
- * rep.slice.b < runeLen and rep.slice.a <= rep.slice.b`) and the clamped
- * bounds are ported verbatim — upstream entity indices are attacker-
- * controlled and routinely point past the text.
- */
 export function replacedWith(
   runes: string[],
   repls: ReplaceSlice[],

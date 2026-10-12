@@ -1,4 +1,3 @@
-/** `GET /about` route plugin served through `ctx.server`; static HTML stub. */
 import type { HttpServer } from "@tseer/server";
 import type { Context } from "cordis";
 import { renderAbout } from "./about.ts";

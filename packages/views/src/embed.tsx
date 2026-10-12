@@ -1,24 +1,3 @@
-/** Port of nitter's `src/views/embed.nim` (`renderVideoEmbed`,
- * `renderTweetEmbed`, `renderErrorEmbed`) and `src/views/oembed.nimf`
- * (`renderOembedIframe`).
- *
- * Like the `.nimf` templates, the oEmbed iframe is a plain string template.
- * The three embed pages are complete HTML documents built with preact: they
- * share the shell's `renderHead` (no navbar, no container) plus a
- * `<base target="_blank">` so every link inside the iframe opens in a new
- * tab, and inline the static `embedResize.js` resizer.
- *
- * Divergences from the Nim originals:
- * - upstream's `staticRead("../../public/js/embedResize.js")` becomes a
- *   lazily memoized read of `viewsPublicDir()/js/embedResize.js`, inlined as
- *   a raw-HTML sink (same rule as the video overlay in `tweet.tsx`).
- * - the iframe URL is XML-escaped before interpolation, since it lands in
- *   third-party pages; upstream interpolates it raw.
- * - `getVideoEmbed` is used for the og:video meta, which points at this
- *   port's `/i/videos/tweet/<id>` handler (upstream emits `/i/videos/<id>`,
- *   which resolves to the unsupported panel).
- */
-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { TseerPreferences } from "@tseer/prefs";
@@ -43,7 +22,6 @@ function getEmbedResizeJs(): string {
   return embedResizeJs;
 }
 
-/** oembed.nimf `renderOembedIframe`: the resizable iframe string template. */
 export function renderOembedIframe(embedUrl: string, maxwidth = 550): string {
   const src = escapeXml(embedUrl);
   return (
@@ -81,7 +59,6 @@ function resizeScript(): VNode {
   return <script dangerouslySetInnerHTML={{ __html: getEmbedResizeJs() }} />;
 }
 
-/** views/embed.nim `renderVideoEmbed`. */
 export function renderVideoEmbed(tweet: Tweet, cfg: PageConfig, prefs: TseerPreferences): string {
   const video = getVideos(tweet)[0];
   if (video === undefined) {
@@ -110,7 +87,6 @@ export function renderVideoEmbed(tweet: Tweet, cfg: PageConfig, prefs: TseerPref
   return doctype + renderToString(node);
 }
 
-/** views/embed.nim `renderTweetEmbed`. */
 export function renderTweetEmbed(
   tweet: Tweet,
   path: string,
@@ -139,7 +115,6 @@ export function renderTweetEmbed(
   return doctype + renderToString(node);
 }
 
-/** views/embed.nim `renderErrorEmbed`. */
 export function renderErrorEmbed(
   error: string,
   prefs: TseerPreferences,

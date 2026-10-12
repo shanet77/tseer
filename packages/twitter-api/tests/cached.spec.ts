@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { createDomainTwitterApi } from "../src/domain.ts";
 import type { RawTwitterApi } from "../src/fetchers.ts";
 
-/** Raw upstream bodies shaped for the parsers. */
 function stubRaw(handlers: Partial<RawTwitterApi>): RawTwitterApi {
   const base = {
     user: async () => userPayload(),
@@ -147,8 +146,6 @@ describe("createCachedMethods", () => {
 
     expect((await api.cachedList("jack", "slug"))?.id).toBe("56");
     expect((await api.cachedList("jack", "slug"))?.id).toBe("56");
-    // nitter's slug path never reads the cache — it refetches and re-caches
-    // under the resolved id, so both calls fetch
     expect(bySlug).toBe(2);
     expect(await cache.get("l", "56")).toMatchObject({ id: "56" });
   });

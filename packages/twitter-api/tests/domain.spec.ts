@@ -5,7 +5,6 @@ import { createDomainTwitterApi } from "../src/domain.ts";
 import type { Json } from "../src/fetch.ts";
 import type { RawTwitterApi } from "../src/fetchers.ts";
 
-/** A scripted stub: each method answers the JSON body its test provides. */
 function stubRaw(handlers: Partial<RawTwitterApi>): RawTwitterApi {
   const base: RawTwitterApi = {
     user: async () => "{}",
@@ -191,7 +190,6 @@ describe("createDomainTwitterApi", () => {
       search: async () => ({ json: { data: {} } as Json, beginning: false }),
     });
     const parsers = new Parsers();
-    // a parser override makes the fixture simple while exercising the wrapper
     const disposer = parsers.register("searchTweets", (json, options) => ({
       content: [{ id: "1" }],
       top: "",

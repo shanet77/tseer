@@ -1,36 +1,3 @@
-/**
- * The audio-space routes — port of nitter's `src/routes/space.nim`
- * (`/i/spaces/@id` + `/i/spaces/@id/stream`), plus the error pages nitter's
- * `nitter.nim` maps the fetch errors to.
- *
- * Same four-seam shape as the timeline/status/search/rss plugins (`server` +
- * `twitter` + `render` + `prefs` via static `.inject`, `ctx.effect` cleanup,
- * `guard` error mapping). The space object rides `twitter.cachedSpace` (the
- * `getCachedAudioSpace` port), and the page component comes from
- * `views/space`; this file owns routes, conds, and the stream plumbing.
- *
- * Divergences from the Nim original (documented at the call sites):
- * - Jester's `cond @"id".allCharsInSet({'a'..'z','A'..'Z','0'..'9'})` is an
- *   in-handler check: a failed cond skips the route upstream and falls through
- *   to the global 404 handler (`showError("Page not found")`), which is what
- *   both routes answer here. `:id` therefore stays dot-allowing at match time
- *   (nitter has no match-time cond on it).
- * - The stream route's missing-manifest 404 and empty-manifest 502 are *bare*
- *   (no error page), verbatim; only thrown fetch errors get the `guard` pages.
- * - The stream route answers `VideoType.m3u8` (`application/x-mpegURL`) —
- *   nitter's `m3u8Mime` here is `application/vnd.apple.mpegurl` (the media
- *   route's constant); `VideoType.m3u8` is the enum's own wire value and the
- *   value this port's `@tseer/types` carries.
- * - Manifest fetching reuses `@tseer/media`'s `safeFetchText` (the port of
- *   nitter's `safeFetch` over the streaming media fetcher) — never `ctx.http`,
- *   whose buffering + Cloudflare-retry semantics are wrong for manifests. The
- *   plugin owns a dedicated `UndiciMediaFetcher` (same shape as
- *   `mediaRoutePlugin`) and closes it on unload.
- * - Segment rewriting signs through the views' process-global `getVidUrl`
- *   (installed by `renderPlugin`), exactly like nitter's process-global
- *   `getVidUrl` — no fifth (`media`) seam, matching the sibling plugins.
- */
-
 import type { MediaFetcher, SafeFetchOptions } from "@tseer/media";
 import { proxifyVideo, safeFetchText, UndiciMediaFetcher } from "@tseer/media";
 import type { PrefsService, TseerPreferences } from "@tseer/prefs";
@@ -47,7 +14,6 @@ import { getVidUrl, type Render, renderSpace } from "@tseer/views";
 import type { Context } from "cordis";
 import { createShowError } from "./errors.ts";
 
-/** space.nim's `cond @"id".allCharsInSet({'a'..'z', 'A'..'Z', '0'..'9'})`. */
 const ALNUM = /^[A-Za-z0-9]+$/;
 
 export interface SpaceRouteDeps {
@@ -55,20 +21,14 @@ export interface SpaceRouteDeps {
   twitter: TwitterApi;
   render: Render;
   prefs: PrefsService;
-  /** nitter's `safeFetch` over the m3u8 manifest; failures collapse to `""`. */
   fetchManifest: (url: string) => Promise<string>;
 }
 
-/** Options for {@link spacePlugin} — the fetcher it streams manifests with. */
 export interface SpacePluginOptions {
-  /** Transport override (tests, or a shared pool owned elsewhere). */
   fetcher?: MediaFetcher | undefined;
-  /** `config.proxy` / `config.proxyAuth`, for the default fetcher. */
   proxy?: string | undefined;
   proxyAuth?: string | undefined;
-  /** `config.httpMaxConns`, for the default fetcher's pool. */
   maxConns?: number | undefined;
-  /** Headers-phase timeout in milliseconds. */
   headersTimeoutMs?: number | undefined;
 }
 
@@ -81,7 +41,6 @@ export function registerSpaceRoutes(deps: SpaceRouteDeps): () => void {
 
   const showError = createShowError(render);
 
-  /** nitter.nim's error pages: the fetch loop's failures get real pages. */
   async function guard(
     reply: AppReply,
     requestPrefs: TseerPreferences | undefined,
@@ -125,7 +84,6 @@ export function registerSpaceRoutes(deps: SpaceRouteDeps): () => void {
     }
   }
 
-  /** `GET /i/spaces/@id` — the space page (`renderSpace` under the shell). */
   async function showSpace(req: AppRequest, reply: AppReply): Promise<void> {
     const id = req.params["id"] ?? "";
     const requestPrefs = prefs.parse(req.cookies, req.query);
@@ -149,11 +107,6 @@ export function registerSpaceRoutes(deps: SpaceRouteDeps): () => void {
     );
   }
 
-  /**
-   * `GET /i/spaces/@id/stream` — the m3u8, segments rewritten through this
-   * instance. The 404 (no manifest URL) and 502 (dead manifest) are bare,
-   * verbatim.
-   */
   async function showSpaceStream(req: AppRequest, reply: AppReply): Promise<void> {
     const id = req.params["id"] ?? "";
     const requestPrefs = prefs.parse(req.cookies, req.query);
@@ -179,9 +132,6 @@ export function registerSpaceRoutes(deps: SpaceRouteDeps): () => void {
     await reply.send(proxified, VideoType.m3u8);
   }
 
-  // Both routes answer the alnum cond failure with the global 404 page, so
-  // each handler runs under the same `guard` as its siblings (a rate-limited
-  // space fetch is a 429 page, not a crash).
   route({
     method: "GET",
     path: "/i/spaces/:id",
@@ -199,9 +149,6 @@ export function registerSpaceRoutes(deps: SpaceRouteDeps): () => void {
   };
 }
 
-/**
- * The space route plugin: `ctx.server` + `ctx.twitter` + `ctx.render` +
- * `ctx.prefs`. Unload it and only these routes disappear. */
 export default function spacePlugin(ctx: Context, options: SpacePluginOptions = {}): () => void {
   const server = ctx.get("server" as never) as HttpServer | undefined;
   const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
@@ -216,8 +163,6 @@ export default function spacePlugin(ctx: Context, options: SpacePluginOptions = 
   if (prefs === undefined)
     throw new Error("space: ctx.prefs is not mounted (load prefsPlugin first)");
 
-  // A caller-supplied fetcher is the caller's to close; only one we build here
-  // is ours to tear down (same shape as `mediaRoutePlugin`).
   const fetcher =
     options.fetcher ??
     new UndiciMediaFetcher({
@@ -233,9 +178,6 @@ export default function spacePlugin(ctx: Context, options: SpacePluginOptions = 
     onRetry: (message) => ctx.logger.debug(message),
   };
 
-  // cordis rc.10 does not run a plugin's returned disposer through
-  // fiber.dispose(); the cleanup must be a real effect (same as the other
-  // route plugins).
   const disposeRoutes = registerSpaceRoutes({
     server,
     twitter,

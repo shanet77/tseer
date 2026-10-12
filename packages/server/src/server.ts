@@ -1,4 +1,3 @@
-/** Fastify-backed `HttpServer` (default provider); disposed routes answer 404 (fastify can't unregister). */
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { toAppReply } from "./reply.ts";
 import {
@@ -25,7 +24,6 @@ type HttpServerStatic = {
   (spec: StaticSpec): () => void;
 };
 
-/** Implementation behind `ctx.server` (created by `serverPlugin`). */
 export class FastifyHttpServer {
   readonly route: (spec: RouteSpec) => () => void;
   readonly hook: (handler: RequestHook) => () => void;
@@ -49,8 +47,6 @@ export class FastifyHttpServer {
       reply.header("content-type", "text/plain; charset=utf-8");
       reply.send(`internal server error: ${error.message}`);
     });
-    // Forms post urlencoded bodies (the preferences routes); fastify ships
-    // JSON/text parsers only, so the seam parses them into `req.form` itself.
     this.fastify.addContentTypeParser(
       "application/x-www-form-urlencoded",
       { parseAs: "string" },
@@ -84,10 +80,6 @@ export class FastifyHttpServer {
     };
 
     this.hook = (handler) => {
-      // Jester's `before`: runs before every handler, may reply itself
-      // (redirect short-circuits routing via `reply.sent`) or continue.
-      // Like routes, a disposed hook becomes a no-op — fastify can't remove
-      // an instance hook after registration.
       let active = true;
       const wrapped = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
         if (!active) return;
@@ -167,8 +159,6 @@ export class FastifyHttpServer {
     const directory = typeof prefixOrSpec === "string" ? dir : prefixOrSpec.dir;
     if (directory === undefined) throw new Error("server: static() requires a directory");
     const clean = normalizePrefix(prefix);
-    // Root prefix (`/`) becomes a `/*` wildcard: fastify's radix router gives
-    // specific routes precedence, so registered routes always beat static.
     const routeUrl = clean === "/" ? "/*" : `${clean}/*`;
     let active = true;
     this.fastify.get(routeUrl, async (request, reply) => {

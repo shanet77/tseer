@@ -1,4 +1,3 @@
-/** `@tseer/server` — `ctx.server` seam: fastify listener, route registry. */
 export { default as serverPlugin } from "./plugin.ts";
 export { toAppReply } from "./reply.ts";
 export {

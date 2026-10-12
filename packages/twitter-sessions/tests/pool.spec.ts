@@ -34,7 +34,6 @@ function makePool(sessions: ReturnType<typeof createSession>[], options = {}) {
   return new SessionPool(sessions, { now: () => NOW, random: () => 0, ...options });
 }
 
-/** Narrow `pool.all()[i]` for the assertions below (fixtures are fixed-size). */
 function at(pool: SessionPool, index: number): ReturnType<typeof createSession> {
   const session = pool.all()[index];
   if (session === undefined) throw new Error(`fixture is missing session at index ${index}`);
@@ -245,9 +244,7 @@ describe("snowflakeToEpoch", () => {
     expect(snowflakeToEpoch("0")).toBe(0);
     expect(snowflakeToEpoch("")).toBe(0);
     expect(snowflakeToEpoch("not-a-number")).toBe(0);
-    // 4194304 >> 22 == 1 ms past the twitter epoch (1288834974657).
     expect(snowflakeToEpoch("4194304")).toBeCloseTo(1288834974.658, 3);
-    // 4194304000 >> 22 == 1000 ms past the twitter epoch.
     expect(snowflakeToEpoch("4194304000")).toBeCloseTo(1288834975.657, 3);
   });
 });

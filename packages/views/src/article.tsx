@@ -1,21 +1,3 @@
-/** Port of nitter's `src/views/article.nim` — the long-form article page
- * (`renderArticle`) and its paragraph renderers (`renderAtomicParagraph`,
- * `renderTextParagraph`) with the inline-style/mention machinery
- * (`wrapStyle`, `addContent`, `applyInlineStyles`).
- *
- * Deliberate divergences from the Nim original (documented at the call
- * sites):
- * - Nim builds VNodes imperatively (`target.add`, mutating a `list` node);
- *   the port accumulates child arrays and wraps them in one JSX expression —
- *   same tree, no mutation. The list grouping state machine (`listKind`) is
- *   an items-array flush instead of a swapped node reference.
- * - `target="_blank"` anchors carry `rel="noopener"` (the same convention
- *   `renderPhotoAttachment` already applies over upstream's bare target).
- * - Embedded tweets, media URLs and the cover sign through the media
- *   process globals (`getVidUrl`/`getSmallPic`/`getOrigPicUrl`), exactly
- *   like nitter's process-global `getVidUrl` et al.
- */
-
 import { isTwitterUrl } from "@tseer/media";
 import type { TseerPreferences } from "@tseer/prefs";
 import type { Article, ArticleParagraph, ArticleStyle, Tweet, User } from "@tseer/types";
@@ -32,10 +14,8 @@ import {
 } from "./renderutils.tsx";
 import { renderStats, renderTweet } from "./tweet.tsx";
 
-/** Inline-styled content item: plain text or a wrapped node. */
 type Inline = string | VNode;
 
-/** Nim's bitops mask: `testBit(0)` Bold … `testBit(4)` Code. */
 const BOLD = 1 << 0;
 const ITALIC = 1 << 1;
 const STRIKETHROUGH = 1 << 2;
@@ -50,10 +30,8 @@ const STYLE_BITS: Record<string, number> = {
   Code: CODE,
 };
 
-/** Nim `Letters + Digits + {'_'}` for the mention scan. */
 const WORD_CHAR = /^[A-Za-z0-9_]$/;
 
-/** article.nim `wrapStyle`: nesting order code → strong → em → del → u. */
 function wrapStyle(node: Inline, style: number): Inline {
   let result = node;
   if ((style & CODE) !== 0) result = <code>{result}</code>;
@@ -64,9 +42,6 @@ function wrapStyle(node: Inline, style: number): Inline {
   return result;
 }
 
-/** article.nim `addContent`: line breaks become `<br>`, and `@mentions`
- * (up to 15 word characters, not preceded by a word character) become
- * profile links — everything else is plain wrapped text. */
 function addContent(content: string, style = 0): Inline[] {
   const out: Inline[] = [];
   let first = true;
@@ -101,8 +76,6 @@ function addContent(content: string, style = 0): Inline[] {
   return out;
 }
 
-/** article.nim `applyInlineStyles`: split the codepoint range into
- * contiguous same-style runs, each rendered through `addContent`. */
 function applyInlineStyles(
   runes: string[],
   start: number,
@@ -135,15 +108,10 @@ function applyInlineStyles(
   return out;
 }
 
-/** timeline.nim `renderToTop` (kept local like the status/timeline views). */
 function renderToTop(focus = "#"): VNode {
   return <div class="top-ref">{icon("down", "", "", "", focus)}</div>;
 }
 
-/** article.nim `renderTextParagraph`: one content block (header, list item,
- * blockquote, code block or paragraph) with its entity ranges — LINK
- * entities wrap their run in an anchor (twitter URLs are unwrapped to their
- * path), inline styles wrap theirs per `applyInlineStyles`. */
 function renderTextParagraph(paragraph: ArticleParagraph, article: Article): VNode {
   if (paragraph.kind === "code-block") {
     return (
@@ -168,9 +136,7 @@ function renderTextParagraph(paragraph: ArticleParagraph, article: Article): VNo
       let parsed: URL | undefined;
       try {
         parsed = new URL(entity.url);
-      } catch {
-        // Nim's parseUri of garbage has an empty scheme; the run stays inline
-      }
+      } catch {}
       if (parsed !== undefined && (parsed.protocol === "http:" || parsed.protocol === "https:")) {
         const href = isTwitterUrl(entity.url) ? parsed.pathname : entity.url;
         children.push(
@@ -210,8 +176,6 @@ function renderTextParagraph(paragraph: ArticleParagraph, article: Article): VNo
   }
 }
 
-/** Nim's blockquote attribution: a trailing `strong` whose first child is
- * plain text gets `class="blockquote-attribution"`. */
 function withBlockquoteAttribution(node: Inline): Inline {
   if (typeof node === "string" || node.type !== "strong") return node;
   const inner = node.props.children;
@@ -220,9 +184,6 @@ function withBlockquoteAttribution(node: Inline): Inline {
   return <strong class="blockquote-attribution">{node.props.children}</strong>;
 }
 
-/** article.nim `renderAtomicParagraph`: the first entity range picks the
- * block's content — embedded media, an embedded tweet, markdown code, or a
- * divider. */
 function renderAtomicParagraph(
   paragraph: ArticleParagraph,
   article: Article,
@@ -244,8 +205,6 @@ function renderAtomicParagraph(
         const item = article.media[id];
         if (item === undefined || item.url.length === 0) continue;
         if (item.kind === "ApiGif") {
-          // `video(src=…)` upstream; the `<source>` child form is what the
-          // rest of the views use (and what keeps the caption linter quiet)
           media.push(
             <video controls autoplay loop muted>
               <source src={getVidUrl(item.url)} type="video/mp4" />
@@ -277,9 +236,7 @@ function renderAtomicParagraph(
       let key = "";
       try {
         key = BigInt(entity.tweetId).toString();
-      } catch {
-        // Nim: parseBiggestInt raises → 0 → lookup misses
-      }
+      } catch {}
       const tweet = key.length > 0 ? tweets.get(key) : undefined;
       return tweet !== undefined ? renderTweet(tweet, prefs, path) : "";
     }
@@ -304,9 +261,6 @@ function renderAtomicParagraph(
   }
 }
 
-/** article.nim `renderArticle`: cover, title, author row (+ stats unless
- * `hideTweetStats`), then the paragraphs — list items group into `ul`/`ol`
- * until a non-list block arrives. */
 export function renderArticle(
   article: Article,
   tweets: Map<string, Tweet>,

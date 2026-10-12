@@ -1,5 +1,3 @@
-/** `@tseer/twitter-parser` — the `ctx.parsers` registry and default GraphQL response parsers. */
-
 export {
   getMp4Resolution,
   parseBroadcastCard,

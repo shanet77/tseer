@@ -1,13 +1,3 @@
-/** Port of nitter's `src/views/timeline.nim` — pagination chrome, user
- * results, and `renderTimelineTweets`.
- *
- * The parser port flattens threads (`TimelineResult.content` is `Tweet[]`,
- * not `Tweets[]`), so `renderThread` and the multi-tweet-thread branch of
- * `renderTimelineTweets` have no counterpart here — every content item is a
- * single tweet, exactly like the Nim `thread.len == 1` path. `renderThread`
- * comes back with the status/conversation route, which renders chains.
- */
-
 import { encodeUrl } from "@tseer/media";
 import type { TseerPreferences } from "@tseer/prefs";
 import { genQueryUrl } from "@tseer/twitter-api";
@@ -25,7 +15,6 @@ import { getUserPic, insertSep, replaceUrls } from "./formatters.ts";
 import { genImg, getAvatarClass, icon, linkUser, verifiedIcon } from "./renderutils.tsx";
 import { renderTweet } from "./tweet.tsx";
 
-/** timeline.nim `timelineViewClass`. */
 export function timelineViewClass(query: Query): string {
   if (query.kind !== QueryKind.media) return "timeline";
   switch (query.view) {
@@ -38,15 +27,12 @@ export function timelineViewClass(query: Query): string {
   }
 }
 
-/** timeline.nim `getQuery`: the query string prefix for cursor links. */
 export function querySuffix(query: Query): string {
   let result = query.kind !== QueryKind.posts ? genQueryUrl(query) : "";
   if (result.length > 0) result += "&";
   return result;
 }
 
-/** timeline.nim `getSearchMaxId`: a `maxid:` cursor derived from the last
- * tweet, guaranteeing no overlap (2_000_000 minimum decrement). */
 export function getSearchMaxId(results: TimelineResult): string {
   if (
     results.query.kind !== QueryKind.tweets ||
@@ -151,7 +137,6 @@ export function renderTimelineUsers(
   );
 }
 
-/** timeline.nim `mentionUsername`: "@user" → "user" for well-formed mentions. */
 function mentionUsername(word: string): string {
   if (word.length > 1 && word[0] === "@" && /^[A-Za-z0-9_]+$/.test(word.slice(1))) {
     return word.slice(1);
@@ -159,7 +144,6 @@ function mentionUsername(word: string): string {
   return "";
 }
 
-/** timeline.nim `mentionedUser`: the last @mention in "65 followers including @user". */
 function mentionedUser(s: string): string {
   const words = s.split(" ");
   for (let i = words.length - 1; i >= 0; i--) {
@@ -169,7 +153,6 @@ function mentionedUser(s: string): string {
   return "";
 }
 
-/** timeline.nim `renderMentionedText`: linkify @mentions in plain API strings. */
 function renderMentionedText(s: string): VNode {
   const words = s.split(" ");
   return (
@@ -187,7 +170,6 @@ function renderMentionedText(s: string): VNode {
   );
 }
 
-/** timeline.nim `renderListCard`: a list-search result card. */
 export function renderListCard(r: ListSearchResult): VNode {
   const listUrl = `/i/lists/${r.list.id}`;
   return (
@@ -208,7 +190,6 @@ export function renderListCard(r: ListSearchResult): VNode {
         <div class="list-result-context">
           {r.followersContext.length > 0 ? (
             <>
-              {/* the first facepile belongs to the "including @user" account */}
               {r.facepiles.map((facepile, i) => {
                 const mentioned = i === 0 ? mentionedUser(r.followersContext) : "";
                 return mentioned.length > 0 ? (
@@ -243,7 +224,6 @@ export function renderListCard(r: ListSearchResult): VNode {
   );
 }
 
-/** timeline.nim `renderTimelineLists`: paginated list-search results. */
 export function renderTimelineLists(
   results: Result<ListSearchResult>,
   _prefs: TseerPreferences,
@@ -267,9 +247,6 @@ export function renderTimelineLists(
   );
 }
 
-/** timeline.nim `filterThreads`, applied to the flattened content: skip
- * tweets whose retweet target (or id) was already shown, and pinned tweets
- * when hidden. */
 function filterThreads(content: Tweet[], prefs: TseerPreferences): Tweet[] {
   const retweets = new Set<string>();
   const result: Tweet[] = [];
@@ -290,7 +267,6 @@ export function renderTimelineTweets(
   path: string,
   pinned?: Tweet | undefined,
 ): VNode {
-  // parseUri(path).path: the newest-link never carries the query string.
   const barePath = path.split("?")[0] ?? path;
 
   return (

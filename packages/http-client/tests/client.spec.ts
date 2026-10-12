@@ -15,7 +15,6 @@ import {
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => void;
 
-/** Start a loopback HTTP server on an ephemeral port (no external network). */
 async function listen(handler: Handler): Promise<{ origin: string; server: Server }> {
   const server = createServer(handler);
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -24,7 +23,6 @@ async function listen(handler: Handler): Promise<{ origin: string; server: Serve
   return { origin: `http://127.0.0.1:${address.port}`, server };
 }
 
-/** Close a test server, dropping keep-alive sockets first. */
 async function closeServer(server: Server): Promise<void> {
   server.closeAllConnections();
   await new Promise<void>((resolve, reject) => {
@@ -186,7 +184,6 @@ describe("retry policy", () => {
   it("wraps transport errors as RateLimitError", async () => {
     const ctx = new Context();
     await ctx.plugin(httpClientPlugin, { maxRetries: 1 });
-    // Port 1 on loopback: nothing listens there, connection is refused at once.
     await expect(ctx.http.request("http://127.0.0.1:1/never")).rejects.toThrow(RateLimitError);
     await expect(ctx.http.request("http://127.0.0.1:1/never")).rejects.toThrow(
       /transport error:.*\[ECONNREFUSED\]/,
@@ -194,9 +191,7 @@ describe("retry policy", () => {
   });
 
   it("times out unresponsive servers (headers timeout)", async () => {
-    const { origin, server } = await listen(() => {
-      // Never respond; the client's headersTimeout must fire.
-    });
+    const { origin, server } = await listen(() => {});
     try {
       const ctx = new Context();
       await ctx.plugin(httpClientPlugin, { maxRetries: 1, timeoutMs: 100 });
@@ -230,7 +225,6 @@ describe("proxy transport", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toBe("proxied");
-      // http targets are forwarded with an absolute-form request target.
       expect(proxySeen.url).toBe("http://example.invalid/whatever");
       expect(proxySeen.auth).toBe(`Basic ${Buffer.from("user:pass").toString("base64")}`);
     } finally {

@@ -179,7 +179,6 @@ describe("kernel boot", () => {
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("application/json");
     expect(res.json()).toEqual(emptySessionHealth());
-    // Byte-order parity with nitter's respJson(getSessionPoolHealth()).
     expect(res.body).toBe(
       '{"sessions":{"total":0,"limited":0,"oauth":{"total":0,"limited":0},' +
         '"cookie":{"total":0,"limited":0},"oldest":"1970-01-01T00:00:00Z",' +
@@ -237,7 +236,6 @@ describe("kernel boot", () => {
     expect(file.status).toBe(200);
     expect(file.body).toBe("User-agent: *");
 
-    // The /about route beats a same-named file in staticDir.
     const route = await ctx.server.inject({ url: "/about" });
     expect(route.status).toBe(200);
     expect(route.body).toContain("<h1>About t</h1>");
@@ -249,7 +247,7 @@ describe("kernel boot", () => {
 
   it("does not mount static when staticDir is empty (never expose CWD)", async () => {
     const ctx = await createApp({ configText: "" });
-    ctx.config.staticDir = ""; // pathological value the INI loader can't produce
+    ctx.config.staticDir = "";
     await ctx.plugin(serverPlugin, { port: 0 });
     const fiber = await ctx.plugin(staticRoutePlugin);
     const res = await ctx.server.inject({ url: "/package.json" });

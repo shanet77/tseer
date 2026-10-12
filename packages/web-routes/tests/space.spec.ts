@@ -1,7 +1,3 @@
-/** Space route plugin tests — fastify `inject` against a context with a
- * stubbed `ctx.twitter` and a scripted manifest fetcher, proving the seams are
- * real (plan §6). */
-
 import { Buffer } from "node:buffer";
 import type { MediaFetcher, MediaFetchResponse } from "@tseer/media";
 import { prefsPlugin } from "@tseer/prefs";
@@ -59,8 +55,6 @@ function makeSpace(overrides: Partial<AudioSpace> = {}): AudioSpace {
   };
 }
 
-/** A `MediaFetcher` scripted per URL — the manifest source the space plugin's
- * `safeFetchText` runs against (no test ever reaches the network). */
 function stubManifestFetcher(
   responses: Record<string, { status: number; body?: string }>,
 ): MediaFetcher {
@@ -156,7 +150,6 @@ describe("spacePlugin", () => {
   });
 
   it("falls back to the enablehls button when hls is off", async () => {
-    // hlsPlayback defaults to off; the m3u8 branch then renders the form.
     const { ctx } = await boot(stubSpaceTwitter(makeSpace({ m3u8Url: M3U8 })));
     const res = await ctx.server.inject({ url: "/i/spaces/1yNGaLwepgeJB" });
     expect(res.body).not.toContain("playAudio");
@@ -184,7 +177,6 @@ describe("spacePlugin", () => {
     const res = await ctx.server.inject({ url: "/i/spaces/1yNGaLwepgeJB/stream" });
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("application/x-mpegURL");
-    // segments resolve against the manifest URL and sign through getVidUrl
     expect(res.body).toContain('/video/sig/https://video.twimg.com/spaces/init.mp4"');
     expect(res.body).toContain("/video/sig/https://video.twimg.com/spaces/seg1.ts");
   });
@@ -193,12 +185,10 @@ describe("spacePlugin", () => {
     const { ctx } = await bootStream(makeSpace({ m3u8Url: "" }), { status: 200, body: "x" });
     const res = await ctx.server.inject({ url: "/i/spaces/1yNGaLwepgeJB/stream" });
     expect(res.status).toBe(404);
-    // bare 404: no error page, and no HTML in the reply
     expect(res.body).toBe("");
   });
 
   it("answers a bare 502 when the manifest fetch fails", async () => {
-    // dead upstream: every attempt fails, safeFetchText swallows it into ""
     const { ctx } = await bootStream(makeSpace({ m3u8Url: M3U8 }), { status: 500 });
     const res = await ctx.server.inject({ url: "/i/spaces/1yNGaLwepgeJB/stream" });
     expect(res.status).toBe(502);
@@ -206,8 +196,6 @@ describe("spacePlugin", () => {
   });
 
   it("answers a bare 502 when the manifest is off-allowlist", async () => {
-    // isTwitterUrl rejects the URL before any fetch — the same swallow, and
-    // the fetcher is never called.
     const off = "https://evil.example/main.m3u8";
     const fetcher = stubManifestFetcher({ [off]: { status: 200, body: "#EXTM3U" } });
     const { ctx } = await boot(stubSpaceTwitter(makeSpace({ m3u8Url: off })), { fetcher });

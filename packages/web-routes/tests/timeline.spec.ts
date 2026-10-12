@@ -1,9 +1,3 @@
-/** Timeline route plugin tests — fastify `inject` against a context with a
- * stubbed `ctx.twitter`, proving the seams are real (plan §6). The XSS
- * regression test runs raw upstream JSON through the *real* parser registry
- * so markup in tweet text/usernames/card titles can never reach the page
- * unescaped. */
-
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -281,7 +275,6 @@ describe("timelinePlugin", () => {
     expect(param.body).not.toContain("media-only");
     expect(param.body).toContain("media-grid-view");
 
-    // URL params beat cookies (prefs seam order)
     const both = await ctx.server.inject({
       url: "/nasa/media?view=grid",
       headers: { cookie: "mediaView=Gallery" },
@@ -437,7 +430,6 @@ describe("timelinePlugin", () => {
       const css = await ctx.server.inject({ url: "/style.css" });
       expect(css.status).toBe(200);
       expect(css.body).toBe("body{}");
-      // A dotted name with no file still 404s — just not as a profile page.
       const missing = await ctx.server.inject({ url: "/na.sa" });
       expect(missing.status).toBe(404);
       expect(missing.body).not.toContain("Page not found");

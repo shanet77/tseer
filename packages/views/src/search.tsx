@@ -1,8 +1,3 @@
-/** Port of nitter's `src/views/search.nim` — search bar, tab rows, the
- * filter panel, `renderTweetSearch` (the timeline container that ties tabs
- * to `renderTimelineTweets`), and the user/list search pages.
- */
-
 import type { TseerPreferences } from "@tseer/prefs";
 import { genQueryUrl } from "@tseer/twitter-api";
 import {
@@ -102,7 +97,6 @@ export function renderMediaViewTabs(query: Query): VNode {
 }
 
 export function renderSearchTabs(query: Query): VNode {
-  // the media view mode only applies to the Media tab
   const q: Query = { ...query, view: "" };
   return (
     <ul class="tab">
@@ -223,7 +217,6 @@ export function renderTweetSearch(
   );
 }
 
-/** search.nim `renderSearchForm`: the "Enter username..." header form. */
 export function renderSearchForm(kind: string, placeholder: string, value: string): VNode {
   return (
     <form method="get" action="/search" class="search-field" autocomplete="off">
@@ -234,7 +227,6 @@ export function renderSearchForm(kind: string, placeholder: string, value: strin
   );
 }
 
-/** search.nim `renderUserSearch`: user results under the search tabs. */
 export function renderUserSearch(results: Result<User>, prefs: TseerPreferences): VNode {
   return (
     <div class="timeline-container">
@@ -247,7 +239,6 @@ export function renderUserSearch(results: Result<User>, prefs: TseerPreferences)
   );
 }
 
-/** search.nim `renderListSearch`: list results under the search tabs. */
 export function renderListSearch(
   results: Result<ListSearchResult>,
   prefs: TseerPreferences,

@@ -1,13 +1,3 @@
-/**
- * The `Cache` implementation: JSON codec, key qualification, and the
- * stampede-safe `cached()` from the plan's §4 contract.
- *
- * A stampede is the failure mode where N concurrent misses on the same key all
- * miss, all call the factory, and N upstream requests hit X for identical data.
- * In-flight calls are tracked per key so a miss joins an existing fill instead
- * of starting its own. A rejected factory is never cached and never poisons the
- * in-flight slot.
- */
 import { allPattern, cacheKey, type KeyOptions, namespacePattern } from "./keys.ts";
 import type { Cache, CacheServiceOptions, CacheStore } from "./types.ts";
 
@@ -123,7 +113,6 @@ export class CacheService implements Cache {
     await this.store.close();
   }
 
-  /** Glob over every key this instance owns: `<prefix>:<version>:*`. */
   private allPattern(): string {
     return allPattern(this.keys);
   }

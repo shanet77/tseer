@@ -1,16 +1,13 @@
-/** Default `ctx.server` provider (fastify); owns the listener lifecycle. */
 import type { Context } from "cordis";
 import { FastifyHttpServer } from "./server.ts";
 import type { HttpServer, ServerAddress, ServerPluginOptions, StaticSpec } from "./types.ts";
 
 declare module "cordis" {
   interface Context {
-    /** Framework-agnostic HTTP server (fastify provider by default). */
     server: HttpServer;
   }
 
   interface Events {
-    /** Fired after the server binds. */
     "server/listening": (info: ServerAddress) => void;
   }
 }

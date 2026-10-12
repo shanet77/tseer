@@ -86,8 +86,6 @@ describe("route registry", () => {
       handler: (req, reply) => reply.json(req.form),
     });
 
-    // The preferences flow: a form POST answers a redirect carrying Set-Cookie
-    // headers — one header per value, not a joined string.
     const saved = await ctx.server.inject({
       method: "POST",
       url: "/saveprefs",
@@ -98,7 +96,6 @@ describe("route registry", () => {
     expect(saved.headers["location"]).toBe("/settings");
     expect(saved.headers["set-cookie"]).toBe("theme=Dracula; Path=/, hlsPlayback=on; Path=/");
 
-    // `+` is a space in form encoding; later values win for repeated keys.
     const echoed = await ctx.server.inject({
       method: "POST",
       url: "/echo-form",
@@ -107,7 +104,6 @@ describe("route registry", () => {
     });
     expect(echoed.json()).toEqual({ referer: "/nasa", note: "hello world", theme: "Dracula" });
 
-    // Bodyless POSTs parse to an empty form, not an error.
     const empty = await ctx.server.inject({ method: "POST", url: "/echo-form" });
     expect(empty.json()).toEqual({});
   });
@@ -128,7 +124,6 @@ describe("route registry", () => {
       handler: (_req, reply) => reply.text("page"),
     });
 
-    // A hook that replies short-circuits the route (Jester's `before` redirect).
     const hooked = await ctx.server.inject({ url: "/page?prefs=theme%3DDracula" });
     expect(hooked.status).toBe(302);
     expect(hooked.headers["location"]).toBe("/page");
@@ -139,7 +134,6 @@ describe("route registry", () => {
     expect(passed.status).toBe(200);
     expect(passed.body).toBe("page");
 
-    // Unloading the hook restores plain routing.
     disposeHook();
     const after = await ctx.server.inject({ url: "/page?prefs=x" });
     expect(after.body).toBe("page");
@@ -209,16 +203,13 @@ describe("static files", () => {
     expect(file.status).toBe(200);
     expect(file.body).toBe("User-agent: *");
 
-    // Fastify radix precedence: specific route beats the root wildcard.
     const route = await ctx.server.inject({ url: "/about" });
     expect(route.body).toBe("route about");
 
-    // Unknown paths keep the plain-text 404 contract.
     const missing = await ctx.server.inject({ url: "/nope.css" });
     expect(missing.status).toBe(404);
     expect(missing.body).toBe("not found");
 
-    // The directory itself is never listed.
     const root = await ctx.server.inject({ url: "/" });
     expect(root.status).toBe(404);
   });
@@ -279,8 +270,6 @@ describe("AppReply.stream", () => {
         reply.stream?.(body(), "image/jpeg", { status: 200, headers: { etag: "abc" } }),
     });
 
-    // Both paths matter: `inject` is what route tests use, and the real socket is
-    // what proves the framing is valid on the wire.
     const injected = await ctx.server.inject({ url: "/stream" });
     expect(injected.status).toBe(200);
     expect(injected.headers["content-type"]).toBe("image/jpeg");
@@ -299,9 +288,6 @@ describe("AppReply.stream", () => {
     const CHUNKS = 64;
     const CHUNK_BYTES = 64 * 1024;
     let produced = 0;
-    // A generator that only advances as the consumer pulls: if the route
-    // buffered the whole body up front, `produced` would already be at its
-    // maximum before the client received a single byte.
     async function* body(): AsyncGenerator<Uint8Array> {
       for (let i = 0; i < CHUNKS; i++) {
         produced++;
@@ -323,7 +309,6 @@ describe("AppReply.stream", () => {
     if (!reader) throw new Error("expected a response body");
     const first = await reader.read();
     expect(first.done).toBe(false);
-    // Not everything has been produced yet, so this really is incremental.
     expect(produced).toBeLessThan(CHUNKS);
 
     let total = first.value?.length ?? 0;

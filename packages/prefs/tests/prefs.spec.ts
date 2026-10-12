@@ -65,8 +65,6 @@ describe("parsePrefs", () => {
     expect(parsePrefs(defaults, { squareAvatars: "true" }).squareAvatars).toBe(true);
     expect(parsePrefs(defaults, { squareAvatars: "1" }).squareAvatars).toBe(true);
     expect(parsePrefs(defaults, { squareAvatars: "false" }).squareAvatars).toBe(false);
-    // Presence with a non-truthy value is false, even for a default-true pref
-    // (`result.ident = val == "on" or val == "true" or val == "1"`).
     expect(parsePrefs(defaults, { stickyNav: "off" }).stickyNav).toBe(false);
   });
 

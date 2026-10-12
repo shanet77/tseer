@@ -1,31 +1,20 @@
-/** The `ctx.render` seam (plan §4): a view is just a component; render owns
- * layout/meta. `page()` fires `render/pre` with a mutable page context, then
- * runs the final HTML through `render/post` (a cordis waterfall — each
- * listener returns the transformed HTML or calls `next()` to pass through). */
 import type { VNode } from "preact";
 import { type PageConfig, renderError, renderMain, type TseerPreferencesLike } from "./page.tsx";
 
 export type { TseerPreferencesLike };
 export interface PageOpts {
-  /** Page content, as a preact component (auto-escaped). */
   body: VNode;
-  /** `<title>` text before the ` | <site>` suffix (nitter's `titleText`). */
   title?: string;
   desc?: string;
   ogTitle?: string;
-  /** RSS URL — adds the `<link rel="alternate">` and navbar icon. */
   rss?: string;
   video?: string;
   images?: string[];
   banner?: string;
-  /** Canonical X URL for the navbar's "Open in X" link. Defaults to
-   * `https://x.com` + `path`. */
   canonical?: string;
   alternate?: string;
   oembed?: string;
-  /** Request path (+query), used for the settings-page referer link. */
   path?: string;
-  /** Request prefs (theme, stickyNav, hls scripts). Schema defaults if omitted. */
   prefs?: TseerPreferencesLike;
 }
 
@@ -50,7 +39,6 @@ export interface Render {
 }
 
 export interface RenderOptions extends PageConfig {
-  /** Media link signer (nitter's process-global `getPicUrl`). */
   picUrl?: (url: string) => string;
 }
 
@@ -120,8 +108,6 @@ export class RenderImpl implements Render {
   }
 }
 
-/** The seams `RenderImpl` needs from the cordis context; kept narrow so the
- * service stays testable without a context. */
 export interface RenderEvents {
   pre(page: PageContext): void;
   post(html: string): string;

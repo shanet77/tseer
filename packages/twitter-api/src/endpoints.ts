@@ -1,15 +1,3 @@
-/**
- * Port of nitter's `src/consts.nim` (nitter @ 376f149) — the X churn surface
- * (plan §7): endpoint hashes, feature flags, variables templates, and auth
- * tokens. When X rotates a hash or flag, this is the file to edit.
- *
- * Multi-line templates keep nitter's source layout and apply the same
- * `.replace(" ", "").replace("\n", "")` stripping nitter applies, so the
- * rendered values stay byte-identical and the literals stay diffable against
- * `consts.nim`. `tests/endpoints.spec.ts` pins every export to a golden
- * generated from the original file.
- */
-
 export const CONSUMER_KEY = "3nVuSoBZnx6U4vzUxf5w";
 export const CONSUMER_SECRET = "Bcs59EFbbsdF6Sl9Ng71smgStWEGwXXKSjYvPVt7qys";
 export const BEARER_TOKEN =
@@ -53,7 +41,6 @@ export const GRAPH_FOLLOWERS = "JNyQdTISpzCkj_1fqxDvFg/Followers";
 export const GRAPH_FOLLOWING = "qGZZDF3mp91q7X22s3HxpA/Following";
 export const REST_LIVE_STREAM = "1.1/live_video_stream/status/";
 
-/** nitter applies `.replace(" ", "").replace("\n", "")` to the templates below. */
 function stripWs(value: string): string {
   return value.replaceAll(" ", "").replaceAll("\n", "");
 }

@@ -1,14 +1,3 @@
-/**
- * The `ctx.parsers` registry — plan §1's parse seam: `parse(kind, json) →
- * domain`, overridable per kind without forking (X changes response shapes;
- * the churn is isolated here).
- *
- * Kinds map 1:1 to the `parse*` procs of `parser.nim`/`experimental/parser`;
- * the doc comment on each kind names the proc it ports. Envelope options
- * (`after`, `query`, `tweetId`, `kind`) carry what the fetch layer knows:
- * nitter passes `after` into the parsers and sets `result.query` at the call
- * site — the registry does both from one place.
- */
 import { type Query, QueryKind } from "@tseer/types";
 import { parseGraphArticle } from "./article.ts";
 import type { Json } from "./json.ts";
@@ -64,22 +53,14 @@ export type ParserKind =
   | "broadcast";
 
 export interface ParseOptions {
-  /** The incoming pagination cursor (nitter passes it as `after`). */
   after?: string | undefined;
-  /** Overwrites the envelope's default `query` (nitter's `result.query = query`). */
   query?: Query | undefined;
-  /** The requested tweet id (conversation/edit-history matching). */
   tweetId?: string | undefined;
-  /** Followers vs following for the `followers` kind. */
   kind?: QueryKind | undefined;
 }
 
 export type ParseFn = (json: Json, options: ParseOptions) => unknown;
 
-/**
- * The `ctx.parsers` service. `register` is a reversible effect (cordis
- * disposers unwind it on unload).
- */
 export class Parsers {
   private readonly kinds = new Map<ParserKind, ParseFn>();
 
@@ -126,7 +107,6 @@ export class Parsers {
     this.kinds.set("broadcast", (json) => parseBroadcastInfo(json));
   }
 
-  /** Replace (or add) the parser for a kind; the return value un-registers. */
   register(kind: ParserKind, parse: ParseFn): () => void {
     const previous = this.kinds.get(kind);
     this.kinds.set(kind, parse);
@@ -140,7 +120,6 @@ export class Parsers {
     return this.kinds.has(kind);
   }
 
-  /** `parse(kind, json) → domain`. Unknown kinds return `undefined` (nitter's nil). */
   parse<T = unknown>(kind: ParserKind, json: Json, options: ParseOptions = {}): T {
     const parse = this.kinds.get(kind);
     if (parse === undefined) return undefined as T;
@@ -159,10 +138,6 @@ export class Parsers {
   }
 }
 
-/**
- * Mount-time wiring of the media seam (nitter signs card image links at
- * parse time via globals); the disposer restores the previous builder.
- */
 export function configureParserLinks(picUrl: PicUrl | undefined): () => void {
   const previous = setPicUrl(picUrl);
   return () => {

@@ -85,7 +85,6 @@ describe("tweet parsers", () => {
       },
     ]);
     expect(tweet.attribution?.username).toBe("clapper");
-    // Nim `replace("/video/1", "")` replaces *all* occurrences — quirk kept verbatim
     expect(tweet.attributionLink).toBe("/clapper002");
   });
 
@@ -141,7 +140,6 @@ describe("tweet parsers", () => {
     expect(quote.quote?.id).toBe("1001");
     expect(quote.quote?.text).toBe("original");
 
-    // retweeted_status_result is read from *legacy* (parseTweet's input)
     const retweet = parseGraphTweet({
       rest_id: "2001",
       legacy: {

@@ -1,10 +1,3 @@
-/** Port of nitter's `src/formatters.nim` (minus `getM3u8Url`/`proxifyVideo`,
- * which live in `@tseer/media`, and `getTwitterLink`/`getVideoEmbed`, which
- * defer to the search route / embed route contracts). Dates in the domain
- * model are ISO strings with `""` meaning "not set" — the Nim `year == 0`
- * guards map to empty-string guards here. Nim's date templates are rendered
- * in UTC by hand (no locale dependency, deterministic output). */
-
 import type { TseerPreferences } from "@tseer/prefs";
 import type { Tweet, User } from "@tseer/types";
 
@@ -94,8 +87,6 @@ export function getUrlPrefix(cfg: UrlPrefixConfig): string {
   return cfg.useHttps ? `https://${cfg.hostname}` : `http://${cfg.hostname}`;
 }
 
-/** Codepoint slice (Nim slices bytes; mid-codepoint cuts are garbage either
- * way, this is the strictly-correct version). */
 export function shorten(text: string, length = 28): string {
   const runes = [...text];
   if (runes.length > length) return `${runes.slice(0, length).join("")}…`;
@@ -106,14 +97,6 @@ export function shortLink(text: string, length = 28): string {
   return shorten(text.replace(wwwRegex, ""), length);
 }
 
-/**
- * Plain text of an HTML fragment, with `<a href="http…">` links replaced by
- * their href (shortened when asked) — the port of `stripHtml`.
- *
- * ponytail: regex-based, not a real HTML parser like Nim's `parseHtml`; fine
- * for well-formed fragments (tweet text, bios). Swap in a parser if a
- * malformed fragment ever renders wrong.
- */
 export function stripHtml(text: string, shorten = false): string {
   const replaced = text.replace(
     /<a\b[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi,
@@ -136,8 +119,6 @@ function trimHost(host: string): string {
   return trimmed;
 }
 
-/** Port of `replaceUrls`: rewrites X/YouTube/Reddit links in rendered HTML to
- * the instance's configured replacement hosts. */
 export function replaceUrls(body: string, prefs: TseerPreferences, absolute = ""): string {
   let result = body;
 
@@ -187,8 +168,6 @@ export function replaceUrls(body: string, prefs: TseerPreferences, absolute = ""
   return result;
 }
 
-/** `_(normal|bigger|…)` variants stripped, then the extension prefixed with
- * the requested style (e.g. `style="_bigger"`). */
 export function getUserPic(userPic: string, style = ""): string {
   return userPic.replace(userPicRegex, "$2").replace(extRegex, `${style}$1`);
 }
@@ -259,8 +238,6 @@ export function getDuration(ms: number): string {
   return `${min}:${p2(sec % 60)}`;
 }
 
-/** `/{username}/status/{id}` (+`#m` to focus the tweet). `username` falls
- * back to "i" like the Nim default. */
 export function getLink(id: string, username = "i", focus = true): string {
   const name = username.length > 0 ? username : "i";
   let link = `/${name}/status/${id}`;
@@ -273,7 +250,6 @@ export function getTweetLink(tweet: Pick<Tweet, "id" | "user">, focus = true): s
   return getLink(tweet.id, tweet.user.username, focus);
 }
 
-/** Location and (when it's a `name:place` geo tag) its search URL. */
 export function getLocation(location: string): [string, string] {
   if (location.includes("://")) return [location, ""];
   const parts = location.split(":");
@@ -285,7 +261,6 @@ export function getSuspended(username: string): string {
   return `User "${username}" has been suspended`;
 }
 
-/** `insertSep` (utils.nim): thousands separators from the right. */
 export function insertSep(num: string, sep = ","): string {
   return num.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
 }

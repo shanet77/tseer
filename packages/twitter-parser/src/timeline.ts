@@ -1,15 +1,3 @@
-/**
- * Timelines, conversations, search, and community timelines — the port of
- * `parser.nim`'s `parseGraphThread`, `parseGraphTimeline`, `parseGraphPhotoRail`,
- * `parseGraphSearch`, `parseGraphConversation`, `parseGraphEditHistory`,
- * `parseGraphCommunityTimeline`, `parseGraphCommunityMembers`, and the
- * experimental (string-bodied) `parseGraphListMembers`/`parseGraphFollowers`.
- *
- * Cursors: nitter extracts the `Bottom` cursor only (`bottom`); `top` stays
- * empty in the upstream parsers (pages paginate backwards), kept verbatim.
- * `query` is attached by the fetch layer after parsing (the search #1372
- * workaround needs the parsed bottom cursor first).
- */
 import {
   type Chain,
   type ChainResult,
@@ -31,7 +19,6 @@ import { parseGraphSearchList } from "./misc.ts";
 import { newTweet, parseGraphTweet } from "./tweet.ts";
 import { parseGraphUser, parseUserResult } from "./user.ts";
 
-/** A default `Query` for timeline envelopes (the fetch layer overwrites it). */
 export function emptyQuery(kind: QueryKind = QueryKind.tweets): Query {
   return {
     kind,
@@ -61,7 +48,6 @@ function getConvSection(js: Json): string {
   );
 }
 
-/** Port of `getTweetResult` (parserutils.nim). */
 function getTweetResult(js: Json, root = "content"): Json {
   return pick(
     at(js, root, "content", "tweet_results", "result"),
@@ -79,7 +65,6 @@ function emptyThread(): Chain {
   return { content: [], hasMore: false, cursor: "", related: false };
 }
 
-/** Port of `parseGraphThread`. */
 export function parseGraphThread(js: Json): ThreadResult {
   const result: ThreadResult = { thread: emptyThread(), self: false };
   let checkedSection = false;
@@ -117,7 +102,6 @@ export function parseGraphThread(js: Json): ThreadResult {
   return result;
 }
 
-/** Port of the `extractTweetsFromModuleItems` iterator (moduleItems shape). */
 function extractTweetsFromModuleItems(items: Json): Tweet[] {
   const result: Tweet[] = [];
   for (const item of each(items)) {
@@ -130,7 +114,6 @@ function extractTweetsFromModuleItems(items: Json): Tweet[] {
   return result;
 }
 
-/** Port of `extractListsFromItems`. */
 function extractListsFromItems(items: Json): ListSearchResult[] {
   const result: ListSearchResult[] = [];
   for (const item of each(items)) {
@@ -142,7 +125,6 @@ function extractListsFromItems(items: Json): ListSearchResult[] {
   return result;
 }
 
-/** Port of `extractTweetsFromEntry`. */
 export function extractTweetsFromEntry(e: Json): Tweet[] {
   const tweetResult = getTweetResult(e);
   if (tweetResult !== undefined) {
@@ -153,7 +135,6 @@ export function extractTweetsFromEntry(e: Json): Tweet[] {
   return extractTweetsFromModuleItems(each(e, "content", "items"));
 }
 
-/** Port of `parseGraphTimeline` → the `tweets` half of a `Profile`. */
 export function parseGraphTimeline(js: Json, after = ""): Pick<Profile, "pinned" | "tweets"> {
   const tweets: TimelineResult = {
     content: [],
@@ -202,7 +183,6 @@ export function parseGraphTimeline(js: Json, after = ""): Pick<Profile, "pinned"
   return result;
 }
 
-/** Port of `parseGraphPhotoRail` (max 16 gallery photos). */
 export function parseGraphPhotoRail(js: Json): PhotoRail {
   const result: PhotoRail = [];
 
@@ -239,7 +219,6 @@ export function parseGraphPhotoRail(js: Json): PhotoRail {
   return result;
 }
 
-/** Port of `parseGraphConversation`. */
 export function parseGraphConversation(js: Json, tweetId: string): Conversation {
   const replies: ChainResult = {
     content: [],
@@ -317,7 +296,6 @@ export function parseGraphConversation(js: Json, tweetId: string): Conversation 
   return result;
 }
 
-/** Port of `parseGraphEditHistory`. */
 export function parseGraphEditHistory(js: Json, tweetId: string): EditHistory {
   const result: EditHistory = { latest: newTweet(), history: [] };
   void tweetId;
@@ -352,7 +330,6 @@ export function parseGraphEditHistory(js: Json, tweetId: string): EditHistory {
   return result;
 }
 
-/** Port of `parseGraphSearch`, split by content kind. */
 function parseGraphSearchBase(
   js: Json,
   after: string,
@@ -451,7 +428,6 @@ export function parseGraphSearchLists(js: Json, after = ""): Result<ListSearchRe
   };
 }
 
-/** Port of `parseGraphCommunityTimeline`. */
 export function parseGraphCommunityTimeline(js: Json, after = ""): TimelineResult {
   const result: TimelineResult = {
     content: [],
@@ -493,7 +469,6 @@ export function parseGraphCommunityTimeline(js: Json, after = ""): TimelineResul
   return result;
 }
 
-/** Port of `parseGraphCommunityMembers`. */
 export function parseGraphCommunityMembers(js: Json, after = ""): Result<User> {
   const result: Result<User> = {
     content: [],
@@ -518,7 +493,6 @@ export function parseGraphCommunityMembers(js: Json, after = ""): Result<User> {
   return result;
 }
 
-/** Port of the experimental `parseGraphListMembers` (jsony string body → `Json`). */
 export function parseGraphListMembers(json: Json, cursor: string): Result<User> {
   const result: Result<User> = {
     content: [],
@@ -537,8 +511,6 @@ export function parseGraphListMembers(json: Json, cursor: string): Result<User> 
       const itemContent = at(entry, "content");
       const entryType = str(itemContent, "entryType");
       if (entryType === "TimelineTimelineItem") {
-        // upstream sends snake_case `user_results`; the experimental structs
-        // rename it to `userResults`, so both are accepted
         const userResult = pick(
           at(itemContent, "itemContent", "user_results", "result"),
           at(itemContent, "itemContent", "userResults", "result"),
@@ -557,7 +529,6 @@ export function parseGraphListMembers(json: Json, cursor: string): Result<User> 
   return result;
 }
 
-/** Port of the experimental `parseGraphFollowers` (jsony string body → `Json`). */
 export function parseGraphFollowers(json: Json, cursor: string, kind: QueryKind): Result<User> {
   const result: Result<User> = {
     content: [],

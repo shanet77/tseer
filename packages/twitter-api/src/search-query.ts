@@ -1,16 +1,6 @@
-/**
- * Search-query compiler — a port of nitter's `query.nim` (nitter @ 376f149):
- * URL params → `Query` (`initQuery`) and `Query` → GraphQL search operands
- * (`genQueryParam`) / shareable search URLs (`genQueryUrl`).
- *
- * Route-level `f=` remapping (`f=user` → users, `f=list` → lists) lives in
- * nitter's `routes/search.nim`, not here — it belongs to the route plugin in
- * a later phase.
- */
 import { type Query, QueryKind } from "@tseer/types";
 import { encodeUrl } from "./urls.ts";
 
-/** Port of `query.nim` `validFilters`. */
 export const VALID_FILTERS = [
   "media",
   "images",
@@ -28,20 +18,12 @@ export const VALID_FILTERS = [
   "nativeretweets",
 ] as const;
 
-/** Port of `query.nim` `emptyQuery`: a search that matches the empty timeline. */
 export const EMPTY_QUERY = "include:nativeretweets";
 
-/** Port of `utils.nim` `validateNumber`: digits only, else empty. */
 export function validateNumber(value: string): string {
   return /^[0-9]*$/.test(value) ? value : "";
 }
 
-/**
- * Port of strutils `parseEnum` as used by `initQuery`: style-insensitive
- * match (case ignored after the first character, underscores ignored) with a
- * case-sensitive first character — `mEDIA` matches `media`, `Media` does not.
- * Falls back when nothing matches.
- */
 function parseQueryKind(value: string, fallback: QueryKind): QueryKind {
   const normalize = (text: string): string =>
     text.length === 0 ? text : text[0] + text.slice(1).toLowerCase().replaceAll("_", "");
@@ -52,10 +34,6 @@ function parseQueryKind(value: string, fallback: QueryKind): QueryKind {
   return fallback;
 }
 
-/**
- * Port of Nim's `strip` (default `Whitespace` set: space, tab, VT, CR, LF,
- * FF) — narrower than `String.trim`, which also strips Unicode spaces.
- */
 function strip(value: string): string {
   const whitespace = new Set([0x20, 0x09, 0x0b, 0x0d, 0x0a, 0x0c]);
   let start = 0;
@@ -65,12 +43,6 @@ function strip(value: string): string {
   return value.slice(start, end);
 }
 
-/**
- * Port of `query.nim` `initQuery`: build a `Query` from URL params (`f`,
- * `q`, `view`, `f-*`/`e-*` presence flags, `since`, `until`, `min_faves`)
- * plus the profile name for `from:user` scoping. `articles` is an internal
- * tab kind and is coerced back to `tweets`.
- */
 export function initQuery(params: Readonly<Record<string, string>>, name = ""): Query {
   const kind = parseQueryKind(params.f ?? "", QueryKind.tweets);
   return {
@@ -88,7 +60,6 @@ export function initQuery(params: Readonly<Record<string, string>>, name = ""): 
   };
 }
 
-/** Port of `query.nim` `getMediaQuery`. */
 export function getMediaQuery(name: string): Query {
   return {
     kind: QueryKind.media,
@@ -105,7 +76,6 @@ export function getMediaQuery(name: string): Query {
   };
 }
 
-/** Port of `query.nim` `getArticlesQuery`. */
 export function getArticlesQuery(name: string): Query {
   return {
     kind: QueryKind.articles,
@@ -122,7 +92,6 @@ export function getArticlesQuery(name: string): Query {
   };
 }
 
-/** Port of `query.nim` `getReplyQuery`. */
 export function getReplyQuery(name: string): Query {
   return {
     kind: QueryKind.replies,
@@ -139,15 +108,6 @@ export function getReplyQuery(name: string): Query {
   };
 }
 
-/**
- * Port of `query.nim` `genQueryParam`: `Query` → the `rawQuery` search
- * operand. `users` kind passes `text` through untouched; otherwise the parts
- * are assembled in nitter's order — fromUser group, self-threads clause,
- * implicit `include:nativeretweets`, filter tokens, then
- * since/until/minLikes/text/max_id appends. Note `until` is dropped when a
- * `maxId` is present, and `sep` defaults to `""`, which joins filter tokens
- * with a double space — both pinned by the golden fixtures.
- */
 export function genQueryParam(query: Query, maxId = ""): string {
   if (query.kind === QueryKind.users) return query.text;
 
@@ -188,9 +148,6 @@ export function genQueryParam(query: Query, maxId = ""): string {
   return result;
 }
 
-/** Port of `query.nim` `genQueryUrl`: `Query` → the shareable search query
- * string. The `view` param is emitted outside the kind gate; `f=`/`q=`/flags
- * only for kinds that map onto the search tabs. */
 export function genQueryUrl(query: Query): string {
   const params: string[] = [];
   if (query.view.length > 0) params.push(`view=${encodeUrl(query.view)}`);

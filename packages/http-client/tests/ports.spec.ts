@@ -10,8 +10,8 @@ describe("isCloudflareHtml", () => {
   });
 
   it("rejects short, non-html, and non-cloudflare bodies", () => {
-    expect(isCloudflareHtml("<!doctype HTM")).toBe(false); // 13 chars — Nim's `body.len < 14`
-    expect(isCloudflareHtml("<html><body>Cloudflare</body>")).toBe(false); // no doctype
+    expect(isCloudflareHtml("<!doctype HTM")).toBe(false);
+    expect(isCloudflareHtml("<html><body>Cloudflare</body>")).toBe(false);
     expect(isCloudflareHtml('{"errors":[]}')).toBe(false);
     expect(isCloudflareHtml("<!DOCTYPE html><html><title>Error</title></html>")).toBe(false);
   });

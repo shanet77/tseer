@@ -118,9 +118,6 @@ describe("statusPlugin", () => {
   });
 
   it('renders the bare /i/status/:id in place (upstream name="i" match)', async () => {
-    // Upstream reaches this URL through the status router's `/@name/status/@id`
-    // with name="i"; the tweet page renders there, links pointing at the tweet's
-    // own username. It must not redirect or 404.
     const twitter = stubStatusTwitter(makeConversation());
     const { ctx } = await boot(twitter);
 
@@ -141,8 +138,6 @@ describe("statusPlugin", () => {
     expect(invalid.status).toBe(404);
     expect(invalid.body).toContain("Invalid tweet ID");
 
-    // Nitter's match-time `cond '.' notin name`: no route matches, so the
-    // request falls through to static instead of rendering an error page.
     const dotted = await ctx.server.inject({ url: "/na.sa/status/1001" });
     expect(dotted.status).toBe(404);
     expect(dotted.body).not.toContain("Page not found");

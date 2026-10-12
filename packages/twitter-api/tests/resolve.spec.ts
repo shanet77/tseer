@@ -33,7 +33,6 @@ describe("resolveUrl", () => {
 describe("raw resolve", () => {
   it("delegates to resolveUrl and guards empty input", async () => {
     const api = createTwitterApi(recordingFetcher());
-    // empty input never touches the network
     await expect(api.resolve("")).resolves.toBe("");
   });
 });

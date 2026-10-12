@@ -1,7 +1,3 @@
-/**
- * Default `ctx.accounts` provider: owns the session pool, the JSONL store, and
- * the file watcher. `ctx.accounts` is the seam `twitter-api` leases from.
- */
 import type { Context } from "cordis";
 import { SessionPool } from "./pool.ts";
 import {
@@ -14,25 +10,16 @@ import type { AccountHealth, Session, SessionsPluginOptions } from "./types.ts";
 
 declare module "cordis" {
   interface Context {
-    /** X session pool (lease/release, per-API rate limits, health). */
     accounts: SessionPool;
   }
 
   interface Events {
-    /** A session was marked limited for an API; the pool already updated state. */
     "account/limited": (account: Session, api: string) => void;
-    /** A session was dropped from the pool (expired/bad token). */
     "account/invalidated": (account: Session) => void;
-    /** Pool membership or rate-limit state changed. */
     "account/health": () => AccountHealth;
   }
 }
 
-/**
- * Subset of `ctx.config` this seam reads. Declared locally so
- * `twitter-sessions` never imports `@tseer/kernel` (import boundaries are
- * seams); the kernel's `TseerConfig` satisfies it structurally.
- */
 interface SessionsConfig {
   enableDebug?: boolean | undefined;
   maxConcurrentReqs?: number | undefined;

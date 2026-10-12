@@ -1,16 +1,3 @@
-/** Port of nitter's `src/views/broadcast.nim` (`renderBroadcast`).
- *
- * Deliberate divergences from the Nim original (documented at the call sites):
- * - The HLS play overlay's inline `onclick="playVideo(this)"` is emitted as raw
- *   HTML (preact would treat the string as a function handler) — the same rule
- *   as the video overlay in `tweet.tsx` and the audio overlay in `space.tsx`.
- * - `bc.endTime.year > 1` / `year > 1` "date is set" guards map to empty-string
- *   guards (domain dates are ISO strings with `""` = not set); `format("MMM d,
- *   YYYY")` is the shared `endedDate` helper from `space.tsx` (no Intl).
- * - `insertSep`/`getDuration`/`getUserPic` live in `formatters.ts`, so no local
- *   helpers are needed.
- */
-
 import type { TseerPreferences } from "@tseer/prefs";
 import type { Broadcast } from "@tseer/types";
 import type { VNode } from "preact";
@@ -19,7 +6,6 @@ import { getPicUrl, getVidUrl } from "./media.ts";
 import { buttonReferer, genImg, verifiedIcon } from "./renderutils.tsx";
 import { endedDate } from "./space.tsx";
 
-/** `views/broadcast.nim` `renderBroadcast`. */
 export function renderBroadcast(bc: Broadcast, prefs: TseerPreferences, path: string): VNode {
   const isLive = bc.state === "RUNNING";
   const thumb = getPicUrl(bc.thumb);
@@ -34,9 +20,6 @@ export function renderBroadcast(bc: Broadcast, prefs: TseerPreferences, path: st
         ? bc.state
         : "Ended";
 
-  // Nim: `(bc.endTime - bc.startTime).inMilliseconds - bc.replayStart * 1000`
-  // when both dates are set, else 0 (`replayStart` is seconds; replays begin
-  // partway through the recording, so the badge shows the replay length).
   const start = bc.startTime === "" ? undefined : new Date(bc.startTime);
   const end = bc.endTime === "" ? undefined : new Date(bc.endTime);
   const durationMs =
@@ -64,8 +47,6 @@ export function renderBroadcast(bc: Broadcast, prefs: TseerPreferences, path: st
           data-start={String(bc.replayStart)}
           muted={prefs.muteVideos}
         />
-        {/* The verbatim overlay: static markup + the signed duration string,
-            both safe for a raw-HTML sink. */}
         <div
           dangerouslySetInnerHTML={{
             __html:

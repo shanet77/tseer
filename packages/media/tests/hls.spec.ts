@@ -3,9 +3,6 @@ import { getM3u8Url, MediaSignerImpl, proxifyVideo } from "../src/index.ts";
 
 describe("getM3u8Url", () => {
   it("extracts the playlist URL from a vmap document", () => {
-    // nitter's `m3u8Regex` is `url="(.+.m3u8)"` — an *attribute*, quotes
-    // included. Note this is not a JSON `"url": "…"` field; the port keeps the
-    // same shape rather than silently widening the match.
     const vmap = '<video id="vmap" url="https://video.twimg.com/ext_tw_video/1/pu/pl/x.m3u8">';
     expect(getM3u8Url(vmap)).toBe("https://video.twimg.com/ext_tw_video/1/pu/pl/x.m3u8");
   });
@@ -13,9 +10,7 @@ describe("getM3u8Url", () => {
   it("returns an empty string when there is no .m3u8 reference", () => {
     expect(getM3u8Url("")).toBe("");
     expect(getM3u8Url("<html><body>nothing here</body></html>")).toBe("");
-    // A non-playlist media reference must not be mistaken for one.
     expect(getM3u8Url('url="https://video.twimg.com/ext_tw_video/1/x.mp4"')).toBe("");
-    // Unterminated quotes are not a match.
     expect(getM3u8Url('url="https://video.twimg.com/x.m3u8')).toBe("");
   });
 });
@@ -40,7 +35,6 @@ describe("proxifyVideo", () => {
     });
     expect(out).toContain("/video/abc123/https://video.twimg.com/ext_tw_video/1/pu/pl/seg1.m4s");
     expect(out).toContain("/video/abc123/https://video.twimg.com/ext_tw_video/1/pu/pl/seg2.m4s");
-    // Tags and structure survive untouched.
     expect(out).toContain("#EXTM3U");
     expect(out).toContain("#EXT-X-ENDLIST");
   });
@@ -88,8 +82,6 @@ describe("proxifyVideo", () => {
   });
 
   it("leaves relative segments alone when there is no directory to resolve against", () => {
-    // No manifestUrl means dirPath is empty, so a bare `seg01.m4s` cannot be
-    // resolved — nitter skips it too, rather than inventing a URL.
     const manifest = ["#EXTM3U", "seg01.m4s"].join("\n");
     const out = proxifyVideo(manifest, { proxy: true, vidUrl });
     expect(out).toContain("seg01.m4s");
@@ -111,16 +103,12 @@ describe("proxifyVideo", () => {
       manifestUrl: "https://video.twimg.com/a/b/index.m3u8",
       vidUrl,
     });
-    // Sequence numbers have no '.', so they stay bare.
     expect(out.split("\n").filter((line) => line === "0" || line === "1")).toHaveLength(2);
     expect(out).toContain("#EXT-X-MEDIA-SEQUENCE:0");
     expect(out).toContain("/video/abc123/https://video.twimg.com/a/b/seg01.m4s");
   });
 
   it("emits links the signed video route can verify", () => {
-    // End-to-end over both halves: a segment URL rewritten into a `/video/` link
-    // must carry the signature of the URL it encodes, or playback 403s on the
-    // very first segment.
     const signer = new MediaSignerImpl({ hmacKey: "test-key" });
     const manifest = ["#EXTM3U", "/ext_tw_video/1/pu/pl/seg1.m4s"].join("\n");
     const out = proxifyVideo(manifest, {
@@ -130,7 +118,6 @@ describe("proxifyVideo", () => {
     });
     const segment = "https://video.twimg.com/ext_tw_video/1/pu/pl/seg1.m4s";
     expect(out.split("\n")).toContain(signer.vidUrl(segment));
-    // The emitted link is exactly what the route expects to verify.
     expect(out).toContain(`/video/${signer.sign(segment)}/`);
   });
 });

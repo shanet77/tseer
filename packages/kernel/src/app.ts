@@ -1,4 +1,3 @@
-/** Kernel boot: fresh cordis context + logger and config plugins. */
 import { Context } from "cordis";
 import { readConfigFile } from "./files.ts";
 import { parseIni } from "./ini.ts";
@@ -8,13 +7,9 @@ import configPlugin from "./plugin.ts";
 import type { LoadedConfig } from "./schema.ts";
 
 export interface CreateAppOptions {
-  /** Pre-loaded config (skips file I/O; preferred in tests). */
   loaded?: LoadedConfig | undefined;
-  /** Raw INI text (parsed in-memory; preferred over `configPath`). */
   configText?: string | undefined;
-  /** Path to a `nitter.conf`-compatible INI file. */
   configPath?: string | undefined;
-  /** Forwarded to the pino logger plugin. */
   logLevel?: string | undefined;
 }
 

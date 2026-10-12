@@ -1,21 +1,3 @@
-/** Port of nitter's `src/views/space.nim` (`renderSpace` +
- * `renderParticipant`).
- *
- * Deliberate divergences from the Nim original (documented at the call sites):
- * - The HLS play overlay's inline `onclick="playAudio(this)"` is emitted as raw
- *   HTML (preact would treat the string as a function handler) — the same rule
- *   as the video overlay in `tweet.tsx`.
- * - `sp.endTime.year > 1` / `year > 1` "date is set" guards map to empty-string
- *   guards (domain dates are ISO strings with `""` = not set).
- * - `endTime.format("MMM d, YYYY")` is hand-rendered in UTC (no Intl
- *   dependency, deterministic output — the formatters' rule; its `monthsShort`
- *   is private, so the short names are local here).
- * - `insertSep` now lives in `formatters.ts`, so listener counts need no local
- *   helper.
- * - {@link endedDate} is shared with `broadcast.tsx` (same "Ended MMM d, YYYY"
- *   rendering; `views/broadcast.nim` has an identical `format` call).
- */
-
 import type { TseerPreferences } from "@tseer/prefs";
 import type { AudioSpace, SpaceParticipant } from "@tseer/types";
 import type { VNode } from "preact";
@@ -38,17 +20,12 @@ const MONTHS_SHORT = [
   "Dec",
 ];
 
-/** Nim `sp.endTime.format("MMM d, YYYY")`, rendered by hand in UTC. `""` means
- * the date is not set (Nim's `year > 1` guard). Shared with `broadcast.tsx`. */
 export function endedDate(iso: string): string {
   const date = new Date(iso);
   if (iso === "" || Number.isNaN(date.getTime())) return "";
   return `${MONTHS_SHORT[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
 }
 
-/** `views/space.nim` `renderParticipant`: avatar + name row (verified icon
- * inline — `SpaceParticipant` carries a boolean, not a `verifiedType`, and the
- * Nim source hardcodes the `blue` class) + optional Host/Co-host badge. */
 export function renderParticipant(p: SpaceParticipant, role: string): VNode {
   return (
     <div class="space-participant">
@@ -72,7 +49,6 @@ export function renderParticipant(p: SpaceParticipant, role: string): VNode {
   );
 }
 
-/** `views/space.nim` `renderSpace`. */
 export function renderSpace(sp: AudioSpace, prefs: TseerPreferences, path: string): VNode {
   const isLive = sp.state === "RUNNING";
   const source =
@@ -108,8 +84,6 @@ export function renderSpace(sp: AudioSpace, prefs: TseerPreferences, path: strin
       <>
         {/* biome-ignore lint/a11y/useMediaCaption: ported verbatim from the Nim view; the overlay player loads via data-url and has no caption track upstream */}
         <audio data-url={source} data-autoload="false" />
-        {/* The verbatim overlay: static markup + the signed duration string,
-            both safe for a raw-HTML sink. */}
         <div
           dangerouslySetInnerHTML={{
             __html:

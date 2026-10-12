@@ -1,7 +1,3 @@
-/** Community renderer tests — port fidelity for `views/community` (the
- * `views/community.nim` port: `renderCommunityTabs` + `renderMemberTabs` +
- * `renderHashtagHeader` + `renderCommunityAbout` + `renderCommunity`). */
-
 import type { Community, User } from "@tseer/types";
 import { QueryKind, VerifiedType } from "@tseer/types";
 import { h } from "preact";

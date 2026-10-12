@@ -1,4 +1,3 @@
-/** In-process cache store: TTL expiry, capacity eviction, and a sweep timer. */
 import type { CacheStore, MemoryCacheOptions } from "./types.ts";
 
 interface Entry {
@@ -86,7 +85,6 @@ export class MemoryCacheStore implements CacheStore {
   }
 }
 
-/** Redis `MATCH` glob subset: `*` and `?` only, which is all our patterns use. */
 export function globToRegExp(pattern: string): RegExp {
   let source = "^";
   for (const char of pattern) {

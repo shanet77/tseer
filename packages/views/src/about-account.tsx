@@ -1,5 +1,3 @@
-/** Port of nitter's `src/views/about_account.nim` — the `/:name/about` panel. */
-
 import { type AccountInfo, VerifiedType } from "@tseer/types";
 import type { VNode } from "preact";
 import { getUserPic } from "./formatters.ts";
@@ -20,7 +18,6 @@ const months = [
   "December",
 ];
 
-/** Nim `format("MMMM YYYY")` over an ISO UTC string. */
 function monthYear(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime()) || iso === "") return "";

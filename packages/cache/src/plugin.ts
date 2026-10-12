@@ -1,9 +1,3 @@
-/**
- * `ctx.cache` provider plugin. Mounts the memory store by default and the redis
- * store on request, so the backend is a composition-time choice rather than a
- * hard dependency. `cache/write` is the plan's §1 extension point; TTL buckets
- * come from `ctx.config` where nitter read them from `[Cache]`.
- */
 import type { Context } from "cordis";
 import { MemoryCacheStore } from "./memory.ts";
 import { RedisCacheStore } from "./redis.ts";
@@ -13,20 +7,14 @@ import type { Cache, CachePluginOptions, CacheStore } from "./types.ts";
 
 declare module "cordis" {
   interface Context {
-    /** Read-through cache with pluggable backend (memory by default). */
     cache: Cache;
   }
 
   interface Events {
-    /** Fired after a successful write; listeners may mirror, warm, or invalidate. */
     "cache/write": (ns: string, key: string, ttlSeconds: number) => void;
   }
 }
 
-/**
- * Subset of `ctx.config` this seam reads. Declared locally so `cache` never
- * imports `@tseer/kernel`; the kernel's `TseerConfig` satisfies it structurally.
- */
 interface CacheConfigSubset {
   listCacheTime?: number | undefined;
   rssCacheTime?: number | undefined;

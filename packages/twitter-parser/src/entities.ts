@@ -1,13 +1,3 @@
-/**
- * Tweet entity expansion — the port of `parserutils.nim`'s
- * `expandTweetEntities`/`expandTextEntities`/`expandTweetEntitiesV2`/
- * `expandTextEntitiesV2`/`expandNoteTweetEntities`/`expandBirdwatchEntities`
- * and `extractGalleryPhoto`.
- *
- * `textSlice.b` is the raw Twitter index (half-open); Nim folded the
- * exclusivity into its slice at construction, the port translates each
- * expression instead (see `slices.ts`).
- */
 import { CardKind, type Media, MediaKind, type Photo, type Tweet } from "@tseer/types";
 import { at, boolDef, each, expandedUrl, type Json, num, str } from "./json.ts";
 import {
@@ -21,14 +11,9 @@ import {
   xmlEscape,
 } from "./slices.ts";
 
-/** Port of `expandTweetEntities` (legacy shape). */
 export function expandTweetEntities(tweet: Tweet, js: Json, hasArticle = false): void {
   const entities = at(js, "entities");
   if (entities === undefined) {
-    // No entities → the splicer never runs, so nothing would escape the raw
-    // full_text. tseer diverges from upstream here (Nim leaves plain text
-    // raw and feeds it to karax `verbatim`): tweet.text must be safe HTML,
-    // it is the views' raw sink.
     tweet.text = xmlEscape(tweet.text);
     return;
   }
@@ -58,7 +43,6 @@ export function expandTweetEntities(tweet: Tweet, js: Json, hasArticle = false):
   );
 }
 
-/** Port of `expandTweetEntitiesV2` (the "details" ad-tweet shape). */
 export function expandTweetEntitiesV2(tweet: Tweet, js: Json, hasArticle = false): void {
   const range = at(js, "details", "display_text_range");
   const textSlice = { a: numAt(range, 0), b: numAt(range, 1) };
@@ -76,7 +60,6 @@ export function expandTweetEntitiesV2(tweet: Tweet, js: Json, hasArticle = false
   );
 }
 
-/** Port of `expandTextEntities` — the shared splicing body (urls/media/tags/mentions). */
 function expandTextEntities(
   tweet: Tweet,
   entities: Json,
@@ -141,7 +124,6 @@ function expandTextEntities(
   tweet.text = trimEnd(replacedWith([...text], replacements, textSlice));
 }
 
-/** Port of `expandTextEntitiesV2` — the "details" variant (url_entities/hashtag_entities/cashtags). */
 function expandTextEntitiesV2(
   tweet: Tweet,
   js: Json,
@@ -201,11 +183,9 @@ const UNICODE_CLOSE = "\uFFFB";
 const XML_OPEN = "&lt;";
 const XML_CLOSE = "&gt;";
 
-/** Port of `expandNoteTweetEntities` (long notes; `<`/`>` are shielded from the splicer). */
 export function expandNoteTweetEntities(tweet: Tweet, js: Json): void {
   const entities = at(js, "entity_set");
   if (entities === undefined) {
-    // Same raw-sink reasoning as expandTweetEntities' entity-less path.
     tweet.text = xmlEscape(tweet.text);
     return;
   }
@@ -219,7 +199,6 @@ export function expandNoteTweetEntities(tweet: Tweet, js: Json): void {
   tweet.text = tweet.text.replaceAll(UNICODE_OPEN, XML_OPEN).replaceAll(UNICODE_CLOSE, XML_CLOSE);
 }
 
-/** Port of `expandBirdwatchEntities` (community notes). */
 export function expandBirdwatchEntities(text: string, entities: Json): string {
   const runes = [...text];
   const replacements: ReplaceSlice[] = [];
@@ -240,12 +219,9 @@ export function expandBirdwatchEntities(text: string, entities: Json): string {
   }
 
   replacements.sort(cmpSlice);
-  // Nim passes `0 ..< runes.len`, which folds to `len - 1` — the final
-  // codepoint is dropped there; kept verbatim.
   return replacedWith(runes, replacements, { a: 0, b: Math.max(0, runes.length - 1) });
 }
 
-/** Port of `extractGalleryPhoto`. */
 export function extractGalleryPhoto(t: Tweet): { url: string; tweetId: string; color: string } {
   const first = t.media[0];
   let url = "";
@@ -263,7 +239,6 @@ function thumbOf(media: Media): string {
   return (media as { photo: Photo }).photo.url;
 }
 
-/** `.strip(leading=false)` — trailing whitespace only. */
 function trimEnd(text: string): string {
   return text.replace(/\s+$/, "");
 }

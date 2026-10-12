@@ -1,10 +1,3 @@
-/** Community route plugin tests — fastify `inject` against a context with a
- * stubbed `ctx.twitter`, proving the seams are real (plan §6). Pins the
- * `respCommunity` gate, the per-tab fetchers and ranking modes, the dotted-id
- * cond, and the upstream quirks documented in `src/community.ts` (the
- * moderators tab's `beginning: false` "Load newest" link; the posts-kind
- * envelope query overwrite). */
-
 import { prefsPlugin } from "@tseer/prefs";
 import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
@@ -160,7 +153,6 @@ describe("communityPlugin", () => {
     expect(res.status).toBe(200);
     expect(res.body).toContain("<title>Spaceflight - Moderators | nitter</title>");
     expect(res.body).toContain('data-username="mod"');
-    // Nim's `Result[User](content: mods)`: beginning=false → "Load newest"
     expect(res.body).toContain("Load newest");
     expect(twitter.cachedCommunityModerators).toHaveBeenCalledWith("9");
   });

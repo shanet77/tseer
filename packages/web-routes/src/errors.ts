@@ -1,8 +1,3 @@
-/** The error-page helper shared by every route plugin — nitter's
- * `resp showError(message, cfg)` rendered through `ctx.render` with the
- * request's prefs. Status defaults to 200 (nitter's `showError` default);
- * the `guard` wrappers in each plugin pass the mapped code (429/500/404). */
-
 import type { TseerPreferences } from "@tseer/prefs";
 import type { AppReply } from "@tseer/server";
 import type { Render } from "@tseer/views";

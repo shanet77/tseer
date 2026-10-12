@@ -1,6 +1,3 @@
-/** Pref metadata: the port of `prefs_impl.nim`'s `genPrefs` DSL. The pref list
- * is data — it drives `parsePrefs`/`encodePrefs` here and the settings-page
- * form in the preferences route later. Keep cookie names verbatim for compat. */
 import { gallerySizeOptions, mediaViewOptions, themeOptions } from "./schema.ts";
 
 export type PrefKind = "checkbox" | "select" | "input";
@@ -9,11 +6,8 @@ export interface PrefMeta {
   name: string;
   label: string;
   kind: PrefKind;
-  /** checkbox: default state; select/input: default value. */
   default: boolean | string;
-  /** select only: accepted values. */
   options?: readonly string[];
-  /** input only: form placeholder. */
   placeholder?: string;
 }
 
@@ -148,5 +142,4 @@ export const prefList: PrefCategory[] = [
   },
 ];
 
-/** Flat iteration in `prefList` order (port of `allPrefs`). */
 export const allPrefs: PrefMeta[] = prefList.flatMap((c) => c.prefs);
