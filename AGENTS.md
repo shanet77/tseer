@@ -69,6 +69,11 @@ plan-vs-reality deltas discovered during implementation.
   - [x] `list` route plugin (`/:name/lists/:slug`, `/i/lists/:id`,
         `/i/lists/:id/members`) + `views/list.tsx` (`renderList`,
         `renderListTabs`) — wired into `apps/tseer`
+  - [x] `community` route plugin (`/i/communities/:id`,
+        `/:id/latest|media|about|members|moderators`, `/:id/hashtag/:tag`) +
+        `views/community.tsx` (`renderCommunity`, `renderCommunityTabs`,
+        `renderMemberTabs`, `renderHashtagHeader`, `renderCommunityAbout`) —
+        wired into `apps/tseer`
 - [ ] Phase 6 — `profile-web` composition + out-of-tree example plugin
 
 Update this checklist as phases land.
@@ -830,6 +835,69 @@ docs/TS_PORT_PLAN.md  # the spec
   pattern (stubbed `ctx.twitter` + `inject`), pinning the `respList` gate,
   both tabs' fetchers and query kinds, the slug redirect (+cursor), the rss
   gate, the 404/429 mapping, and unload.
+
+## community notes (plan §5, `routes/community.nim` + `views/community.nim` port)
+
+- **`communityPlugin` is the four-seam route-plugin shape** (`server` +
+  `twitter` + `render` + `prefs` via static `.inject`, `ctx.effect` cleanup,
+  `guard` mapping) registering `/i/communities/:id` and its
+  `latest`/`media`/`about`/`members`/`moderators`/`hashtag/:tag` subpaths.
+  The static `communities` segment beats the unsupported plugin's
+  `/i/:i/:j` param regardless of mount order, and that plugin's deny list
+  (`["status", "lists", "user"]`) is upstream-verbatim — **not** extended
+  with `communities`: with the community plugin unmounted,
+  `/i/communities/:id` rendering the "Unsupported feature" panel is correct
+  upstream-shaped behavior (only the 4-segment `/hashtag/:tag` paths fall
+  past `/i/:i/:j` entirely, to fastify's 404 — no Jester route matches them
+  upstream either once the router is absent).
+- **The community object rides `twitter.cachedCommunity`** (the
+  `getCachedCommunity` port, `cm:` key) and the moderators ride
+  `twitter.cachedCommunityModerators` (`cmm:`); no `config` seam —
+  community.nim reads `cfg` only through `showError`, which
+  `createShowError` already covers.
+- **`cond '.' notin @"id"` runs in-handler** (`:id` stays dot-allowing at
+  match time; a dotted id answers `showError("Page not found")`, the global
+  404 page it falls through to upstream — same treatment as the list
+  plugin's `/i/lists/:id`).
+- **The gate runs before the fetch (harmless reordering).** Upstream
+  fetches the tab's timeline *before* `respCommunity`'s
+  `id.len == 0 or name.len == 0` gate, but every `getGraph*` returns on
+  `id.len == 0`, so the fetch is a no-op for a missed community; the port
+  gates first (`Community "<id>" not found`) and only fetches tabs for a
+  community that exists. Timelines fetch with `cmty.id` from the cache, not
+  the URL param, verbatim.
+- **The moderators tab pins a Nim zero-default quirk:**
+  `Result[User](content: mods)` carries `beginning: false` (Nim's default
+  bool), so `renderTimelineUsers` emits a "Load newest" link on the
+  moderators page — ported verbatim, and the test pins it so it cannot be
+  "fixed" into parity by accident. The members tab renders with the
+  parser's envelope query (empty userList-kind — cursor-only links, the
+  same wire shape as upstream's zero-default `Query()`).
+- **Tweet tabs overwrite `timeline.query` with the zero-default
+  posts-kind query** (`communityQuery()`), the same envelope-default
+  divergence the list plugin documents: the parser envelope defaults to
+  kind `tweets`, which would add `f=tweets` to the "Load more" links;
+  upstream renders community timelines with the zero-default `Query()`
+  (Nim's first enum value is `posts`).
+- **`views/community.tsx` divergences:** `createdAt.format("MMMM d, yyyy")`
+  is hand-rendered in UTC with full month names (no Intl; deterministic),
+  and an unset date (`""`, Nim's zero DateTime) renders "Created by …"
+  without the date; `tag.strip(chars={'#'})` maps to a two-ended regex
+  strip; `renderHashtagHeader`'s `community` param is unused upstream too —
+  the signature is kept (`_community`) for parity. Everything else is
+  preact-auto-escaped (name, category, description, rules, moderator
+  links); the banner signs through the media process globals like
+  `list.tsx`.
+- **Tests:** `views/tests/community.spec.ts` pins the tabs (exact
+  `tab-item active` li markup), the hashtag hrefs (`#` stripped from the
+  href, kept in the text), the About panel (join policy, created-by line,
+  rules numbering, moderator strip with `_bigger` avatars), banner signing,
+  and name/rule escaping; `web-routes/tests/community.spec.ts` follows the
+  search spec's boot pattern (stubbed `ctx.twitter` + `inject`), pinning
+  the gate, every tab's fetcher + ranking mode (`Recency` on `/latest`),
+  cursor passing, the posts-kind envelope overwrite (no `f=tweets`), the
+  dotted-id cond, the moderators "Load newest" quirk, the 404/429 mapping,
+  and unload.
 
 ## twitter-parser notes (plan §3, `parser.nim` + `parserutils.nim` + `experimental/parser` port)
 

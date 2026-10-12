@@ -15,6 +15,7 @@ import { twitterSessionsPlugin } from "@tseer/twitter-sessions";
 import { renderPlugin, viewsPublicDir } from "@tseer/views";
 import {
   broadcastPlugin,
+  communityPlugin,
   embedPlugin,
   listPlugin,
   preferencesPlugin,
@@ -122,6 +123,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
     await ctx.plugin(timelinePlugin);
     await ctx.plugin(statusPlugin);
     await ctx.plugin(listPlugin);
+    await ctx.plugin(communityPlugin);
     await ctx.plugin(searchPlugin);
     await ctx.plugin(rssPlugin);
     await ctx.plugin(spacePlugin, {

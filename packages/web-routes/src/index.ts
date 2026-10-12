@@ -2,6 +2,11 @@
 
 export { default as broadcastPlugin, registerBroadcastRoutes } from "./broadcast.ts";
 export {
+  communityQuery,
+  default as communityPlugin,
+  registerCommunityRoutes,
+} from "./community.ts";
+export {
   default as embedPlugin,
   parseTweetPath,
   parseTweetUrl,
