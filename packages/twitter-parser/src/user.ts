@@ -124,8 +124,68 @@ export function parseUser(js: Json, id = ""): User {
   return result;
 }
 
+// The modern UserByRestId/UserByScreenName shape: `legacy` is empty and the
+// data lives in typed sub-objects (core/relationship_counts/tweet_counts/etc.).
+// nitter master serves users through the experimental parser, so this fill is
+// that parser's parity surface, not parser.nim's minimal five-field fallback.
+function applyTypedUserShape(user: User, r: Json): void {
+  user.id = str(r, "rest_id");
+  user.username = str(r, "core", "screen_name");
+  user.fullname = str(r, "core", "name");
+  user.userPic = imageStr(r, "avatar", "image_url").replace("_normal", "");
+
+  if (str(r, "banner", "image_url").length > 0) {
+    user.banner = str(r, "banner", "image_url") + "/1500x500";
+  }
+
+  if (at(r, "privacy") !== undefined) {
+    user.protected = boolDef(r, false, "privacy", "protected");
+  }
+
+  if (at(r, "location") !== undefined) {
+    user.location = str(r, "location", "location");
+  }
+
+  if (str(r, "core", "created_at").length > 0) {
+    user.joinDate = parseTwitterDate(str(r, "core", "created_at"));
+  }
+
+  const verifiedType = at(r, "verification", "verified_type");
+  if (verifiedType !== undefined) {
+    user.verifiedType = parseVerifiedType(
+      typeof verifiedType === "string" ? verifiedType : "",
+      user.verifiedType,
+    );
+  }
+
+  if (at(r, "relationship_counts") !== undefined) {
+    user.followers = num(r, "relationship_counts", "followers");
+    user.following = num(r, "relationship_counts", "following");
+  }
+
+  if (at(r, "tweet_counts") !== undefined) {
+    user.tweets = num(r, "tweet_counts", "tweets");
+    user.media = num(r, "tweet_counts", "media_tweets");
+  }
+
+  if (at(r, "action_counts") !== undefined) {
+    user.likes = num(r, "action_counts", "favorites_count");
+  }
+
+  const bio = at(r, "profile_bio");
+  if (bio !== undefined) {
+    user.bio = str(bio, "description");
+    expandUserEntities(user, bio);
+  }
+}
+
 export function parseGraphUser(js: Json): User {
-  let user = pick(at(js, "user_result", "result"), at(js, "user_results", "result"));
+  let user = pick(
+    at(js, "data", "user_result", "result"),
+    at(js, "data", "user", "result"),
+    at(js, "user_result", "result"),
+    at(js, "user_results", "result"),
+  );
 
   if (user === undefined) {
     if (at(js, "core") !== undefined) {
@@ -146,24 +206,13 @@ export function parseGraphUser(js: Json): User {
   }
 
   if (result.username.length === 0) {
-    result.id = str(user, "rest_id");
-    result.username = str(user, "core", "screen_name");
-    result.fullname = str(user, "core", "name");
-    result.userPic = imageStr(user, "avatar", "image_url").replace("_normal", "");
-
     if (
       boolDef(user, boolDef(user, false, "verification", "is_blue_verified"), "is_blue_verified")
     ) {
       result.verifiedType = VerifiedType.Blue;
     }
 
-    const verifiedType = at(user, "verification", "verified_type");
-    if (verifiedType !== undefined) {
-      result.verifiedType = parseVerifiedType(
-        typeof verifiedType === "string" ? verifiedType : "",
-        result.verifiedType,
-      );
-    }
+    applyTypedUserShape(result, user);
   }
 
   return result;
@@ -187,52 +236,7 @@ export function parseUserResult(userResult: Json): User {
   }
 
   if (result.username.length === 0 && str(userResult, "core", "screen_name").length > 0) {
-    result.id = str(userResult, "rest_id");
-    result.username = str(userResult, "core", "screen_name");
-    result.fullname = str(userResult, "core", "name");
-    result.userPic = imageStr(userResult, "avatar", "image_url").replace("_normal", "");
-
-    if (str(userResult, "banner", "image_url").length > 0) {
-      result.banner = str(userResult, "banner", "image_url") + "/1500x500";
-    }
-
-    if (at(userResult, "privacy") !== undefined) {
-      result.protected = boolDef(userResult, false, "privacy", "protected");
-    }
-
-    if (at(userResult, "location") !== undefined) {
-      result.location = str(userResult, "location", "location");
-    }
-
-    if (str(userResult, "core", "created_at").length > 0) {
-      result.joinDate = parseTwitterDate(str(userResult, "core", "created_at"));
-    }
-
-    const verification = at(userResult, "verification");
-    if (verification !== undefined) {
-      const verified = parseVerifiedType(str(verification, "verified_type"), VerifiedType.None);
-      if (verified !== VerifiedType.None) result.verifiedType = verified;
-    }
-
-    if (at(userResult, "relationship_counts") !== undefined) {
-      result.followers = num(userResult, "relationship_counts", "followers");
-      result.following = num(userResult, "relationship_counts", "following");
-    }
-
-    if (at(userResult, "tweet_counts") !== undefined) {
-      result.tweets = num(userResult, "tweet_counts", "tweets");
-      result.media = num(userResult, "tweet_counts", "media_tweets");
-    }
-
-    if (at(userResult, "action_counts") !== undefined) {
-      result.likes = num(userResult, "action_counts", "favorites_count");
-    }
-
-    const bio = at(userResult, "profile_bio");
-    if (bio !== undefined) {
-      result.bio = str(bio, "description");
-      expandUserEntities(result, bio);
-    }
+    applyTypedUserShape(result, userResult);
   }
 
   return result;

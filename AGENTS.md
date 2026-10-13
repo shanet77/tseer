@@ -181,13 +181,24 @@ docs/TS_PORT_PLAN.md  # the spec
   (plan §1) work without either backend knowing about the other.
 - **Redis is an *optional* peer, not a dependency.** The memory provider must
   install with no redis, so `ioredis` is dynamically imported in
-  `src/ioredis.ts` and declared ambiently in `src/ioredis-optional.d.ts`. Two
-  gotchas, both hit here: tsdown needs `deps.neverBundle: ["ioredis"]` (the
+  `src/ioredis.ts`, declared as an *optional* peerDependency of `@tseer/cache`,
+  and carried as a real dependency only by the composition root
+  (`apps/tseer`) — the deployed image bundles the driver, memory-only
+  installs stay clean. It is declared ambiently in `src/ioredis-optional.d.ts`.
+  Two gotchas, both hit here: tsdown needs `deps.neverBundle: ["ioredis"]` (the
   `external` key is deprecated), and the ambient file **must not** be named
   `ioredis.d.ts` — sharing a basename with `ioredis.ts` makes tsc treat it as
   that file's emit output and silently skip it. `createIoredisClient` is
   deliberately *not* re-exported from the barrel; exporting it would make the
   dynamic import static and defeat the code-split.
+- **Selecting the provider is config, and client errors are logged, not
+  unhandled.** `[Cache] provider = redis|memory` (kernel `cacheProvider`,
+  INI-mapped from `Cache.provider`) drives the profile's cache entry;
+  `ProfileOptions.cacheProvider` overrides it for embedders. ioredis emits
+  connection errors as client `error` events that never reach a command —
+  `createIoredisClient` attaches them to `RedisCacheOptions.onClientError`,
+  which the plugin routes to `ctx.logger.warn` (ioredis's no-listener fallback
+  prints raw `[ioredis] Unhandled error event` spam during an outage instead).
 - **Keys are `<prefix>:<version>:<ns>:<key>`**, with namespaces ported verbatim
   from `redis_cache.nim` (`p`, `i`, `t`, `l`, `rss`, `pr2`, `ai`, `sp`, `bc`,
   `cm`, `cmm`, `pid`) so an existing nitter redis stays readable. The version
@@ -990,6 +1001,23 @@ docs/TS_PORT_PLAN.md  # the spec
   parser behavior with hand-built payload fixtures per kind
   (`packages/twitter-parser/tests/fixtures`). Swap in captured payloads when
   a live smoke test happens (plan §6's optional job).
+- **Live smoke found the `data.` envelope gap in `parseGraphUser`** (the
+  pending §6 job, hit on first real deployment): every other graph parser
+  already read through the GraphQL envelope (`data.user.result`,
+  `data.user_result_by_screen_name.result`, …) but `parseGraphUser` only
+  checked top-level `user_result`/`user_results`/`core` — the synthetic
+  fixtures were built pre-unwrapped, so every profile fetch parsed to an
+  empty user and 404'd. The unwrap now mirrors the experimental parser's
+  precedence (`data.user_result.result`, then `data.user.result`, then the
+  top-level paths), and the typed-shape fill (`relationship_counts`,
+  `tweet_counts`, `action_counts`, `profile_bio`, banner, joinDate,
+  verification) is shared between `parseGraphUser` and `parseUserResult` —
+  that fill is experimental-parser parity, not parser.nim's minimal
+  five-field fallback: nitter's `api.nim` imports `experimental/parser`, so
+  the minimal variant is dead code upstream. The "minimal typed-shape
+  fallback" test was updated to pin the full fill; a new
+  `user_graph_envelope.json` fixture pins the raw `data.user.result` wire
+  shape.
 
 ## article notes (plan §5, `routes/article.nim` + `views/article.nim` port)
 

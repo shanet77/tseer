@@ -1,0 +1,44 @@
+{
+  "data": {
+    "user": {
+      "result": {
+        "rest_id": "42",
+        "is_blue_verified": true,
+        "core": {
+          "screen_name": "modern",
+          "name": "Modern User",
+          "created_at": "Wed Jan 01 01:02:03 +0000 2020"
+        },
+        "avatar": {
+          "image_url": "https://pbs.twimg.com/profile_images/2/abc_normal.jpg"
+        },
+        "banner": {
+          "image_url": "https://pbs.twimg.com/profile_banners/2"
+        },
+        "privacy": {
+          "protected": true
+        },
+        "location": {
+          "location": "Berlin"
+        },
+        "verification": {
+          "verified_type": "Government"
+        },
+        "relationship_counts": {
+          "followers": 10,
+          "following": 20
+        },
+        "tweet_counts": {
+          "tweets": 30,
+          "media_tweets": 3
+        },
+        "action_counts": {
+          "favorites_count": 7
+        },
+        "profile_bio": {
+          "description": "hello"
+        }
+      }
+    }
+  }
+}

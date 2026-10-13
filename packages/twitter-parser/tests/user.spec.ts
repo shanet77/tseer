@@ -46,7 +46,7 @@ describe("user parsers", () => {
     );
   });
 
-  it("ports parser.nim's minimal typed-shape fallback (no banner/bio/counts)", () => {
+  it("fills the modern typed shape (nitter serves users through the experimental parser)", () => {
     const user = parseGraphUser(fixture("user_typed"));
     expect(user).toMatchObject({
       id: "42",
@@ -54,9 +54,29 @@ describe("user parsers", () => {
       fullname: "Modern User",
       userPic: "profile_images/2/abc.jpg",
       verifiedType: VerifiedType.Government,
-      banner: "",
-      bio: "",
-      followers: 0,
+      banner: "https://pbs.twimg.com/profile_banners/2/1500x500",
+      bio: "typed bio",
+      followers: 10,
+      following: 20,
+      tweets: 30,
+      media: 3,
+      likes: 40,
+      protected: true,
+      location: "Berlin",
+      joinDate: "2020-01-01T01:02:03.000Z",
+    });
+  });
+
+  it("unwraps the data.user.result GraphQL envelope before parsing", () => {
+    const user = parseGraphUser(fixture("user_graph_envelope"));
+    expect(user).toMatchObject({
+      id: "42",
+      username: "modern",
+      fullname: "Modern User",
+      followers: 10,
+      following: 20,
+      protected: true,
+      joinDate: "2020-01-01T01:02:03.000Z",
     });
   });
 
