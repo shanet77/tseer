@@ -5,18 +5,14 @@ privacy and performance, and a TypeScript port of
 [nitter](https://github.com/zedeus/nitter).
 
 - No JavaScript or ads
-- All requests go through the backend, client never talks to Twitter
+- All media is proxied through the backend by default, so the client never talks to Twitter while browsing
 - Prevents Twitter from tracking your IP or JavaScript fingerprint
 - Uses Twitter's unofficial API (no developer account required)
-- Lightweight (for [@nim_lang](/nim_lang), 60KB vs 784KB from twitter.com)
+- Lightweight (for example, 60KB vs 784KB from twitter.com)
 - RSS feeds
 - Themes
 - Mobile support (responsive design)
 - AGPLv3 licensed, no proprietary instances permitted
-
-Nitter's GitHub wiki contains
-[browser extensions](https://github.com/zedeus/nitter/wiki/Extensions)
-maintained by the community.
 
 ## Why use Tseer?
 
@@ -39,17 +35,3 @@ Twitter, and in most cases serves pages faster (eg. timelines load 2-4x faster).
 In the future a simple account system will be added that lets you follow Twitter
 users, allowing you to have a clean chronological timeline without needing a
 Twitter account.
-
-## Donating
-
-Liberapay: https://liberapay.com/zedeus \
-Patreon: https://patreon.com/nitter \
-BTC: bc1qpqpzjkcpgluhzf7x9yqe7jfe8gpfm5v08mdr55 \
-ETH: 0x24a0DB59A923B588c7A5EBd0dBDFDD1bCe9c4460 \
-XMR: 42hKayRoEAw4D6G6t8mQHPJHQcXqofjFuVfavqKeNMNUZfeJLJAcNU19i1bGdDvcdN6romiSscWGWJCczFLe9RFhM3d1zpL \
-SOL: ANsyGNXFo6osuFwr1YnUqif2RdoYRhc27WdyQNmmETSW \
-ZEC: u1vndfqtzyy6qkzhkapxelel7ams38wmfeccu3fdpy2wkuc4erxyjm8ncjhnyg747x6t0kf0faqhh2hxyplgaum08d2wnj4n7cyu9s6zhxkqw2aef4hgd4s6vh5hpqvfken98rg80kgtgn64ff70djy7s8f839z00hwhuzlcggvefhdlyszkvwy3c7yw623vw3rvar6q6evd3xcvveypt
-
-## Contact
-
-Feel free to join our [Matrix channel](https://matrix.to/#/#nitter:matrix.org).
