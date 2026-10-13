@@ -119,10 +119,10 @@ export const prefList: PrefCategory[] = [
     prefs: [
       {
         name: "replaceTwitter",
-        label: "Twitter -> Nitter",
+        label: "Twitter -> Tseer",
         kind: "input",
         default: "",
-        placeholder: "Nitter hostname",
+        placeholder: "Tseer hostname",
       },
       {
         name: "replaceYouTube",

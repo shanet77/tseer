@@ -1,8 +1,8 @@
 # About
 
-Nitter is a free and open source alternative Twitter front-end focused on
-privacy and performance. The source is available on GitHub at
-<https://github.com/zedeus/nitter>
+Tseer is a free and open source alternative Twitter front-end focused on
+privacy and performance, and a TypeScript port of
+[nitter](https://github.com/zedeus/nitter).
 
 - No JavaScript or ads
 - All requests go through the backend, client never talks to Twitter
@@ -15,11 +15,10 @@ privacy and performance. The source is available on GitHub at
 - AGPLv3 licensed, no proprietary instances permitted
 
 Nitter's GitHub wiki contains
-[instances](https://github.com/zedeus/nitter/wiki/Instances) and
 [browser extensions](https://github.com/zedeus/nitter/wiki/Extensions)
 maintained by the community.
 
-## Why use Nitter?
+## Why use Tseer?
 
 It's impossible to use Twitter without JavaScript enabled, and as of 2024 you
 need to sign up. For privacy-minded folks, preventing JavaScript analytics and
@@ -32,9 +31,9 @@ particularly important after Twitter [removed the
 ability](https://www.eff.org/deeplinks/2020/04/twitter-removes-privacy-option-and-shows-why-we-need-strong-privacy-laws)
 for users to control whether their data gets sent to advertisers.
 
-Using an instance of Nitter (hosted on a VPS for example), you can browse
+Using an instance of Tseer (hosted on a VPS for example), you can browse
 Twitter without JavaScript while retaining your privacy. In addition to
-respecting your privacy, Nitter is on average around 15 times lighter than
+respecting your privacy, Tseer is on average around 15 times lighter than
 Twitter, and in most cases serves pages faster (eg. timelines load 2-4x faster).
 
 In the future a simple account system will be added that lets you follow Twitter

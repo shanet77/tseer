@@ -71,7 +71,7 @@ export function renderHead(props: HeadProps): VNode {
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
       <link rel="manifest" href="/site.webmanifest" />
-      <link rel="mask-icon" href="/safari-pinned-tab.svg" {...{ color: "#ff6c60" }} />
+      <link rel="mask-icon" href="/safari-pinned-tab.svg" {...{ color: "#b57e3d" }} />
       <link
         rel="search"
         type="application/opensearchdescription+xml"
@@ -102,7 +102,7 @@ export function renderHead(props: HeadProps): VNode {
       <meta property="og:type" content={ogType} />
       <meta property="og:title" content={props.ogTitle.length > 0 ? props.ogTitle : props.title} />
       <meta property="og:description" content={stripHtml(props.desc)} />
-      <meta property="og:site_name" content="Nitter" />
+      <meta property="og:site_name" content="Tseer" />
       <meta property="og:locale" content="en_US" />
       {props.banner.length > 0 && !props.banner.startsWith("#") && (
         <link rel="preload" type="image/png" href={picUrl(props.banner)} as="image" />
