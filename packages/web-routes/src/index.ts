@@ -12,6 +12,19 @@ export {
   registerEmbedRoutes,
 } from "./embed.ts";
 export {
+  chunkList,
+  default as homePlugin,
+  fetchHomeFeed,
+  HOME_DEFAULT_CACHE_SECONDS,
+  HOME_DEFAULT_CHUNK_SIZE,
+  HOME_MAX_FOLLOWS,
+  homeQuery,
+  mergeHomeTweets,
+  nextHomeCursor,
+  normalizeFollows,
+  registerHomeRoutes,
+} from "./home.ts";
+export {
   default as listPlugin,
   listQuery,
   listTitle,

@@ -15,6 +15,7 @@ export const namespaces = {
   community: "cm",
   communityModerators: "cmm",
   userIdBucket: "pid",
+  home: "home",
 } as const;
 
 export type CacheNamespace = (typeof namespaces)[keyof typeof namespaces];

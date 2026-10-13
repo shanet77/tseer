@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import {
   aboutPlugin,
   aboutRoutePlugin,
+  applyEnvOverrides,
   createApp,
   emptySessionHealth,
   healthRoutePlugin,
@@ -133,6 +134,37 @@ describe("nitter.conf compatibility", () => {
     expect(loaded.warnings.map((w) => w.message)).toEqual([
       expect.stringContaining("[Plugins]mystery: unknown key"),
     ]);
+  });
+
+  it("parses the [Home] follows list, chunk size, and cache seconds", () => {
+    const loaded = parseConfigText(
+      "[Home]\nfollows = nasa, spacedot,\nchunkSize = 5\ncacheSeconds = 30\n",
+    );
+    expect(loaded.config.home).toEqual({
+      follows: ["nasa", "spacedot"],
+      chunkSize: 5,
+      cacheSeconds: 30,
+    });
+    expect(loaded.warnings).toEqual([]);
+  });
+
+  it("defaults [Home] and warns on unknown keys and invalid integers", () => {
+    const loaded = parseConfigText("[Home]\nmystery = 1\nchunkSize = many\n");
+    expect(loaded.config.home).toEqual({ follows: [], chunkSize: 12, cacheSeconds: 120 });
+    expect(loaded.warnings.map((w) => w.message)).toEqual([
+      expect.stringContaining("[Home]chunkSize: invalid integer"),
+      expect.stringContaining("[Home]mystery: unknown key"),
+    ]);
+  });
+
+  it("applies the TSEER_HOME_FOLLOWS env override over the config file", () => {
+    const { config } = parseConfigText("[Home]\nfollows = nasa\n");
+    const overridden = applyEnvOverrides(config, { TSEER_HOME_FOLLOWS: " elonmusk , nasa ," });
+    expect(overridden.home.follows).toEqual(["elonmusk", "nasa"]);
+    expect(config.home.follows).toEqual(["nasa"]);
+    expect(applyEnvOverrides(config, {})).toBe(config);
+    expect(applyEnvOverrides(config, { TSEER_HOME_FOLLOWS: "" })).toBe(config);
+    expect(applyEnvOverrides(config, { TSEER_HOME_FOLLOWS: " , ," })).toBe(config);
   });
 });
 

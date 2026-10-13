@@ -39,6 +39,7 @@ export {
   stripHtml,
   titleize,
 } from "./formatters.ts";
+export { renderHome, renderHomeEmpty } from "./home.tsx";
 export { renderList, renderListTabs } from "./list.tsx";
 export {
   getOrigPicUrl,

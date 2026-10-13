@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { SessionKind } from "@tseer/types";
 import { Context } from "cordis";
 import { describe, expect, it } from "vitest";
@@ -60,6 +61,31 @@ describe("twitterSessionsPlugin", () => {
     const ctx = new Context();
     await ctx.plugin(twitterSessionsPlugin, { path: "/nonexistent/sessions.jsonl", watch: false });
     expect(ctx.accounts.size).toBe(0);
+  });
+
+  it("resolves the sessions path from the env before the default, options still win", async () => {
+    const fixture = fileURLToPath(new URL("./fixtures/sessions.jsonl", import.meta.url));
+    const prevTseer = process.env.TSEER_SESSIONS_FILE;
+    const prevNitter = process.env.NITTER_SESSIONS_FILE;
+    process.env.TSEER_SESSIONS_FILE = fixture;
+    process.env.NITTER_SESSIONS_FILE = "/nonexistent/nitter-fallback.jsonl";
+    try {
+      const ctx = new Context();
+      await ctx.plugin(twitterSessionsPlugin, { watch: false });
+      expect(ctx.accounts.size).toBe(2);
+
+      const explicit = new Context();
+      await explicit.plugin(twitterSessionsPlugin, {
+        path: "/nonexistent/explicit.jsonl",
+        watch: false,
+      });
+      expect(explicit.accounts.size).toBe(0);
+    } finally {
+      if (prevTseer === undefined) delete process.env.TSEER_SESSIONS_FILE;
+      else process.env.TSEER_SESSIONS_FILE = prevTseer;
+      if (prevNitter === undefined) delete process.env.NITTER_SESSIONS_FILE;
+      else process.env.NITTER_SESSIONS_FILE = prevNitter;
+    }
   });
 
   it("unloads cleanly and drops ctx.accounts", async () => {

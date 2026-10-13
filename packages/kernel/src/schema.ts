@@ -48,6 +48,13 @@ export const configSchema = z.object({
       remove: z.array(z.string()).default([]),
     })
     .prefault({}),
+  home: z
+    .object({
+      follows: z.array(z.string()).default([]),
+      chunkSize: z.number().int().min(1).default(12),
+      cacheSeconds: z.number().int().min(0).default(120),
+    })
+    .prefault({}),
   preferences: preferencesSchema.prefault({}),
 });
 

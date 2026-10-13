@@ -92,6 +92,10 @@ plan-vs-reality deltas discovered during implementation.
         walkthrough in `packages/profile-web/README.md`
   - [x] `apps/tseer` is now a thin re-export of `profile-web`'s `createApp`
         (the scaffold `hello` plugin moved into `profile-web`)
+- [ ] Beyond-plan features (tseer originals, no nitter counterpart)
+  - [x] `home` route plugin (`/`) — `[Home] follows`/`TSEER_HOME_FOLLOWS`
+        config, chunked search fan-out, snowflake merge, optional `home:`
+        cache — see "home notes"
 
 Update this checklist as phases land.
 
@@ -1038,6 +1042,53 @@ docs/TS_PORT_PLAN.md  # the spec
   the swallow fallback, both redirects, the canonical "Open in X" link
   (`x.com/<user>/article/<id>`), the 429 mapping, and unload.
 
+## home notes (tseer-original — no nitter counterpart; H1 of the home-feed plan)
+
+- **The engine is the combined timeline, chunked.** `follows` fans out to one
+  tweet-kind search per `chunkSize` users (`(from:a OR from:b …)
+  include:nativeretweets` — exactly what `/:name1,name2` compiles to), merged
+  by `BigInt` snowflake desc; ids encode timestamps, so id order *is*
+  chronological order. The merged page is the union of the chunk pages: it is
+  never sliced to a fixed size, or tweets between the cut and the page's min id
+  would be orphaned (no later cursor ever returns to them).
+- **"Load more" is a `maxid:` cursor, one below the page's oldest id.** X search
+  `max_id` is inclusive, so `min - 1` keeps the oldest tweet from repeating on
+  the next page. The cursor rides `genQueryParam(query, maxId)` — the same hook
+  the fetch layer already exposed — and every chunk search receives it, keeping
+  chunks in lockstep.
+- **The envelope query is the full follows list, kind `tweets`.** That is what
+  shapes the Load more link (`?f=tweets&cursor=…`; the handler ignores `f`).
+  kind `posts` would emit cleaner links but is a semantic lie (posts implies
+  the self-threads/replies filter). `renderTweetSearch` is *not* used: with
+  >1 fromUser it renders the names-joined header plus profile tabs linking
+  `/a,b,c,…`, and that route does one *unchunked* search — it cannot serve a
+  large follow set. `views/home.tsx` is a header + `renderTimelineTweets`.
+- **The cache is optional and read lazily per request**, not via `inject` —
+  `withoutCache` must not defer the route, and adding `cache` to `.inject`
+  would. Key = `fnv1a32(follows.join(","))` + cursor under the `home:`
+  namespace (a tseer-original namespace, like nitter's `rss:`); a
+  `cacheSeconds` of 0 disables. The scroll fragment **copies** the envelope
+  before forcing `beginning = true` — cache hits return shared objects, and
+  mutating one would poison later renders.
+- **`[Home]` config + the `TSEER_HOME_FOLLOWS` env override.** The env var is
+  the kernel's first environment hook (`applyEnvOverrides`, applied in
+  `createApp` after every load path; env beats INI, empty/unset is ignored,
+  boot logs when it applies). `follows` parses as a comma list (the same
+  `cleanListEntry` shape as `[Plugins]`); `chunkSize`/`cacheSeconds` coerce as
+  ints with warnings. Follows are trimmed, deduped case-insensitively, and
+  capped at 150 (warn + truncate — each page costs `ceil(N/chunkSize)`
+  searches).
+- **`/` beats the static wildcard by specificity** (exact vs `/*` in
+  find-my-way); a test serves `/css/style.css` and `/` from the same boot.
+  `?scroll=1` returns the bare timeline (204 when empty), matching the family.
+- **Known limits, accepted for H1:** search-index lag (minutes), per-page cost
+  grows with follows (the cache absorbs it), and "Load newest" on paged
+  entries links `/?f=tweets` — family behavior, kept.
+- **H2/H3 are the planned follow-ups:** a writable `ctx.follows` store + follow
+  button (behind a config gate), and a session-following seeder
+  (`cachedUser` → paginate `ctx.twitter.following`, already ported) to seed
+  the list from one designated cookie account.
+
 ## profile-web notes (plan §2/§6, the `nitter.nim` boot composition)
 
 - **`profile-web` owns the composition; `apps/tseer` only re-exports it.**
@@ -1077,3 +1128,17 @@ docs/TS_PORT_PLAN.md  # the spec
 - **`createApp` still returns the bare `Context`** (cli + scaffold contract);
   unload proofs go through `mountProfile`'s `{ names, fibers }` or a manual
   `loadPluginEntry` + `ctx.plugin` — the pattern the tests pin.
+- **Full-app specs boot hermetically.** `vitest.config.ts` loads
+  `tests/setup-hermetic.ts`, which points `TSEER_SESSIONS_FILE` (the sessions
+  plugin's committed env fallback, ahead of `NITTER_SESSIONS_FILE`) at a
+  nonexistent path — so a developer's real `sessions.jsonl` in the repo root
+  cannot leak a live session into `pnpm test`. Without it, `/.health` reported
+  the real pool and the json-api example 200'd from a *live fetch* instead of
+  the 502 no-sessions page (plan §6: tests never talk to X). Both ends are
+  pinned: `tests/hermetic.spec.ts` fails if the `setupFiles` wiring is dropped
+  (root `tests/*.spec.ts` is in the vitest `include`), and the sessions
+  plugin spec pins the env-before-default / options-win `resolvePath`
+  precedence. The real `sessions.jsonl` stays out of git entirely —
+  `.gitignore` names it explicitly, and the audit (all reachable commits,
+  unreachable objects, and the worktree) found no copy of its tokens
+  anywhere in history.

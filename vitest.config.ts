@@ -39,6 +39,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["apps/*/tests/**/*.spec.ts", "packages/*/tests/**/*.spec.ts"],
+    setupFiles: ["./tests/setup-hermetic.ts"],
+    include: ["tests/*.spec.ts", "apps/*/tests/**/*.spec.ts", "packages/*/tests/**/*.spec.ts"],
   },
 });

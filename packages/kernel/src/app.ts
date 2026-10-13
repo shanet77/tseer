@@ -1,7 +1,7 @@
 import { Context } from "cordis";
 import { readConfigFile } from "./files.ts";
 import { parseIni } from "./ini.ts";
-import { loadConfigFromIni } from "./load.ts";
+import { applyEnvOverrides, loadConfigFromIni } from "./load.ts";
 import loggerPlugin from "./logger.ts";
 import configPlugin from "./plugin.ts";
 import type { LoadedConfig } from "./schema.ts";
@@ -30,6 +30,9 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
   }
 
   const ctx = new Context();
+  const config = applyEnvOverrides(loaded.config);
+  const envApplied = config !== loaded.config;
+  loaded = { ...loaded, config };
   await ctx.plugin(loggerPlugin, {
     debug: loaded.config.enableDebug,
     level: options.logLevel,
@@ -38,6 +41,11 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Context
   ctx.logger.info(
     `tseer booted (${loaded.config.title} @ ${loaded.config.hostname}:${loaded.config.port})`,
   );
+  if (envApplied) {
+    ctx.logger.info(
+      `config: TSEER_HOME_FOLLOWS override applied (${loaded.config.home.follows.length} follows)`,
+    );
+  }
   if (loaded.config.hmacKey === "secretkey") {
     ctx.logger.warn("config: using the default hmacKey; set a unique random value");
   }

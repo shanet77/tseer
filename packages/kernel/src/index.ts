@@ -10,7 +10,7 @@ export { default as healthRoutePlugin, emptySessionHealth } from "./health-route
 export type { IniDocument, IniSection, IniValue, IniWarning } from "./ini.ts";
 export { parseIni } from "./ini.ts";
 export type { IniSectionName } from "./load.ts";
-export { iniSections, loadConfigFromIni } from "./load.ts";
+export { applyEnvOverrides, iniSections, loadConfigFromIni, parseEnvFollows } from "./load.ts";
 export type { LoggerPluginOptions } from "./logger.ts";
 export { default as loggerPlugin } from "./logger.ts";
 export type { ConfigPluginOptions } from "./plugin.ts";

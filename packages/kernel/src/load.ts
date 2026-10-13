@@ -1,11 +1,11 @@
 import type { IniDocument } from "./ini.ts";
 import { extractPreferences, finalizeConfig } from "./preferences.ts";
-import type { ConfigWarning, LoadedConfig } from "./schema.ts";
+import type { ConfigWarning, LoadedConfig, TseerConfig } from "./schema.ts";
 
 export type { ConfigWarning, LoadedConfig, TseerConfig, TseerPreferences } from "./schema.ts";
 export { configSchema, preferencesSchema } from "./schema.ts";
 
-export const iniSections = ["Server", "Cache", "Config", "Plugins", "Preferences"] as const;
+export const iniSections = ["Server", "Cache", "Config", "Plugins", "Home", "Preferences"] as const;
 export type IniSectionName = (typeof iniSections)[number];
 
 interface FieldSource {
@@ -151,6 +151,36 @@ export function loadConfigFromIni(doc: IniDocument): LoadedConfig {
     if (Object.keys(lists).length > 0) raw.plugins = lists;
   }
 
+  const homeSection = findSection(doc, "Home");
+  if (homeSection) {
+    const home: Record<string, unknown> = {};
+    const follows = findValue(homeSection, "follows");
+    if (follows) {
+      consumed.add(`${lower(homeSection.name)} ${lower(follows.name)}`);
+      if (follows.value !== "") {
+        home.follows = follows.value
+          .split(",")
+          .map(cleanListEntry)
+          .filter((entry) => entry !== "");
+      }
+    }
+    for (const key of ["chunkSize", "cacheSeconds"] as const) {
+      const stored = findValue(homeSection, key);
+      if (!stored) continue;
+      consumed.add(`${lower(homeSection.name)} ${lower(stored.name)}`);
+      if (stored.value === "") continue;
+      const coerced = coerce(stored.value, "int");
+      if (coerced.ok) home[key] = coerced.value;
+      else {
+        warnings.push({
+          line: stored.line,
+          message: `[${homeSection.name}]${key}: ${coerced.reason}; using default`,
+        });
+      }
+    }
+    if (Object.keys(home).length > 0) raw.home = home;
+  }
+
   for (const section of doc.sections.values()) {
     const known = iniSections.some((name) => lower(name) === lower(section.name));
     if (!known) {
@@ -169,4 +199,22 @@ export function loadConfigFromIni(doc: IniDocument): LoadedConfig {
 
   const loaded = finalizeConfig(raw);
   return { config: loaded.config, warnings };
+}
+
+export function parseEnvFollows(raw: string | undefined): string[] | undefined {
+  if (raw === undefined || raw === "") return undefined;
+  const follows = raw
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+  return follows.length > 0 ? follows : undefined;
+}
+
+export function applyEnvOverrides(
+  config: TseerConfig,
+  env: Record<string, string | undefined> = process.env,
+): TseerConfig {
+  const follows = parseEnvFollows(env.TSEER_HOME_FOLLOWS);
+  if (follows === undefined) return config;
+  return { ...config, home: { ...config.home, follows } };
 }
