@@ -58,6 +58,24 @@ describe("cachePlugin", () => {
     expect(seen.port).toBe(6380);
   });
 
+  it("routes redis client errors to the logger", async () => {
+    const ctx = new Context();
+    const warn = vi.spyOn(ctx.logger, "warn").mockImplementation(() => {});
+    let onClientError: ((err: unknown) => void) | undefined;
+    await ctx.plugin(cachePlugin, {
+      provider: "redis",
+      redis: {
+        createClient: (options) => {
+          onClientError = options.onClientError;
+          return fakeRedis();
+        },
+      },
+    });
+    onClientError?.(new Error("boom"));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("redis client error: boom"));
+    warn.mockRestore();
+  });
+
   it("unloads cleanly and drops ctx.cache", async () => {
     const ctx = new Context();
     const fiber = await ctx.plugin(cachePlugin, { memory: { sweepIntervalMs: 0 } });

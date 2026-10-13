@@ -8,6 +8,9 @@
   "bin": {
     "tseer": "./dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
@@ -17,6 +20,7 @@
   "dependencies": {
     "@tseer/profile-web": "workspace:*",
     "@tseer/twitter-api": "workspace:*",
-    "cordis": "4.0.0-rc.10"
+    "cordis": "4.0.0-rc.10",
+    "ioredis": "^5.0.0"
   }
 }

@@ -104,7 +104,9 @@ export const profileEntries: ProfileEntry[] = [
     name: "cache",
     plugin: cachePlugin,
     when: (options) => options.withoutCache !== true,
-    options: (_ctx, { options }) => ({ provider: options.cacheProvider ?? "memory" }),
+    options: (ctx, { options }) => ({
+      provider: options.cacheProvider ?? ctx.config.cacheProvider,
+    }),
   },
   {
     name: "sessions",

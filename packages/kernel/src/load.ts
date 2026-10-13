@@ -22,6 +22,7 @@ const fieldSources: Record<string, FieldSource> = {
   staticDir: { section: "Server", keys: ["staticDir"], kind: "string" },
   title: { section: "Server", keys: ["title"], kind: "string" },
   hostname: { section: "Server", keys: ["hostname"], kind: "string" },
+  cacheProvider: { section: "Cache", keys: ["provider"], kind: "string" },
   listCacheTime: { section: "Cache", keys: ["listMinutes"], kind: "int" },
   rssCacheTime: { section: "Cache", keys: ["rssMinutes"], kind: "int" },
   redisHost: { section: "Cache", keys: ["redisHost"], kind: "string" },

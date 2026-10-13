@@ -43,6 +43,7 @@ export interface RedisCacheOptions {
   scanCount?: number | undefined;
   client?: RedisLike | undefined;
   createClient?: ((options: RedisCacheOptions) => RedisLike | Promise<RedisLike>) | undefined;
+  onClientError?: ((err: unknown) => void) | undefined;
 }
 
 export type CacheProvider = "memory" | "redis";

@@ -8,6 +8,7 @@ import {
   createApp,
   helloPlugin,
   loadPluginEntry,
+  type ProfileState,
   profileEntries,
   resolveProfile,
 } from "../src/index.ts";
@@ -56,6 +57,19 @@ describe("[Plugins] remove", () => {
     expect(ctx.cache).toBeUndefined();
     expect(ctx.twitter).toBeDefined();
     expect((await ctx.server.inject({ url: "/about" })).status).toBe(200);
+  });
+
+  it("derives the cache provider from [Cache] provider when options do not set one", () => {
+    const cacheEntry = profileEntries.find((entry) => entry.name === "cache");
+    expect(cacheEntry).toBeDefined();
+    const ctx = { config: { cacheProvider: "redis" } } as unknown as Context;
+    const state = { options: {}, mounted: new Set() } as unknown as ProfileState;
+    expect(cacheEntry?.options?.(ctx, state)).toEqual({ provider: "redis" });
+    const overridden = {
+      options: { cacheProvider: "memory" },
+      mounted: new Set(),
+    } as unknown as ProfileState;
+    expect(cacheEntry?.options?.(ctx, overridden)).toEqual({ provider: "memory" });
   });
 
   it("cascades through requires: removing sessions unmounts the X stack", async () => {

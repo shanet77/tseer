@@ -20,5 +20,13 @@
   },
   "dependencies": {
     "cordis": "4.0.0-rc.10"
+  },
+  "peerDependencies": {
+    "ioredis": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ioredis": {
+      "optional": true
+    }
   }
 }

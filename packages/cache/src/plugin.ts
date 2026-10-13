@@ -34,6 +34,10 @@ async function createStore(ctx: Context, options: CachePluginOptions): Promise<C
       host: options.redis?.host ?? config?.redisHost,
       port: options.redis?.port ?? config?.redisPort,
       password: options.redis?.password ?? config?.redisPassword,
+      onClientError: (err) => {
+        const e = err as Error;
+        ctx.logger.warn(`cache: redis client error: ${e?.message || e?.name || String(err)}`);
+      },
       ...options.redis,
     });
   }

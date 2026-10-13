@@ -17,6 +17,7 @@ export const configSchema = z.object({
   staticDir: z.string().default("./public"),
   title: z.string().default("Nitter"),
   hostname: z.string().default("nitter.net"),
+  cacheProvider: z.enum(["memory", "redis"]).default("memory"),
   listCacheTime: z.number().int().min(0).default(120),
   rssCacheTime: z.number().int().min(0).default(10),
   redisHost: z.string().default("localhost"),

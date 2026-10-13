@@ -1,0 +1,17 @@
+# redis cache for the tseer pod. Pure cache: no persistence, no published
+# ports (pod-internal only). Restart with the pod.
+
+[Container]
+Image=docker.io/library/redis:8-alpine
+Pod=tseer.pod
+Exec=redis-server --save "" --appendonly no
+HealthCmd=redis-cli ping
+HealthInterval=10s
+HealthTimeout=3s
+HealthRetries=3
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
