@@ -45,6 +45,16 @@ jobs:
             mkdir -p "$HOME/.local/node"
             curl -fsSL https://nodejs.org/dist/v26.11.1/node-v26.11.1-linux-x64.tar.xz -o /tmp/node.tar.xz
             tar -xJf /tmp/node.tar.xz -C "$HOME/.local/node" --strip-components=1
+            # The npm bundled in the Node.js 26.11.1 tarball ships stale
+            # minipass@3 copies nested where minipass@5+ is expected, which
+            # crashes npm at runtime. Replace with a fresh copy from the
+            # registry (the published tarball has the correct dep tree).
+            NPM_VER=$(node -e 'console.log(require(process.env.HOME + "/.local/node/lib/node_modules/npm/package.json").version)')
+            curl -fsSL "https://registry.npmjs.org/npm/-/npm-${NPM_VER}.tgz" -o /tmp/npm-fresh.tgz
+            rm -rf "$HOME/.local/node/lib/node_modules/npm"
+            mkdir -p "$HOME/.local/node/lib/node_modules/npm"
+            tar -xzf /tmp/npm-fresh.tgz -C "$HOME/.local/node/lib/node_modules/npm" --strip-components=1
+            rm -f /tmp/npm-fresh.tgz /tmp/node.tar.xz
           fi
           export PATH="$HOME/.local/node/bin:$PATH"
           export LD_LIBRARY_PATH="$HOME/.local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
