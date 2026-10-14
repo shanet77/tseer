@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
@@ -39,7 +40,9 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    setupFiles: ["./tests/setup-hermetic.ts"],
+    setupFiles: existsSync(fileURLToPath(new URL("./tests/setup-hermetic.ts", import.meta.url)))
+      ? ["./tests/setup-hermetic.ts"]
+      : [],
     include: ["tests/*.spec.ts", "apps/*/tests/**/*.spec.ts", "packages/*/tests/**/*.spec.ts"],
   },
 });

@@ -1,0 +1,113 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on:
+      - linux-amd64
+    steps:
+      - name: Checkout repository
+        run: |
+          set -euo pipefail
+          mkdir -p "${GITHUB_WORKSPACE}"
+          cd "${GITHUB_WORKSPACE}"
+          repo_host="${GITHUB_SERVER_URL#https://}"
+          repo_url="https://${repo_host}/${GITHUB_REPOSITORY}.git"
+          if [ ! -d .git ]; then
+            git init
+            git remote add origin "${repo_url}"
+          else
+            git remote set-url origin "${repo_url}"
+          fi
+          git fetch --depth=1 origin "${GITHUB_SHA}"
+          git checkout --detach FETCH_HEAD
+
+      - name: Bootstrap Node.js 26
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          if ! command -v node >/dev/null 2>&1; then
+            mkdir -p "$HOME/.local/node"
+            curl -fsSL https://nodejs.org/dist/v26.11.1/node-v26.11.1-linux-x64.tar.xz -o /tmp/node.tar.xz
+            tar -xJf /tmp/node.tar.xz -C "$HOME/.local/node" --strip-components=1
+          fi
+          export PATH="$HOME/.local/node/bin:$PATH"
+          node --version
+          npm --version
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          export PATH="$HOME/.local/node/bin:$PATH"
+          # corepack bundled with node 26 hardcodes bin/pnpm.cjs, which pnpm 12
+          # no longer ships (bin/pnpm.mjs only) — upgrade corepack first.
+          npm i -g corepack@latest
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          export PATH="$HOME/.local/node/bin:$PATH"
+          pnpm build
+
+      - name: Test
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          export PATH="$HOME/.local/node/bin:$PATH"
+          pnpm test
+
+  build_and_push:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    runs-on:
+      - linux-amd64
+    steps:
+      - name: Checkout repository
+        run: |
+          set -euo pipefail
+          mkdir -p "${GITHUB_WORKSPACE}"
+          cd "${GITHUB_WORKSPACE}"
+          repo_host="${GITHUB_SERVER_URL#https://}"
+          repo_url="https://${repo_host}/${GITHUB_REPOSITORY}.git"
+          if [ ! -d .git ]; then
+            git init
+            git remote add origin "${repo_url}"
+          else
+            git remote set-url origin "${repo_url}"
+          fi
+          git fetch --depth=1 origin "${GITHUB_SHA}"
+          git checkout --detach FETCH_HEAD
+          # The runner may reuse the workspace across runs; drop untracked and
+          # gitignored leftovers so they never leak into the image (the
+          # Containerfile does `COPY . .`).
+          git clean -fdx
+
+      - name: Build and push image to zot
+        env:
+          IMAGE_BASE: registry.example.com/shane/tseer
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          echo "Building tseer (${GITHUB_SHA})"
+          # The Containerfile builds the pnpm workspace inside the container
+          # (FROM node:26-slim), so the runner host needs only podman. zot
+          # accepts anonymous push/pull — no login needed.
+          podman build \
+            --platform linux/amd64 \
+            --file Containerfile \
+            --tag "${IMAGE_BASE}:${GITHUB_SHA}" \
+            --tag "${IMAGE_BASE}:latest" \
+            .
+          podman push "${IMAGE_BASE}:${GITHUB_SHA}"
+          podman push "${IMAGE_BASE}:latest"
+          echo "=== pushed: ${IMAGE_BASE}:${GITHUB_SHA} + ${IMAGE_BASE}:latest ==="
