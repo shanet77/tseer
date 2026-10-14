@@ -64,7 +64,7 @@ describe("preferencesPlugin", () => {
     expect(res.body).toContain("<legend>Media</legend>");
     expect(res.body).toContain("<legend>Link replacements (blank to disable)</legend>");
     expect(res.body).toContain('title="squareAvatars"');
-    expect(res.body).toContain('placeholder="Nitter hostname"');
+    expect(res.body).toContain('placeholder="Tseer hostname"');
 
     expect(res.body).toContain('name="mp4Playback" type="checkbox" checked');
     expect(res.body).toContain('name="squareAvatars" type="checkbox"/>');
