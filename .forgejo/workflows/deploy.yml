@@ -32,12 +32,22 @@ jobs:
         run: |
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
+          # Node.js 26 links against libatomic.so.1, which Debian 12 doesn't
+          # ship. Extract it to a user dir and set LD_LIBRARY_PATH (no sudo).
+          if ! ldconfig -p 2>/dev/null | grep -q libatomic.so.1; then
+            mkdir -p "$HOME/.local/lib"
+            (cd /tmp && apt-get download libatomic1 >/dev/null 2>&1)
+            dpkg-deb -x /tmp/libatomic1_*.deb /tmp/libatomic-extract
+            cp /tmp/libatomic-extract/usr/lib/x86_64-linux-gnu/libatomic.so.1* "$HOME/.local/lib/"
+            rm -rf /tmp/libatomic1_*.deb /tmp/libatomic-extract
+          fi
           if ! command -v node >/dev/null 2>&1; then
             mkdir -p "$HOME/.local/node"
             curl -fsSL https://nodejs.org/dist/v26.11.1/node-v26.11.1-linux-x64.tar.xz -o /tmp/node.tar.xz
             tar -xJf /tmp/node.tar.xz -C "$HOME/.local/node" --strip-components=1
           fi
           export PATH="$HOME/.local/node/bin:$PATH"
+          export LD_LIBRARY_PATH="$HOME/.local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           node --version
           npm --version
 
@@ -46,6 +56,7 @@ jobs:
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           export PATH="$HOME/.local/node/bin:$PATH"
+          export LD_LIBRARY_PATH="$HOME/.local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           # corepack bundled with node 26 hardcodes bin/pnpm.cjs, which pnpm 12
           # no longer ships (bin/pnpm.mjs only) — upgrade corepack first.
           npm i -g corepack@latest
@@ -57,6 +68,7 @@ jobs:
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           export PATH="$HOME/.local/node/bin:$PATH"
+          export LD_LIBRARY_PATH="$HOME/.local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           pnpm build
 
       - name: Test
@@ -64,6 +76,7 @@ jobs:
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           export PATH="$HOME/.local/node/bin:$PATH"
+          export LD_LIBRARY_PATH="$HOME/.local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           pnpm test
 
   build_and_push:
