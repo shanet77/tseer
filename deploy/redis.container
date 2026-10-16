@@ -1,6 +1,3 @@
-# redis cache for the tseer pod. Pure cache: no persistence, no published
-# ports (pod-internal only). Restart with the pod.
-
 [Container]
 Image=docker.io/library/redis:8-alpine
 Pod=tseer.pod

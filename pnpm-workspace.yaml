@@ -2,13 +2,6 @@ packages:
   - apps/*
   - packages/*
 
-# pnpm blocks dependency lifecycle scripts until they are explicitly reviewed
-# (strictDepBuilds). esbuild ships a postinstall that selects its native binary
-# and is required by vite/vitest, so it is allow-listed here. Deny by default:
-# add entries only with a comment explaining why the script is needed.
 allowBuilds:
   esbuild: true
-  # dart-sass's file watcher, used only by `sass --watch`. The theme build
-  # (packages/views/scripts/build-css.mjs) uses one-shot compile(), which
-  # never loads it, so its postinstall stays denied.
   "@parcel/watcher": false
