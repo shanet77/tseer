@@ -75,7 +75,7 @@ jobs:
 
       - name: Build and push image to zot
         env:
-          IMAGE_BASE: registry.example.com/shane/tseer
+          IMAGE_BASE: ${{ secrets.IMAGE_BASE }}
         run: |
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}"

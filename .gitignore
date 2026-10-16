@@ -9,3 +9,6 @@ packages/views/public/css/style.css
 # Operator X/Twitter session credentials (twitter-sessions default path);
 # never commit these.
 sessions.jsonl
+# Host-specific systemd quadlet (registry host + operator paths); keep it
+# local, install it into ~/.config/containers/systemd/ on the deploy host.
+deploy/tseer.container
