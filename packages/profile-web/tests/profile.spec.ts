@@ -32,7 +32,7 @@ describe("default profile", () => {
 
     const about = await ctx.server.inject({ url: "/about" });
     expect(about.status).toBe(200);
-    expect(about.body).toContain("<h1>About Nitter</h1>");
+    expect(about.body).toContain("<h1>About Tseer</h1>");
 
     const health = await ctx.server.inject({ url: "/.health" });
     expect(health.status).toBe(200);

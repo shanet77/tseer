@@ -230,7 +230,7 @@ export function registerSearchRoutes(deps: SearchRouteDeps): () => void {
           useHttps: deps.config?.useHttps,
         });
         const xml = generateOpenSearchXml(
-          deps.config?.title ?? "nitter",
+          deps.config?.title ?? "Tseer",
           deps.config?.hostname ?? "",
           `${prefix}/search?f=tweets&q=`,
         );

@@ -1,14 +1,14 @@
 /**
  * Drop-in replacement for Twitter's widgets.js
- * Redirects twitter-tweet blockquotes to Nitter embeds
+ * Redirects twitter-tweet blockquotes to Tseer embeds
  */
 (function () {
   "use strict";
 
-  if (window.__nitterWidgets) return;
-  window.__nitterWidgets = true;
+  if (window.__tseerWidgets) return;
+  window.__tseerWidgets = true;
 
-  var NITTER = new URL(document.currentScript.src).origin;
+  var TSEER = new URL(document.currentScript.src).origin;
 
   var TWEET_RE = /(?:twitter\.com|x\.com)\/([^\/]+)\/status\/(\d+)/i;
   var SELECTOR = "blockquote.twitter-tweet, blockquote.twitter-video";
@@ -40,14 +40,14 @@
   function createIframe(tweet, opts) {
     var url;
     if (opts.videoOnly) {
-      url = NITTER + "/i/videos/tweet/" + tweet.id;
+      url = TSEER + "/i/videos/tweet/" + tweet.id;
     } else {
       var path = tweet.user ? "/" + tweet.user : "/i";
-      url = NITTER + path + "/status/" + tweet.id + "/embed";
+      url = TSEER + path + "/status/" + tweet.id + "/embed";
       if (opts.theme) {
         var theme =
           opts.theme === "dark"
-            ? "nitter"
+            ? "classic"
             : opts.theme === "light"
               ? "twitter"
               : opts.theme;
@@ -57,7 +57,7 @@
 
     var iframe = document.createElement("iframe");
     iframe.src = url;
-    iframe.className = "nitter-embed-frame";
+    iframe.className = "tseer-embed-frame";
     iframe.loading = "lazy";
     iframe.setAttribute("allowtransparency", "true");
     iframe.setAttribute("frameborder", "0");
@@ -86,8 +86,8 @@
   }
 
   function processBlockquote(bq) {
-    if (bq.dataset.nitterProcessed) return false;
-    bq.dataset.nitterProcessed = "true";
+    if (bq.dataset.tseerProcessed) return false;
+    bq.dataset.tseerProcessed = "true";
 
     var tweet = null;
     var links = bq.querySelectorAll("a[href]");
@@ -111,7 +111,7 @@
 
   function processEmbeds(root) {
     var bqs = (root || document).querySelectorAll(
-      SELECTOR + ":not([data-nitter-processed])",
+      SELECTOR + ":not([data-tseer-processed])",
     );
     for (var i = 0; i < bqs.length; i++) processBlockquote(bqs[i]);
   }
@@ -121,7 +121,7 @@
     var h = e.data[1] && e.data[1].h;
     if (!h || h <= 0 || h > 10000) return; // Cap at 10000px for sanity
 
-    var frames = document.querySelectorAll("iframe.nitter-embed-frame");
+    var frames = document.querySelectorAll("iframe.tseer-embed-frame");
     for (var i = 0; i < frames.length; i++) {
       if (frames[i].contentWindow === e.source) {
         frames[i].style.height = h + "px";

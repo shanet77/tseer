@@ -140,7 +140,7 @@ describe("preferencesPlugin", () => {
       method: "POST",
       url: "/saveprefs",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      payload: "theme=Nitter",
+      payload: "theme=Classic",
     });
     const bareHeader = cookiesHeader(bare);
     expect(bareHeader).not.toContain("hlsPlayback=");
@@ -151,9 +151,9 @@ describe("preferencesPlugin", () => {
       url: "/saveprefs",
       headers: {
         "content-type": "application/x-www-form-urlencoded",
-        cookie: "theme=Nitter",
+        cookie: "theme=Classic",
       },
-      payload: "theme=Nitter",
+      payload: "theme=Classic",
     });
     const carriedHeader = cookiesHeader(carried);
     expect(carriedHeader).toContain("theme=; ");

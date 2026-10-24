@@ -20,7 +20,7 @@ export const prefList: PrefCategory[] = [
   {
     category: "Display",
     prefs: [
-      { name: "theme", label: "Theme", kind: "select", default: "Nitter", options: themeOptions },
+      { name: "theme", label: "Theme", kind: "select", default: "Classic", options: themeOptions },
       {
         name: "infiniteScroll",
         label: "Infinite scrolling (experimental, requires JavaScript)",

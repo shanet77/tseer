@@ -40,7 +40,7 @@ describe("renderPlugin (ctx.render)", () => {
     });
     expect(html.startsWith(doctype)).toBe(true);
     expect(html).toContain("<title>Jane Doe (@jane) | Nitter</title>");
-    expect(html).toContain('<link rel="stylesheet" type="text/css" href="/css/themes/nitter.css"');
+    expect(html).toContain('<link rel="stylesheet" type="text/css" href="/css/themes/classic.css"');
     expect(html).toContain('<meta property="og:description" content="some desc"');
     expect(html).toContain('href="/settings?referer=%2Fjane"');
     expect(html).toContain('<a class="site-name" href="/">Nitter</a>');

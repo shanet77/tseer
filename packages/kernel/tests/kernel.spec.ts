@@ -172,7 +172,7 @@ describe("kernel boot", () => {
   it("provides ctx.config and unwinds on dispose", async () => {
     const ctx = await createApp({ configText: "[Server]\nport = 1234\n" });
     expect(ctx.config.port).toBe(1234);
-    expect(ctx.config.hostname).toBe("nitter.net");
+    expect(ctx.config.hostname).toBe("localhost");
   });
 
   it("serves /about and 404s everything else", async () => {

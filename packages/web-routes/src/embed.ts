@@ -144,8 +144,8 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
 
   function embedConfig(): { title: string; hostname: string; useHttps: boolean } {
     return {
-      title: deps.config?.title ?? "Nitter",
-      hostname: deps.config?.hostname ?? "nitter.net",
+      title: deps.config?.title ?? "Tseer",
+      hostname: deps.config?.hostname ?? "localhost",
       useHttps: deps.config?.useHttps ?? true,
     };
   }

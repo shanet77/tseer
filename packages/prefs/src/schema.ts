@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-export const themeOptions = ["Nitter", "Twitter", "Mastodon", "Auto"] as const;
+export const themeOptions = ["Classic", "Twitter", "Mastodon", "Auto"] as const;
 export const gallerySizeOptions = ["Small", "Medium", "Large"] as const;
 export const mediaViewOptions = ["Timeline", "Grid", "Gallery"] as const;
 
 export const preferencesSchema = z.object({
-  theme: z.string().default("Nitter"),
+  theme: z.string().default("Classic"),
   infiniteScroll: z.boolean().default(false),
   stickyProfile: z.boolean().default(true),
   stickyNav: z.boolean().default(true),

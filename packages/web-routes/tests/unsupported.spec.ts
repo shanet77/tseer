@@ -38,7 +38,7 @@ describe("unsupportedPlugin", () => {
       const res = await ctx.server.inject({ url });
       expect(res.status, url).toBe(200);
       expect(res.body, url).toContain("Unsupported feature");
-      expect(res.body, url).toContain("https://github.com/zedeus/nitter/issues");
+      expect(res.body, url).toContain("it might in the future");
     }
   });
 

@@ -4,13 +4,7 @@ export function renderFeature(): VNode {
   return (
     <div class="overlay-panel">
       <h1>Unsupported feature</h1>
-      <p>
-        Tseer doesn't support this feature yet, but it might in the future. You can check for an
-        issue and open one if needed here:{" "}
-        <a href="https://github.com/zedeus/nitter/issues">
-          https://github.com/zedeus/nitter/issues
-        </a>
-      </p>
+      <p>Tseer doesn't support this feature yet, but it might in the future.</p>
       <p>
         To find out more about the Tseer project, see the <a href="/about">About page</a>
       </p>
