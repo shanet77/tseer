@@ -79,16 +79,21 @@ jobs:
         run: |
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
-          echo "Building tseer (${GITHUB_SHA})"
+          # IMAGE_BASE is registry + namespace (e.g. zot.shanenet.xyz/shane);
+          # the repository name is appended here. Using the secret as the full
+          # image reference pushed every build to the namespace repo instead of
+          # this one, so deploys silently no-op'd while still reporting success.
+          IMAGE="${IMAGE_BASE}/tseer"
+          echo "Building tseer (${GITHUB_SHA}) -> ${IMAGE}"
           # The Containerfile builds the pnpm workspace inside the container
           # (FROM node:26-slim), so the runner host needs only podman. zot
           # accepts anonymous push/pull — no login needed.
           podman build \
             --platform linux/amd64 \
             --file Containerfile \
-            --tag "${IMAGE_BASE}:${GITHUB_SHA}" \
-            --tag "${IMAGE_BASE}:latest" \
+            --tag "${IMAGE}:${GITHUB_SHA}" \
+            --tag "${IMAGE}:latest" \
             .
-          podman push "${IMAGE_BASE}:${GITHUB_SHA}"
-          podman push "${IMAGE_BASE}:latest"
-          echo "=== pushed: ${IMAGE_BASE}:${GITHUB_SHA} + ${IMAGE_BASE}:latest ==="
+          podman push "${IMAGE}:${GITHUB_SHA}"
+          podman push "${IMAGE}:latest"
+          echo "=== pushed: ${IMAGE}:${GITHUB_SHA} + ${IMAGE}:latest ==="
