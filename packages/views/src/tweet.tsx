@@ -206,7 +206,7 @@ function renderVideoAttachment(
           const source =
             prefs.proxyVideos && vidUrl.startsWith("http") ? getVidUrl(vidUrl) : vidUrl;
           return playbackType === VideoType.mp4 ? (
-            <video poster={thumb} controls muted={prefs.muteVideos}>
+            <video poster={thumb} controls muted={prefs.muteVideos} playsinline preload="metadata">
               <source src={source} type="video/mp4" />
             </video>
           ) : (
@@ -216,6 +216,8 @@ function renderVideoAttachment(
                 data-url={source}
                 data-autoload="false"
                 muted={prefs.muteVideos}
+                playsinline
+                preload="none"
               />
               <div
                 dangerouslySetInnerHTML={{

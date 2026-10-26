@@ -256,6 +256,70 @@ describe("video routes", () => {
     expect(url).toBe(`/video/enc/${encSigner.sign(SEGMENT)}/${encodeUrlSafeBase64(SEGMENT)}`);
     expect((await ctx.server.inject({ url })).body).toBe("BYTES");
   });
+
+  it("forwards a Range header and returns the upstream 206", async () => {
+    const fetcher = new StubFetcher({
+      responses: {
+        [SEGMENT]: {
+          status: 206,
+          headers: {
+            "content-type": "video/mp4",
+            "content-range": "bytes 0-1/100",
+            "accept-ranges": "bytes",
+            "content-length": "2",
+          },
+          body: "AB",
+        },
+      },
+    });
+    const { ctx } = await mount({ fetcher });
+    const res = await ctx.server.inject({
+      url: signer.vidUrl(SEGMENT),
+      headers: { range: "bytes=0-1" },
+    });
+    expect(res.status).toBe(206);
+    expect(res.headers["content-range"]).toBe("bytes 0-1/100");
+    expect(res.headers["accept-ranges"]).toBe("bytes");
+    expect(res.body).toBe("AB");
+    expect(fetcher.callHeaders[0]).toEqual({ range: "bytes=0-1" });
+  });
+
+  it("ignores a malformed Range instead of forwarding it", async () => {
+    const fetcher = new StubFetcher({
+      responses: { [SEGMENT]: { headers: { "content-type": "video/mp4" }, body: "BYTES" } },
+    });
+    const { ctx } = await mount({ fetcher });
+    const res = await ctx.server.inject({
+      url: signer.vidUrl(SEGMENT),
+      headers: { range: "bytes=0-1; evil" },
+    });
+    expect(res.status).toBe(200);
+    expect(res.body).toBe("BYTES");
+    expect(fetcher.callHeaders[0]).toBeUndefined();
+  });
+
+  it("prefers the Range over a matching If-None-Match (no 304 on partial)", async () => {
+    const fetcher = new StubFetcher({
+      responses: {
+        [SEGMENT]: {
+          status: 206,
+          headers: {
+            "content-type": "video/mp4",
+            "content-range": "bytes 0-1/100",
+            "content-length": "2",
+          },
+          body: "AB",
+        },
+      },
+    });
+    const { ctx } = await mount({ fetcher });
+    const res = await ctx.server.inject({
+      url: signer.vidUrl(SEGMENT),
+      headers: { range: "bytes=0-1", "if-none-match": mediaEtag(SEGMENT) },
+    });
+    expect(res.status).toBe(206);
+    expect(res.body).toBe("AB");
+  });
 });
 describe("plugin lifecycle", () => {
   it("provides ctx.media and unwinds it on dispose", async () => {

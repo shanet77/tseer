@@ -1,5 +1,13 @@
 import { preferencesSchema, type TseerPreferences } from "@tseer/prefs";
-import { type Gif, MediaKind, type Tweet, type User, VerifiedType } from "@tseer/types";
+import {
+  type Gif,
+  MediaKind,
+  type Tweet,
+  type User,
+  VerifiedType,
+  type Video,
+  VideoType,
+} from "@tseer/types";
 import { renderToString } from "preact-render-to-string";
 import { beforeEach, describe, expect, it } from "vitest";
 import { renderTweet, setMediaSigners } from "../src/index.ts";
@@ -91,5 +99,54 @@ describe("renderTweet gif attachments", () => {
     expect(html).not.toContain("autoplay");
     expect(html).toContain("controls");
     expect(html).toContain("playsinline");
+  });
+});
+
+describe("renderTweet video attachments", () => {
+  const mp4: Video = {
+    durationMs: 10000,
+    url: "",
+    thumb: "https://pbs.twimg.com/t.jpg",
+    available: true,
+    reason: "",
+    title: "",
+    description: "",
+    playbackType: VideoType.mp4,
+    variants: [
+      {
+        contentType: VideoType.mp4,
+        url: "https://video.twimg.com/vid.mp4",
+        bitrate: 100,
+        resolution: 720,
+      },
+    ],
+  };
+
+  it("mp4 videos play inline with metadata preloaded", () => {
+    const html = render({ media: [{ kind: MediaKind.videoMedia, video: mp4 }] });
+    expect(html).toContain("<video");
+    expect(html).toContain("playsinline");
+    expect(html).toContain('preload="metadata"');
+    expect(html).toContain('type="video/mp4"');
+  });
+
+  it("hls videos play inline without preloading before the tap", () => {
+    const hls: Video = {
+      ...mp4,
+      playbackType: VideoType.m3u8,
+      variants: [
+        {
+          contentType: VideoType.m3u8,
+          url: "https://video.twimg.com/index.m3u8",
+          bitrate: 0,
+          resolution: 0,
+        },
+      ],
+    };
+    const prefs = { ...defaults, hlsPlayback: true };
+    const html = render({ media: [{ kind: MediaKind.videoMedia, video: hls }] }, prefs);
+    expect(html).toContain("data-url=");
+    expect(html).toContain("playsinline");
+    expect(html).toContain('preload="none"');
   });
 });

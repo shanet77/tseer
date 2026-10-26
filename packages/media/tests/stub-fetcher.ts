@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import type { MediaFetcher, MediaFetchResponse } from "../src/index.ts";
+import type { MediaFetcher, MediaFetchOptions, MediaFetchResponse } from "../src/index.ts";
 
 export interface StubResponse {
   status?: number | undefined;
@@ -14,6 +14,7 @@ export interface StubFetcherOptions {
 
 export class StubFetcher implements MediaFetcher {
   readonly calls: string[] = [];
+  readonly callHeaders: (Record<string, string> | undefined)[] = [];
   readonly aborted: string[] = [];
   private readonly responses: Record<string, StubResponse[]>;
   private readonly cursor: Record<string, number> = {};
@@ -28,8 +29,9 @@ export class StubFetcher implements MediaFetcher {
     this.fallback = options.fallback ?? { status: 404 };
   }
 
-  async fetch(url: string): Promise<MediaFetchResponse> {
+  async fetch(url: string, options: MediaFetchOptions = {}): Promise<MediaFetchResponse> {
     this.calls.push(url);
+    this.callHeaders.push(options.headers);
     const script = this.responses[url];
     const spec =
       script === undefined

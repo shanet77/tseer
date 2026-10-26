@@ -213,7 +213,7 @@ function renderAtomicParagraph(
         } else if (item.kind === "ApiVideo") {
           media.push(
             // biome-ignore lint/a11y/useMediaCaption: upstream's article media carries no caption track
-            <video controls>
+            <video controls playsinline preload="metadata">
               <source src={getVidUrl(item.url)} type="video/mp4" />
             </video>,
           );

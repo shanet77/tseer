@@ -42,6 +42,10 @@ function passthroughHeaders(headers: Record<string, string>, cacheControl: strin
   if (etag !== undefined) out["etag"] = etag;
   const length = headers["content-length"];
   if (length !== undefined && /^\d+$/.test(length)) out["content-length"] = length;
+  const range = headers["content-range"];
+  if (range !== undefined) out["content-range"] = range;
+  const acceptRanges = headers["accept-ranges"];
+  if (acceptRanges !== undefined) out["accept-ranges"] = acceptRanges;
   return out;
 }
 
@@ -110,15 +114,19 @@ async function serveVideo(
   if (!deps.media.verify(url, signature)) return fail(reply, 403);
 
   if (PROXYABLE_EXTENSIONS.test(url)) {
+    const range = req.headers["range"];
+    const rangeHeaders =
+      range !== undefined && /^bytes=\d*-\d*$/.test(range) ? { range } : undefined;
     const result = await proxyMedia(url, {
       fetcher: deps.fetcher,
       maxAttempts: deps.maxAttempts,
       headersTimeoutMs: deps.headersTimeoutMs,
       cacheControl: deps.cacheControl,
+      headers: rangeHeaders,
       onRetry: deps.onRetry,
     });
     if (!result.ok) return fail(reply, result.status);
-    if (req.headers["if-none-match"] === result.etag) {
+    if (rangeHeaders === undefined && req.headers["if-none-match"] === result.etag) {
       result.abort();
       return reply.text("", {
         status: 304,
@@ -127,7 +135,7 @@ async function serveVideo(
     }
     const contentType = result.headers["content-type"] ?? "application/octet-stream";
     await streamBody(reply, result.body, contentType, {
-      status: 200,
+      status: result.status,
       headers: passthroughHeaders(result.headers, deps.cacheControl),
     });
     return;

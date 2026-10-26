@@ -134,6 +134,45 @@ describe("proxyMedia", () => {
     expect(seen[0]).toContain("attempt 1/3");
     expect(seen[0]).toContain("status 500");
   });
+
+  it("forwards caller headers (Range) to the fetcher", async () => {
+    const fetcher = new StubFetcher({
+      responses: {
+        [IMAGE]: {
+          status: 206,
+          headers: { "content-type": "video/mp4", "content-range": "bytes 0-1/100" },
+          body: "AB",
+        },
+      },
+    });
+    const result = await proxyMedia(IMAGE, { fetcher, headers: { range: "bytes=0-1" } });
+    expect(result.ok).toBe(true);
+    expect(fetcher.callHeaders).toEqual([{ range: "bytes=0-1" }]);
+  });
+
+  it("treats a 206 as success and keeps the range headers", async () => {
+    const fetcher = new StubFetcher({
+      responses: {
+        [IMAGE]: {
+          status: 206,
+          headers: {
+            "content-type": "video/mp4",
+            "content-range": "bytes 0-1/100",
+            "accept-ranges": "bytes",
+            "content-length": "2",
+          },
+          body: "AB",
+        },
+      },
+    });
+    const result = await proxyMedia(IMAGE, { fetcher, headers: { range: "bytes=0-1" } });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.status).toBe(206);
+    expect(result.headers["content-range"]).toBe("bytes 0-1/100");
+    expect(result.headers["accept-ranges"]).toBe("bytes");
+    expect(result.headers["content-length"]).toBe("2");
+  });
 });
 
 describe("safeFetchText", () => {

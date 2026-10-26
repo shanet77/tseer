@@ -46,6 +46,8 @@ export function renderBroadcast(bc: Broadcast, prefs: TseerPreferences, path: st
           data-autoload="false"
           data-start={String(bc.replayStart)}
           muted={prefs.muteVideos}
+          playsinline
+          preload="none"
         />
         <div
           dangerouslySetInnerHTML={{

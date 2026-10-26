@@ -32,6 +32,7 @@ export interface ProxyMediaOptions {
   cacheControl?: string | undefined;
   maxAttempts?: number | undefined;
   headersTimeoutMs?: number | undefined;
+  headers?: Record<string, string> | undefined;
   onRetry?: ((message: string) => void) | undefined;
 }
 
@@ -51,7 +52,10 @@ export async function proxyMedia(url: string, options: ProxyMediaOptions): Promi
     const last = attempt === maxAttempts;
     let response: MediaFetchResponse | undefined;
     try {
-      response = await fetcher.fetch(target, { headersTimeoutMs: options.headersTimeoutMs });
+      response = await fetcher.fetch(target, {
+        headersTimeoutMs: options.headersTimeoutMs,
+        headers: options.headers,
+      });
     } catch (err) {
       timedOut = isTimeout(err);
       const code = (err as NodeJS.ErrnoException)?.code;
@@ -64,10 +68,10 @@ export async function proxyMedia(url: string, options: ProxyMediaOptions): Promi
       continue;
     }
 
-    if (response.status === 200) {
+    if (response.status === 200 || response.status === 206) {
       return {
         ok: true,
-        status: 200,
+        status: response.status,
         etag,
         headers: { ...response.headers, "cache-control": cacheControl, etag },
         body: response.body,
