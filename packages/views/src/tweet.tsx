@@ -285,6 +285,7 @@ function renderGifAttachment(gif: Gif, prefs: TseerPreferences, path = ""): VNod
           controls={!prefs.autoplayGifs}
           muted
           loop
+          playsinline
         >
           <source src={getPicUrl(gif.url)} type="video/mp4" />
         </video>

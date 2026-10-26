@@ -348,6 +348,7 @@ describe("renderArticle atomic blocks", () => {
     );
     expect(html).toContain('src="/video/sig/https://video.twimg.com/gif.mp4"');
     expect(html).toContain('src="/video/sig/https://video.twimg.com/vid.mp4"');
+    expect(html).toContain("playsinline");
     expect(html).not.toContain("skipped");
     expect(html).toContain('class="article-media-caption">A caption</p>');
   });

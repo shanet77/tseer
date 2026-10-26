@@ -206,7 +206,7 @@ function renderAtomicParagraph(
         if (item === undefined || item.url.length === 0) continue;
         if (item.kind === "ApiGif") {
           media.push(
-            <video controls autoplay loop muted>
+            <video controls autoplay loop muted playsinline>
               <source src={getVidUrl(item.url)} type="video/mp4" />
             </video>,
           );
