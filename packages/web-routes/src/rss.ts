@@ -1,21 +1,16 @@
 import { fnv1a32 } from "@tseer/cache";
 import { decodeUrl, encodeUrl } from "@tseer/media";
-import type { PrefsService, TseerPreferences } from "@tseer/prefs";
-import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
+import type { TseerPreferences } from "@tseer/prefs";
+import type { AppReply, AppRequest } from "@tseer/server";
 import { genQueryUrl, initQuery, type TwitterApi } from "@tseer/twitter-api";
 import {
-  BadClientError,
-  InternalError,
-  NoSessionsError,
   type Profile,
   type Query,
   QueryKind,
-  RateLimitError,
   type Rss,
   type TimelineResult,
   type User,
 } from "@tseer/types";
-import type { Render } from "@tseer/views";
 import {
   defaultProfilePic,
   emptyAccountInfo,
@@ -25,9 +20,9 @@ import {
   renderTimelineRss,
 } from "@tseer/views";
 import type { Context } from "cordis";
-import { createShowError } from "./errors.ts";
 import { NAME_PARAM, TAB_PARAM } from "./params.ts";
 import { emptyTimelineSearch } from "./search.ts";
+import { mountRoutes, type RouteShell } from "./shell.ts";
 import {
   emptyTimeline,
   emptyUser,
@@ -51,10 +46,8 @@ interface RssConfig {
 const RSS_TABS = new Set(["with_replies", "media", "search", "articles"]);
 
 export interface RssRouteDeps {
-  server: HttpServer;
   twitter: TwitterApi;
-  render: Render;
-  prefs: PrefsService;
+  shell: RouteShell;
   config: RssConfig | undefined;
 }
 
@@ -168,56 +161,8 @@ export async function timelineRss(
 }
 
 export function registerRssRoutes(deps: RssRouteDeps): () => void {
-  const { server, twitter, render, prefs } = deps;
-  const disposers: (() => void)[] = [];
-  const route = (spec: RouteSpec): void => {
-    disposers.push(server.route(spec));
-  };
-
-  const showError = createShowError(render);
-
-  async function guard(
-    reply: AppReply,
-    requestPrefs: TseerPreferences | undefined,
-    body: () => Promise<void>,
-  ): Promise<void> {
-    try {
-      await body();
-    } catch (error) {
-      if (error instanceof RateLimitError) {
-        showError(
-          reply,
-          "Instance has been rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof NoSessionsError) {
-        showError(
-          reply,
-          "Instance has no auth tokens, or is fully rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof InternalError) {
-        showError(
-          reply,
-          "An error occurred, please open a GitHub issue with the URL you tried to visit.",
-          500,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof BadClientError) {
-        showError(reply, "Network error occurred, please try again.", 500, requestPrefs);
-        return;
-      }
-      throw error;
-    }
-  }
+  const { twitter, shell } = deps;
+  const { route, showError } = shell;
 
   function feedEnv(requestPrefs: TseerPreferences): RssFeedEnv {
     return {
@@ -248,8 +193,11 @@ export function registerRssRoutes(deps: RssRouteDeps): () => void {
     });
   }
 
-  async function showSearchRss(req: AppRequest, reply: AppReply): Promise<void> {
-    const requestPrefs = prefs.parse(req.cookies, req.query);
+  async function showSearchRss(
+    req: AppRequest,
+    reply: AppReply,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     if (!(deps.config?.enableRSSSearch ?? true)) {
       showError(reply, "RSS feed is disabled", 403, requestPrefs);
       return;
@@ -286,9 +234,13 @@ export function registerRssRoutes(deps: RssRouteDeps): () => void {
     respondRss(reply, rss, "Search", "", requestPrefs);
   }
 
-  async function showUserRss(req: AppRequest, reply: AppReply, tab: string): Promise<void> {
+  async function showUserRss(
+    req: AppRequest,
+    reply: AppReply,
+    tab: string,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     const name = req.params["name"] ?? "";
-    const requestPrefs = prefs.parse(req.cookies, req.query);
     if (name.includes(".") || (tab.length > 0 && !RSS_TABS.has(tab))) {
       showError(reply, "Page not found", 404, requestPrefs);
       return;
@@ -315,108 +267,88 @@ export function registerRssRoutes(deps: RssRouteDeps): () => void {
   route({
     method: "GET",
     path: "/search/rss",
-    handler: (req, reply) => guard(reply, undefined, () => showSearchRss(req, reply)),
+    handler: showSearchRss,
   });
 
   route({
     method: "GET",
     path: `/${NAME_PARAM}/rss`,
-    handler: (req, reply) => guard(reply, undefined, () => showUserRss(req, reply, "")),
+    handler: (req, reply, requestPrefs) => showUserRss(req, reply, "", requestPrefs),
   });
 
   route({
     method: "GET",
     path: `/${NAME_PARAM}/${TAB_PARAM}/rss`,
-    handler: (req, reply) =>
-      guard(reply, undefined, () => showUserRss(req, reply, req.params["tab"] ?? "")),
+    handler: (req, reply, requestPrefs) =>
+      showUserRss(req, reply, req.params["tab"] ?? "", requestPrefs),
   });
 
   route({
     method: "GET",
     path: `/${NAME_PARAM}/lists/:slug/rss`,
-    handler: (req, reply) =>
-      guard(reply, undefined, async () => {
-        const name = req.params["name"] ?? "";
-        const slug = req.params["slug"] ?? "";
-        const requestPrefs = prefs.parse(req.cookies, req.query);
-        if (name === "i") {
-          showError(reply, "Page not found", 404, requestPrefs);
-          return;
-        }
-        if (!(deps.config?.enableRSSList ?? true)) {
-          showError(reply, "RSS feed is disabled", 403, requestPrefs);
-          return;
-        }
-        const list = await twitter.cachedList(name, decodeUrl(slug));
-        if (list === undefined || list.id === "") {
-          showError(reply, `List "${slug}" not found`, 404, requestPrefs);
-          return;
-        }
-        const cursor = getCursor(req);
-        const target = `/i/lists/${list.id}/rss`;
-        await reply.redirect(cursor.length > 0 ? `${target}?cursor=${encodeUrl(cursor)}` : target);
-      }),
+    handler: async (req, reply, requestPrefs) => {
+      const name = req.params["name"] ?? "";
+      const slug = req.params["slug"] ?? "";
+      if (name === "i") {
+        showError(reply, "Page not found", 404, requestPrefs);
+        return;
+      }
+      if (!(deps.config?.enableRSSList ?? true)) {
+        showError(reply, "RSS feed is disabled", 403, requestPrefs);
+        return;
+      }
+      const list = await twitter.cachedList(name, decodeUrl(slug));
+      if (list === undefined || list.id === "") {
+        showError(reply, `List "${slug}" not found`, 404, requestPrefs);
+        return;
+      }
+      const cursor = getCursor(req);
+      const target = `/i/lists/${list.id}/rss`;
+      await reply.redirect(cursor.length > 0 ? `${target}?cursor=${encodeUrl(cursor)}` : target);
+    },
   });
 
   route({
     method: "GET",
     path: "/i/lists/:id/rss",
-    handler: (req, reply) =>
-      guard(reply, undefined, async () => {
-        const id = req.params["id"] ?? "";
-        const requestPrefs = prefs.parse(req.cookies, req.query);
-        if (!(deps.config?.enableRSSList ?? true)) {
-          showError(reply, "RSS feed is disabled", 403, requestPrefs);
-          return;
-        }
-        const cursor = getCursor(req);
-        const key = redisKey("lists", id, cursor);
-        const rss = await twitter.cachedRss(key, async () => {
-          const list = await twitter.cachedList("", "", id);
-          if (list === undefined || list.id === "") return { feed: "", cursor: "" };
-          const timeline = await twitter.list(list.id, cursor);
-          if (timeline === undefined) return { feed: "", cursor: "" };
-          return {
-            feed: renderListRss(
-              timeline.content,
-              list,
-              { hostname: deps.config?.hostname ?? "", useHttps: deps.config?.useHttps ?? false },
-              requestPrefs,
-            ),
-            cursor: timeline.bottom,
-          };
-        });
-        respondRss(reply, rss, "List", id, requestPrefs);
-      }),
+    handler: async (req, reply, requestPrefs) => {
+      const id = req.params["id"] ?? "";
+      if (!(deps.config?.enableRSSList ?? true)) {
+        showError(reply, "RSS feed is disabled", 403, requestPrefs);
+        return;
+      }
+      const cursor = getCursor(req);
+      const key = redisKey("lists", id, cursor);
+      const rss = await twitter.cachedRss(key, async () => {
+        const list = await twitter.cachedList("", "", id);
+        if (list === undefined || list.id === "") return { feed: "", cursor: "" };
+        const timeline = await twitter.list(list.id, cursor);
+        if (timeline === undefined) return { feed: "", cursor: "" };
+        return {
+          feed: renderListRss(
+            timeline.content,
+            list,
+            { hostname: deps.config?.hostname ?? "", useHttps: deps.config?.useHttps ?? false },
+            requestPrefs,
+          ),
+          cursor: timeline.bottom,
+        };
+      });
+      respondRss(reply, rss, "List", id, requestPrefs);
+    },
   });
 
-  return () => {
-    for (const dispose of disposers) dispose();
-  };
+  return shell.dispose;
 }
 
 export default function rssPlugin(ctx: Context): () => void {
-  const server = ctx.get("server" as never) as HttpServer | undefined;
-  const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
-  const render = ctx.get("render" as never) as Render | undefined;
-  const prefs = ctx.get("prefs" as never) as PrefsService | undefined;
-  const config = ctx.get("config" as never) as RssConfig | undefined;
-  if (server === undefined)
-    throw new Error("rss: ctx.server is not mounted (load serverPlugin first)");
-  if (twitter === undefined)
-    throw new Error("rss: ctx.twitter is not mounted (load twitterApiPlugin first)");
-  if (render === undefined)
-    throw new Error("rss: ctx.render is not mounted (load renderPlugin first)");
-  if (prefs === undefined)
-    throw new Error("rss: ctx.prefs is not mounted (load prefsPlugin first)");
-  const disposeRoutes = registerRssRoutes({ server, twitter, render, prefs, config });
-  const disposeEffect = ctx.effect(() => () => {
-    disposeRoutes();
-  });
-  return () => {
-    disposeRoutes();
-    void disposeEffect();
-  };
+  return mountRoutes(ctx, "rss", ["twitter"], (resolve, shell) =>
+    registerRssRoutes({
+      twitter: resolve<TwitterApi>("twitter"),
+      config: resolve<RssConfig | undefined>("config"),
+      shell,
+    }),
+  );
 }
 
 rssPlugin.inject = ["server", "twitter", "render", "prefs"];

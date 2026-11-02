@@ -1,6 +1,6 @@
 import { decodeUrl } from "@tseer/media";
-import type { PrefsService, TseerPreferences } from "@tseer/prefs";
-import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
+import type { TseerPreferences } from "@tseer/prefs";
+import type { AppReply, AppRequest } from "@tseer/server";
 import {
   genQueryUrl,
   getArticlesQuery,
@@ -11,14 +11,10 @@ import {
   type TwitterApi,
 } from "@tseer/twitter-api";
 import {
-  BadClientError,
-  InternalError,
-  NoSessionsError,
   type Profile,
   type Query,
   QueryKind,
   type QueryKind as QueryKindT,
-  RateLimitError,
   type Result,
   type TimelineResult,
   type Tweet,
@@ -41,8 +37,8 @@ import {
   toHtml,
 } from "@tseer/views";
 import type { Context } from "cordis";
-import { createShowError } from "./errors.ts";
 import { NAME_PARAM, TAB_PARAM } from "./params.ts";
+import { mountRoutes, type RouteShell } from "./shell.ts";
 
 interface TimelineConfig {
   enableRSSUserTweets?: boolean | undefined;
@@ -186,64 +182,15 @@ function emptyUsers(kind: QueryKindT, name: string): Result<User> {
 }
 
 export interface TimelineRouteDeps {
-  server: HttpServer;
-  twitter: import("@tseer/twitter-api").TwitterApi;
+  twitter: TwitterApi;
   render: Render;
-  prefs: PrefsService;
+  shell: RouteShell;
   config: TimelineConfig | undefined;
 }
 
 export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
-  const { server, twitter, render, prefs } = deps;
-  const disposers: (() => void)[] = [];
-  const route = (spec: RouteSpec): void => {
-    disposers.push(server.route(spec));
-  };
-
-  const showError = createShowError(render);
-
-  async function guard(
-    reply: AppReply,
-    requestPrefs: TseerPreferences | undefined,
-    body: () => Promise<void>,
-  ): Promise<void> {
-    try {
-      await body();
-    } catch (error) {
-      if (error instanceof RateLimitError) {
-        showError(
-          reply,
-          "Instance has been rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof NoSessionsError) {
-        showError(
-          reply,
-          "Instance has no auth tokens, or is fully rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof InternalError) {
-        showError(
-          reply,
-          "An error occurred, please open a GitHub issue with the URL you tried to visit.",
-          500,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof BadClientError) {
-        showError(reply, "Network error occurred, please try again.", 500, requestPrefs);
-        return;
-      }
-      throw error;
-    }
-  }
+  const { twitter, render, shell } = deps;
+  const { route, showError } = shell;
 
   async function fetchProfile(
     query: Query,
@@ -351,8 +298,11 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
     return true;
   }
 
-  async function respUserId(req: AppRequest, reply: AppReply): Promise<void> {
-    const requestPrefs = prefs.parse(req.cookies, req.query);
+  async function respUserId(
+    req: AppRequest,
+    reply: AppReply,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     const userId = req.params["user_id"] ?? req.query["user_id"] ?? "";
     if (userId.length === 0) {
       showError(reply, "Page not found", 404, requestPrefs);
@@ -369,67 +319,63 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
   route({
     method: "GET",
     path: "/i/user/:user_id",
-    handler: (req, reply) => guard(reply, undefined, () => respUserId(req, reply)),
+    handler: respUserId,
   });
   route({
     method: "GET",
     path: "/intent/user",
-    handler: (req, reply) => guard(reply, undefined, () => respUserId(req, reply)),
+    handler: respUserId,
   });
 
   route({
     method: "GET",
     path: "/intent/follow",
-    handler: (req, reply) =>
-      guard(reply, undefined, async () => {
-        const requestPrefs = prefs.parse(req.cookies, req.query);
-        const username = req.query["screen_name"] ?? "";
-        if (username.length === 0) {
-          showError(reply, "Missing screen_name parameter", 400, requestPrefs);
-          return;
-        }
-        await reply.redirect(`/${username}`);
-      }),
+    handler: async (req, reply, requestPrefs) => {
+      const username = req.query["screen_name"] ?? "";
+      if (username.length === 0) {
+        showError(reply, "Missing screen_name parameter", 400, requestPrefs);
+        return;
+      }
+      await reply.redirect(`/${username}`);
+    },
   });
 
   route({
     method: "GET",
     path: `/${NAME_PARAM}/about`,
-    handler: (req, reply) =>
-      guard(reply, undefined, async () => {
-        const name = req.params["name"] ?? "";
-        const requestPrefs = prefs.parse(req.cookies, req.query);
-        if (!SINGLE_NAME_CHARS.test(name)) {
-          showError(reply, "Page not found", 404, requestPrefs);
-          return;
-        }
-        const info = (await twitter.cachedAccountInfo(name)) ?? emptyAccountInfo();
-        if (info.suspended) {
-          showError(reply, getSuspended(name), 200, requestPrefs);
-          return;
-        }
-        if (info.username.length === 0) {
-          showError(reply, `User "${name}" not found`, 404, requestPrefs);
-          return;
-        }
-        await reply.html(
-          await render.page({
-            body: renderAboutAccount(info),
-            title: `About @${info.username}`,
-            path: getPath(req),
-            prefs: requestPrefs,
-          }),
-        );
-      }),
+    handler: async (req, reply, requestPrefs) => {
+      const name = req.params["name"] ?? "";
+      if (!SINGLE_NAME_CHARS.test(name)) {
+        showError(reply, "Page not found", 404, requestPrefs);
+        return;
+      }
+      const info = (await twitter.cachedAccountInfo(name)) ?? emptyAccountInfo();
+      if (info.suspended) {
+        showError(reply, getSuspended(name), 200, requestPrefs);
+        return;
+      }
+      if (info.username.length === 0) {
+        showError(reply, `User "${name}" not found`, 404, requestPrefs);
+        return;
+      }
+      await reply.html(
+        await render.page({
+          body: renderAboutAccount(info),
+          title: `About @${info.username}`,
+          path: getPath(req),
+          prefs: requestPrefs,
+        }),
+      );
+    },
   });
 
   async function showConnections(
     req: AppRequest,
     reply: AppReply,
     kind: "followers" | "following",
+    requestPrefs: TseerPreferences,
   ): Promise<void> {
     const name = req.params["name"] ?? "";
-    const requestPrefs = prefs.parse(req.cookies, req.query);
     if (!SINGLE_NAME_CHARS.test(name)) {
       showError(reply, "Page not found", 404, requestPrefs);
       return;
@@ -477,19 +423,21 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
   route({
     method: "GET",
     path: `/${NAME_PARAM}/followers`,
-    handler: (req, reply) =>
-      guard(reply, undefined, () => showConnections(req, reply, "followers")),
+    handler: (req, reply, requestPrefs) => showConnections(req, reply, "followers", requestPrefs),
   });
   route({
     method: "GET",
     path: `/${NAME_PARAM}/following`,
-    handler: (req, reply) =>
-      guard(reply, undefined, () => showConnections(req, reply, "following")),
+    handler: (req, reply, requestPrefs) => showConnections(req, reply, "following", requestPrefs),
   });
 
-  async function showIndex(req: AppRequest, reply: AppReply, tab: string): Promise<void> {
+  async function showIndex(
+    req: AppRequest,
+    reply: AppReply,
+    tab: string,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     const name = req.params["name"] ?? "";
-    const requestPrefs = prefs.parse(req.cookies, req.query);
     const validName = !name.includes(".") && NAME_CHARS.test(name) && !RESERVED_NAMES.has(name);
     if (
       !validName ||
@@ -535,42 +483,27 @@ export function registerTimelineRoutes(deps: TimelineRouteDeps): () => void {
   route({
     method: "GET",
     path: `/${NAME_PARAM}`,
-    handler: (req, reply) => guard(reply, undefined, () => showIndex(req, reply, "")),
+    handler: (req, reply, requestPrefs) => showIndex(req, reply, "", requestPrefs),
   });
   route({
     method: "GET",
     path: `/${NAME_PARAM}/${TAB_PARAM}`,
-    handler: (req, reply) =>
-      guard(reply, undefined, () => showIndex(req, reply, req.params["tab"] ?? "")),
+    handler: (req, reply, requestPrefs) =>
+      showIndex(req, reply, req.params["tab"] ?? "", requestPrefs),
   });
 
-  return () => {
-    for (const dispose of disposers) dispose();
-  };
+  return shell.dispose;
 }
 
 export default function timelinePlugin(ctx: Context): () => void {
-  const server = ctx.get("server" as never) as HttpServer | undefined;
-  const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
-  const render = ctx.get("render" as never) as Render | undefined;
-  const prefs = ctx.get("prefs" as never) as PrefsService | undefined;
-  const config = ctx.get("config" as never) as TimelineConfig | undefined;
-  if (server === undefined)
-    throw new Error("timeline: ctx.server is not mounted (load serverPlugin first)");
-  if (twitter === undefined)
-    throw new Error("timeline: ctx.twitter is not mounted (load twitterApiPlugin first)");
-  if (render === undefined)
-    throw new Error("timeline: ctx.render is not mounted (load renderPlugin first)");
-  if (prefs === undefined)
-    throw new Error("timeline: ctx.prefs is not mounted (load prefsPlugin first)");
-  const disposeRoutes = registerTimelineRoutes({ server, twitter, render, prefs, config });
-  const disposeEffect = ctx.effect(() => () => {
-    disposeRoutes();
-  });
-  return () => {
-    disposeRoutes();
-    void disposeEffect();
-  };
+  return mountRoutes(ctx, "timeline", ["twitter"], (resolve, shell) =>
+    registerTimelineRoutes({
+      twitter: resolve<TwitterApi>("twitter"),
+      render: resolve<Render>("render"),
+      config: resolve<TimelineConfig | undefined>("config"),
+      shell,
+    }),
+  );
 }
 
 timelinePlugin.inject = ["server", "twitter", "render", "prefs"];

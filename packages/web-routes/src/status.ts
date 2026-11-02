@@ -1,15 +1,8 @@
 import { encodeUrl } from "@tseer/media";
-import type { PrefsService, TseerPreferences } from "@tseer/prefs";
-import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
+import type { TseerPreferences } from "@tseer/prefs";
+import type { AppReply, AppRequest } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
-import {
-  BadClientError,
-  InternalError,
-  MediaKind,
-  NoSessionsError,
-  RankingMode,
-  RateLimitError,
-} from "@tseer/types";
+import { MediaKind, RankingMode } from "@tseer/types";
 import type { Render } from "@tseer/views";
 import {
   getPicUrl,
@@ -23,8 +16,8 @@ import {
   toHtml,
 } from "@tseer/views";
 import type { Context } from "cordis";
-import { createShowError } from "./errors.ts";
 import { NAME_PARAM } from "./params.ts";
+import { mountRoutes, type RouteShell } from "./shell.ts";
 import { getCursor, getPath } from "./timeline.ts";
 
 interface StatusConfig {
@@ -44,67 +37,21 @@ export function parseSortMode(raw: string | undefined): RankingMode {
 }
 
 export interface StatusRouteDeps {
-  server: HttpServer;
   twitter: TwitterApi;
   render: Render;
-  prefs: PrefsService;
+  shell: RouteShell;
   config: StatusConfig | undefined;
 }
 
 export function registerStatusRoutes(deps: StatusRouteDeps): () => void {
-  const { server, twitter, render, prefs } = deps;
-  const disposers: (() => void)[] = [];
-  const route = (spec: RouteSpec): void => {
-    disposers.push(server.route(spec));
-  };
+  const { twitter, render, shell } = deps;
+  const { route, showError } = shell;
 
-  const showError = createShowError(render);
-
-  async function guard(
+  async function showStatus(
+    req: AppRequest,
     reply: AppReply,
-    requestPrefs: TseerPreferences | undefined,
-    body: () => Promise<void>,
+    requestPrefs: TseerPreferences,
   ): Promise<void> {
-    try {
-      await body();
-    } catch (error) {
-      if (error instanceof RateLimitError) {
-        showError(
-          reply,
-          "Instance has been rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof NoSessionsError) {
-        showError(
-          reply,
-          "Instance has no auth tokens, or is fully rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof InternalError) {
-        showError(
-          reply,
-          "An error occurred, please open a GitHub issue with the URL you tried to visit.",
-          500,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof BadClientError) {
-        showError(reply, "Network error occurred, please try again.", 500, requestPrefs);
-        return;
-      }
-      throw error;
-    }
-  }
-
-  async function showStatus(req: AppRequest, reply: AppReply): Promise<void> {
-    const requestPrefs = prefs.parse(req.cookies, req.query);
     const name = req.params["name"] ?? "";
     const id = req.params["id"] ?? "";
 
@@ -188,8 +135,11 @@ export function registerStatusRoutes(deps: StatusRouteDeps): () => void {
     );
   }
 
-  async function showHistory(req: AppRequest, reply: AppReply): Promise<void> {
-    const requestPrefs = prefs.parse(req.cookies, req.query);
+  async function showHistory(
+    req: AppRequest,
+    reply: AppReply,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     const name = req.params["name"] ?? "";
     const id = req.params["id"] ?? "";
 
@@ -225,86 +175,61 @@ export function registerStatusRoutes(deps: StatusRouteDeps): () => void {
   route({
     method: "GET",
     path: `/${NAME_PARAM}/status/:id`,
-    handler: (req, reply) => guard(reply, undefined, () => showStatus(req, reply)),
+    handler: showStatus,
   });
   route({
     method: "GET",
     path: `/${NAME_PARAM}/status/:id/history`,
-    handler: (req, reply) => guard(reply, undefined, () => showHistory(req, reply)),
+    handler: showHistory,
   });
 
   route({
     method: "GET",
     path: `/${NAME_PARAM}/statuses/:id`,
     handler: (req, reply) =>
-      guard(reply, undefined, async () => {
-        await reply.redirect(`/${req.params["name"] ?? ""}/status/${req.params["id"] ?? ""}`);
-      }),
+      reply.redirect(`/${req.params["name"] ?? ""}/status/${req.params["id"] ?? ""}`),
   });
   route({
     method: "GET",
     path: `/${NAME_PARAM}/thread/:id`,
     handler: (req, reply) =>
-      guard(reply, undefined, async () => {
-        await reply.redirect(`/${req.params["name"] ?? ""}/status/${req.params["id"] ?? ""}`);
-      }),
+      reply.redirect(`/${req.params["name"] ?? ""}/status/${req.params["id"] ?? ""}`),
   });
   route({
     method: "GET",
     path: "/i/web/status/:id",
-    handler: (req, reply) =>
-      guard(reply, undefined, async () => {
-        await reply.redirect(`/i/status/${req.params["id"] ?? ""}`);
-      }),
+    handler: (req, reply) => reply.redirect(`/i/status/${req.params["id"] ?? ""}`),
   });
   route({
     method: "GET",
     path: "/i/status/:id",
-    handler: (req, reply) => guard(reply, undefined, () => showStatus(req, reply)),
+    handler: showStatus,
   });
   route({
     method: "GET",
     path: `/${NAME_PARAM}/:s/:id/:m`,
-    handler: (req, reply) =>
-      guard(reply, undefined, async () => {
-        const requestPrefs = prefs.parse(req.cookies, req.query);
-        const s = req.params["s"] ?? "";
-        const m = req.params["m"] ?? "";
-        if ((s === "status" || s === "statuses") && (m === "video" || m === "photo")) {
-          await reply.redirect(`/${req.params["name"] ?? ""}/status/${req.params["id"] ?? ""}`);
-          return;
-        }
-        showError(reply, "Page not found", 404, requestPrefs);
-      }),
+    handler: (req, reply, requestPrefs) => {
+      const s = req.params["s"] ?? "";
+      const m = req.params["m"] ?? "";
+      if ((s === "status" || s === "statuses") && (m === "video" || m === "photo")) {
+        return reply.redirect(`/${req.params["name"] ?? ""}/status/${req.params["id"] ?? ""}`);
+      }
+      showError(reply, "Page not found", 404, requestPrefs);
+    },
   });
 
-  return () => {
-    for (const dispose of disposers) dispose();
-  };
+  return shell.dispose;
 }
 
 export default function statusPlugin(ctx: Context): () => void {
-  const server = ctx.get("server" as never) as HttpServer | undefined;
-  const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
-  const render = ctx.get("render" as never) as Render | undefined;
-  const prefs = ctx.get("prefs" as never) as PrefsService | undefined;
-  const config = ctx.get("config" as never) as StatusConfig | undefined;
-  if (server === undefined)
-    throw new Error("status: ctx.server is not mounted (load serverPlugin first)");
-  if (twitter === undefined)
-    throw new Error("status: ctx.twitter is not mounted (load twitterApiPlugin first)");
-  if (render === undefined)
-    throw new Error("status: ctx.render is not mounted (load renderPlugin first)");
-  if (prefs === undefined)
-    throw new Error("status: ctx.prefs is not mounted (load prefsPlugin first)");
-  const disposeRoutes = registerStatusRoutes({ server, twitter, render, prefs, config });
-  const disposeEffect = ctx.effect(() => () => {
-    disposeRoutes();
-  });
-  return () => {
-    disposeRoutes();
-    void disposeEffect();
-  };
+  return mountRoutes(ctx, "status", ["twitter"], (resolve, shell) =>
+    registerStatusRoutes({
+      twitter: resolve<TwitterApi>("twitter"),
+      render: resolve<Render>("render"),
+      config: resolve<StatusConfig | undefined>("config"),
+      shell,
+    }),
+  );
 }
 
 statusPlugin.inject = ["server", "twitter", "render", "prefs"];

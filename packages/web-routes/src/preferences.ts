@@ -5,10 +5,11 @@ import {
   resetPrefCookies,
   updatePrefCookies,
 } from "@tseer/prefs";
-import type { AppRequest, HttpServer, RouteSpec } from "@tseer/server";
+import type { AppRequest } from "@tseer/server";
 import type { Render } from "@tseer/views";
 import { findThemes, renderPreferences, viewsPublicDir } from "@tseer/views";
 import type { Context } from "cordis";
+import { mountRoutes, type RouteShell } from "./shell.ts";
 import { getPath } from "./timeline.ts";
 
 function getUrlPrefix(cfg: { hostname?: string; useHttps?: boolean }): string {
@@ -22,18 +23,15 @@ function refPath(req: AppRequest): string {
 }
 
 export interface PreferencesRouteDeps {
-  server: HttpServer;
   render: Render;
+  shell: RouteShell;
   prefs: PrefsService;
   config?: { hostname?: string; useHttps?: boolean; staticDir?: string } | undefined;
 }
 
 export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => void {
-  const { server, render, prefs } = deps;
-  const disposers: (() => void)[] = [];
-  const route = (spec: RouteSpec): void => {
-    disposers.push(server.route(spec));
-  };
+  const { render, prefs, shell } = deps;
+  const { raw, hook } = shell;
 
   function setCookieHeader(name: string, value: string, expire: boolean): string {
     const cfg = deps.config ?? {};
@@ -56,11 +54,10 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     return headers;
   }
 
-  route({
+  raw({
     method: "GET",
     path: "/settings",
-    handler: async (req, reply) => {
-      const requestPrefs = prefs.parse(req.cookies, req.query);
+    handler: async (req, reply, requestPrefs) => {
       const themes = findThemes(deps.config?.staticDir ?? viewsPublicDir());
       const prefsCode = prefs.encode(requestPrefs);
       const prefsUrl = `${getUrlPrefix(deps.config ?? {})}/?prefs=${prefsCode}`;
@@ -71,13 +68,13 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     },
   });
 
-  route({
+  raw({
     method: "GET",
     path: "/settings/:i",
     handler: (_req, reply) => reply.redirect("/settings"),
   });
 
-  route({
+  raw({
     method: "POST",
     path: "/saveprefs",
     handler: (req, reply) => {
@@ -88,7 +85,7 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     },
   });
 
-  route({
+  raw({
     method: "POST",
     path: "/resetprefs",
     handler: (req, reply) => {
@@ -100,7 +97,7 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
     },
   });
 
-  route({
+  raw({
     method: "POST",
     path: "/enablehls",
     handler: (req, reply) =>
@@ -109,7 +106,7 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
       }),
   });
 
-  route({
+  raw({
     method: "POST",
     path: "/enablemp4",
     handler: (req, reply) =>
@@ -118,48 +115,35 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
       }),
   });
 
-  disposers.push(
-    server.hook((req, reply) => {
-      if (req.path.includes(".") && req.path !== "/embed/Tweet.html") return;
-      const code = req.query["prefs"] ?? "";
-      if (code.length === 0) return;
-      const writes = applyPrefCookies(parsePrefsParam(code));
-      const clean = new URLSearchParams();
-      for (const [key, value] of Object.entries(req.query)) {
-        if (key !== "prefs" && value.length > 0) clean.set(key, value);
-      }
-      const query = clean.toString();
-      const target = query.length > 0 ? `${req.path}?${query}` : req.path;
-      void reply.redirect(target, { headers: { "set-cookie": cookieHeaders(writes, req) } });
-    }),
-  );
+  hook((req, reply) => {
+    if (req.path.includes(".") && req.path !== "/embed/Tweet.html") return;
+    const code = req.query["prefs"] ?? "";
+    if (code.length === 0) return;
+    const writes = applyPrefCookies(parsePrefsParam(code));
+    const clean = new URLSearchParams();
+    for (const [key, value] of Object.entries(req.query)) {
+      if (key !== "prefs" && value.length > 0) clean.set(key, value);
+    }
+    const query = clean.toString();
+    const target = query.length > 0 ? `${req.path}?${query}` : req.path;
+    void reply.redirect(target, { headers: { "set-cookie": cookieHeaders(writes, req) } });
+  });
 
-  return () => {
-    for (const dispose of disposers) dispose();
-  };
+  return shell.dispose;
 }
 
 export default function preferencesPlugin(
   ctx: Context,
   config?: { hostname?: string; useHttps?: boolean; staticDir?: string },
 ): () => void {
-  const server = ctx.get("server" as never) as HttpServer | undefined;
-  const render = ctx.get("render" as never) as Render | undefined;
-  const prefs = ctx.get("prefs" as never) as PrefsService | undefined;
-  if (server === undefined)
-    throw new Error("preferences: ctx.server is not mounted (load serverPlugin first)");
-  if (render === undefined)
-    throw new Error("preferences: ctx.render is not mounted (load renderPlugin first)");
-  if (prefs === undefined)
-    throw new Error("preferences: ctx.prefs is not mounted (load prefsPlugin first)");
-  const disposeRoutes = registerPreferencesRoutes({ server, render, prefs, config });
-  const disposeEffect = ctx.effect(() => () => {
-    disposeRoutes();
-  });
-  return () => {
-    disposeRoutes();
-    void disposeEffect();
-  };
+  return mountRoutes(ctx, "preferences", [], (resolve, shell) =>
+    registerPreferencesRoutes({
+      render: resolve<Render>("render"),
+      prefs: resolve<PrefsService>("prefs"),
+      shell,
+      config,
+    }),
+  );
 }
 
 preferencesPlugin.inject = ["server", "render", "prefs"];

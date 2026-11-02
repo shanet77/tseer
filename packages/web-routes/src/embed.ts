@@ -1,15 +1,7 @@
 import type { PrefsService, TseerPreferences } from "@tseer/prefs";
-import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
+import type { AppReply, AppRequest } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
-import {
-  BadClientError,
-  getThumb,
-  hasVideos,
-  InternalError,
-  NoSessionsError,
-  RateLimitError,
-} from "@tseer/types";
-import type { Render } from "@tseer/views";
+import { getThumb, hasVideos } from "@tseer/types";
 import {
   getPicUrl,
   getStatusUrlPrefix,
@@ -20,8 +12,8 @@ import {
   stripHtml,
 } from "@tseer/views";
 import type { Context } from "cordis";
-import { createShowError } from "./errors.ts";
 import { NAME_PARAM } from "./params.ts";
+import { mountRoutes, type RouteShell } from "./shell.ts";
 import { getPath } from "./timeline.ts";
 
 interface EmbedConfig {
@@ -31,9 +23,8 @@ interface EmbedConfig {
 }
 
 export interface EmbedRouteDeps {
-  server: HttpServer;
   twitter: TwitterApi;
-  render: Render;
+  shell: RouteShell;
   prefs: PrefsService;
   config: EmbedConfig | undefined;
 }
@@ -91,56 +82,8 @@ export function parseTweetUrl(
 }
 
 export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
-  const { server, twitter, render, prefs } = deps;
-  const disposers: (() => void)[] = [];
-  const route = (spec: RouteSpec): void => {
-    disposers.push(server.route(spec));
-  };
-
-  const showError = createShowError(render);
-
-  async function guard(
-    reply: AppReply,
-    requestPrefs: TseerPreferences | undefined,
-    body: () => Promise<void>,
-  ): Promise<void> {
-    try {
-      await body();
-    } catch (error) {
-      if (error instanceof RateLimitError) {
-        showError(
-          reply,
-          "Instance has been rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof NoSessionsError) {
-        showError(
-          reply,
-          "Instance has no auth tokens, or is fully rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof InternalError) {
-        showError(
-          reply,
-          "An error occurred, please open a GitHub issue with the URL you tried to visit.",
-          500,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof BadClientError) {
-        showError(reply, "Network error occurred, please try again.", 500, requestPrefs);
-        return;
-      }
-      throw error;
-    }
-  }
+  const { twitter, shell, prefs } = deps;
+  const { route } = shell;
 
   function embedConfig(): { title: string; hostname: string; useHttps: boolean } {
     return {
@@ -150,9 +93,12 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
     };
   }
 
-  async function showVideoEmbed(req: AppRequest, reply: AppReply): Promise<void> {
+  async function showVideoEmbed(
+    req: AppRequest,
+    reply: AppReply,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     const id = req.params.id ?? "";
-    const requestPrefs = prefs.parse(req.cookies, req.query);
     const tweet = await twitter.tweetByRestId(id);
 
     if (tweet === undefined) {
@@ -179,10 +125,13 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
     await reply.html(renderVideoEmbed(tweet, embedConfig(), videoPrefs));
   }
 
-  async function showTweetEmbed(req: AppRequest, reply: AppReply): Promise<void> {
+  async function showTweetEmbed(
+    req: AppRequest,
+    reply: AppReply,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     const id = req.params.id ?? "";
     const user = req.params.name ?? "";
-    const requestPrefs = prefs.parse(req.cookies, req.query);
     const tweet = await twitter.tweetByRestId(id);
 
     if (tweet === undefined) {
@@ -200,38 +149,36 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
   route({
     method: "GET",
     path: "/i/videos/tweet/:id",
-    handler: (req, reply) => guard(reply, undefined, () => showVideoEmbed(req, reply)),
+    handler: showVideoEmbed,
   });
 
   route({
     method: "GET",
     path: `/${NAME_PARAM}/status/:id/embed`,
-    handler: (req, reply) => guard(reply, undefined, () => showTweetEmbed(req, reply)),
+    handler: showTweetEmbed,
   });
   route({
     method: "GET",
     path: "/i/status/:id/embed",
-    handler: (req, reply) => guard(reply, undefined, () => showTweetEmbed(req, reply)),
+    handler: showTweetEmbed,
   });
 
   route({
     method: "GET",
     path: "/embed/Tweet.html",
-    handler: (req, reply) =>
-      guard(reply, undefined, async () => {
-        const id = req.query.id ?? "";
-        if (id.length > 0) {
-          await reply.redirect(`/i/status/${id}/embed`);
-        } else {
-          void reply.text("", { status: 404 });
-        }
-      }),
+    handler: (req, reply) => {
+      const id = req.query.id ?? "";
+      if (id.length > 0) {
+        return reply.redirect(`/i/status/${id}/embed`);
+      }
+      void reply.text("", { status: 404 });
+    },
   });
 
   route({
     method: "GET",
     path: "/api/oembed",
-    handler: (req, reply) => guard(reply, undefined, () => showOembed(req, reply)),
+    handler: showOembed,
   });
 
   async function showOembed(req: AppRequest, reply: AppReply): Promise<void> {
@@ -303,33 +250,18 @@ export function registerEmbedRoutes(deps: EmbedRouteDeps): () => void {
     void reply.send(JSON.stringify(response), "application/json", { headers });
   }
 
-  return () => {
-    for (const dispose of disposers) dispose();
-  };
+  return shell.dispose;
 }
 
 export default function embedPlugin(ctx: Context): () => void {
-  const server = ctx.get("server" as never) as HttpServer | undefined;
-  const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
-  const render = ctx.get("render" as never) as Render | undefined;
-  const prefs = ctx.get("prefs" as never) as PrefsService | undefined;
-  const config = ctx.get("config" as never) as EmbedConfig | undefined;
-  if (server === undefined)
-    throw new Error("embed: ctx.server is not mounted (load serverPlugin first)");
-  if (twitter === undefined)
-    throw new Error("embed: ctx.twitter is not mounted (load twitterApiPlugin first)");
-  if (render === undefined)
-    throw new Error("embed: ctx.render is not mounted (load renderPlugin first)");
-  if (prefs === undefined)
-    throw new Error("embed: ctx.prefs is not mounted (load prefsPlugin first)");
-  const disposeRoutes = registerEmbedRoutes({ server, twitter, render, prefs, config });
-  const disposeEffect = ctx.effect(() => () => {
-    disposeRoutes();
-  });
-  return () => {
-    disposeRoutes();
-    void disposeEffect();
-  };
+  return mountRoutes(ctx, "embed", ["twitter"], (resolve, shell) =>
+    registerEmbedRoutes({
+      twitter: resolve<TwitterApi>("twitter"),
+      prefs: resolve<PrefsService>("prefs"),
+      config: resolve<EmbedConfig | undefined>("config"),
+      shell,
+    }),
+  );
 }
 
 embedPlugin.inject = ["server", "twitter", "render", "prefs"];

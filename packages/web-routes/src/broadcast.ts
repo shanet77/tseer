@@ -1,21 +1,20 @@
 import type { MediaFetcher, SafeFetchOptions } from "@tseer/media";
 import { proxifyVideo, safeFetchText, UndiciMediaFetcher } from "@tseer/media";
-import type { PrefsService } from "@tseer/prefs";
-import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
+import type { TseerPreferences } from "@tseer/prefs";
+import type { AppReply, AppRequest } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
 import type { Broadcast } from "@tseer/types";
 import { VideoType } from "@tseer/types";
 import { getVidUrl, type Render, renderBroadcast } from "@tseer/views";
 import type { Context } from "cordis";
-import { createShowError } from "./errors.ts";
+import { mountRoutes, type RouteShell } from "./shell.ts";
 
 const ALNUM = /^[A-Za-z0-9]+$/;
 
 export interface BroadcastRouteDeps {
-  server: HttpServer;
   twitter: TwitterApi;
   render: Render;
-  prefs: PrefsService;
+  shell: RouteShell;
   fetchManifest: (url: string) => Promise<string>;
 }
 
@@ -28,13 +27,8 @@ export interface BroadcastPluginOptions {
 }
 
 export function registerBroadcastRoutes(deps: BroadcastRouteDeps): () => void {
-  const { server, twitter, render, prefs, fetchManifest } = deps;
-  const disposers: (() => void)[] = [];
-  const route = (spec: RouteSpec): void => {
-    disposers.push(server.route(spec));
-  };
-
-  const showError = createShowError(render);
+  const { twitter, render, shell, fetchManifest } = deps;
+  const { raw, showError } = shell;
 
   async function cachedBroadcast(id: string): Promise<Broadcast | undefined> {
     try {
@@ -44,9 +38,12 @@ export function registerBroadcastRoutes(deps: BroadcastRouteDeps): () => void {
     }
   }
 
-  async function showBroadcast(req: AppRequest, reply: AppReply): Promise<void> {
+  async function showBroadcast(
+    req: AppRequest,
+    reply: AppReply,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     const id = req.params["id"] ?? "";
-    const requestPrefs = prefs.parse(req.cookies, req.query);
     if (!ALNUM.test(id)) {
       showError(reply, "Page not found", 404, requestPrefs);
       return;
@@ -67,9 +64,12 @@ export function registerBroadcastRoutes(deps: BroadcastRouteDeps): () => void {
     );
   }
 
-  async function showBroadcastStream(req: AppRequest, reply: AppReply): Promise<void> {
+  async function showBroadcastStream(
+    req: AppRequest,
+    reply: AppReply,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     const id = req.params["id"] ?? "";
-    const requestPrefs = prefs.parse(req.cookies, req.query);
     if (!ALNUM.test(id)) {
       showError(reply, "Page not found", 404, requestPrefs);
       return;
@@ -92,71 +92,52 @@ export function registerBroadcastRoutes(deps: BroadcastRouteDeps): () => void {
     await reply.send(proxified, VideoType.m3u8);
   }
 
-  route({
+  raw({
     method: "GET",
     path: "/i/broadcasts/:id",
-    handler: (req, reply) => showBroadcast(req, reply),
+    handler: showBroadcast,
   });
 
-  route({
+  raw({
     method: "GET",
     path: "/i/broadcasts/:id/stream",
-    handler: (req, reply) => showBroadcastStream(req, reply),
+    handler: showBroadcastStream,
   });
 
-  return () => {
-    for (const dispose of disposers) dispose();
-  };
+  return shell.dispose;
 }
 
 export default function broadcastPlugin(
   ctx: Context,
   options: BroadcastPluginOptions = {},
 ): () => void {
-  const server = ctx.get("server" as never) as HttpServer | undefined;
-  const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
-  const render = ctx.get("render" as never) as Render | undefined;
-  const prefs = ctx.get("prefs" as never) as PrefsService | undefined;
-  if (server === undefined)
-    throw new Error("broadcast: ctx.server is not mounted (load serverPlugin first)");
-  if (twitter === undefined)
-    throw new Error("broadcast: ctx.twitter is not mounted (load twitterApiPlugin first)");
-  if (render === undefined)
-    throw new Error("broadcast: ctx.render is not mounted (load renderPlugin first)");
-  if (prefs === undefined)
-    throw new Error("broadcast: ctx.prefs is not mounted (load prefsPlugin first)");
+  return mountRoutes(ctx, "broadcast", ["twitter"], (resolve, shell) => {
+    const fetcher =
+      options.fetcher ??
+      new UndiciMediaFetcher({
+        proxy: options.proxy,
+        proxyAuth: options.proxyAuth,
+        maxConns: options.maxConns,
+        headersTimeoutMs: options.headersTimeoutMs,
+      });
+    const disposeFetcher = options.fetcher === undefined ? () => void fetcher.close() : undefined;
 
-  const fetcher =
-    options.fetcher ??
-    new UndiciMediaFetcher({
-      proxy: options.proxy,
-      proxyAuth: options.proxyAuth,
-      maxConns: options.maxConns,
-      headersTimeoutMs: options.headersTimeoutMs,
+    const fetchOptions: SafeFetchOptions = {
+      fetcher,
+      onRetry: (message) => ctx.logger.debug(message),
+    };
+
+    const disposeRoutes = registerBroadcastRoutes({
+      twitter: resolve<TwitterApi>("twitter"),
+      render: resolve<Render>("render"),
+      shell,
+      fetchManifest: (url) => safeFetchText(url, fetchOptions),
     });
-  const disposeFetcher = options.fetcher === undefined ? () => void fetcher.close() : undefined;
-
-  const fetchOptions: SafeFetchOptions = {
-    fetcher,
-    onRetry: (message) => ctx.logger.debug(message),
-  };
-
-  const disposeRoutes = registerBroadcastRoutes({
-    server,
-    twitter,
-    render,
-    prefs,
-    fetchManifest: (url) => safeFetchText(url, fetchOptions),
+    return () => {
+      disposeRoutes();
+      disposeFetcher?.();
+    };
   });
-  const disposeEffect = ctx.effect(() => () => {
-    disposeRoutes();
-    disposeFetcher?.();
-  });
-  return () => {
-    disposeRoutes();
-    disposeFetcher?.();
-    void disposeEffect();
-  };
 }
 
 broadcastPlugin.inject = ["server", "twitter", "render", "prefs"];

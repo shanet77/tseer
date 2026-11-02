@@ -1,21 +1,12 @@
 import { type Cache, fnv1a32, namespaces } from "@tseer/cache";
-import type { PrefsService, TseerPreferences } from "@tseer/prefs";
-import type { AppReply, AppRequest, HttpServer, RouteSpec } from "@tseer/server";
+import type { TseerPreferences } from "@tseer/prefs";
+import type { AppReply, AppRequest } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
-import {
-  BadClientError,
-  InternalError,
-  NoSessionsError,
-  type Query,
-  QueryKind,
-  RateLimitError,
-  type TimelineResult,
-  type Tweet,
-} from "@tseer/types";
+import { type Query, QueryKind, type TimelineResult, type Tweet } from "@tseer/types";
 import type { Render } from "@tseer/views";
 import { renderHome, renderHomeEmpty, toHtml } from "@tseer/views";
 import type { Context } from "cordis";
-import { createShowError } from "./errors.ts";
+import { mountRoutes, type RouteShell } from "./shell.ts";
 import { getCursor, getPath } from "./timeline.ts";
 
 export const HOME_MAX_FOLLOWS = 150;
@@ -128,10 +119,9 @@ export function normalizeFollows(list: string[]): string[] {
 }
 
 export interface HomeRouteDeps {
-  server: HttpServer;
   twitter: TwitterApi;
   render: Render;
-  prefs: PrefsService;
+  shell: RouteShell;
   follows: string[];
   chunkSize: number;
   cacheSeconds: number;
@@ -139,56 +129,8 @@ export interface HomeRouteDeps {
 }
 
 export function registerHomeRoutes(deps: HomeRouteDeps): () => void {
-  const { server, twitter, render, prefs, follows, chunkSize, cacheSeconds } = deps;
-  const disposers: (() => void)[] = [];
-  const route = (spec: RouteSpec): void => {
-    disposers.push(server.route(spec));
-  };
-
-  const showError = createShowError(render);
-
-  async function guard(
-    reply: AppReply,
-    requestPrefs: TseerPreferences | undefined,
-    body: () => Promise<void>,
-  ): Promise<void> {
-    try {
-      await body();
-    } catch (error) {
-      if (error instanceof RateLimitError) {
-        showError(
-          reply,
-          "Instance has been rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof NoSessionsError) {
-        showError(
-          reply,
-          "Instance has no auth tokens, or is fully rate limited. Use another instance or try again later.",
-          429,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof InternalError) {
-        showError(
-          reply,
-          "An error occurred, please open a GitHub issue with the URL you tried to visit.",
-          500,
-          requestPrefs,
-        );
-        return;
-      }
-      if (error instanceof BadClientError) {
-        showError(reply, "Network error occurred, please try again.", 500, requestPrefs);
-        return;
-      }
-      throw error;
-    }
-  }
+  const { twitter, render, shell, follows, chunkSize, cacheSeconds } = deps;
+  const { route } = shell;
 
   function homeCacheKey(cursor: string): string {
     return `${fnv1a32(follows.join(","))}:${cursor}`;
@@ -201,8 +143,11 @@ export function registerHomeRoutes(deps: HomeRouteDeps): () => void {
     return cache.cached(namespaces.home, homeCacheKey(cursor), cacheSeconds, fetch);
   }
 
-  async function showHome(req: AppRequest, reply: AppReply): Promise<void> {
-    const requestPrefs = prefs.parse(req.cookies, req.query);
+  async function showHome(
+    req: AppRequest,
+    reply: AppReply,
+    requestPrefs: TseerPreferences,
+  ): Promise<void> {
     const path = getPath(req);
     if (follows.length === 0) {
       await reply.html(
@@ -242,57 +187,36 @@ export function registerHomeRoutes(deps: HomeRouteDeps): () => void {
   route({
     method: "GET",
     path: "/",
-    handler: (req, reply) => guard(reply, undefined, () => showHome(req, reply)),
+    handler: showHome,
   });
 
-  return () => {
-    for (const dispose of disposers) dispose();
-  };
+  return shell.dispose;
 }
 
 export default function homePlugin(ctx: Context, options: HomePluginOptions = {}): () => void {
-  const server = ctx.get("server" as never) as HttpServer | undefined;
-  const twitter = ctx.get("twitter" as never) as TwitterApi | undefined;
-  const render = ctx.get("render" as never) as Render | undefined;
-  const prefs = ctx.get("prefs" as never) as PrefsService | undefined;
-  const config = ctx.get("config" as never) as HomeServiceConfig | undefined;
-  if (server === undefined)
-    throw new Error("home: ctx.server is not mounted (load serverPlugin first)");
-  if (twitter === undefined)
-    throw new Error("home: ctx.twitter is not mounted (load twitterApiPlugin first)");
-  if (render === undefined)
-    throw new Error("home: ctx.render is not mounted (load renderPlugin first)");
-  if (prefs === undefined)
-    throw new Error("home: ctx.prefs is not mounted (load prefsPlugin first)");
+  return mountRoutes(ctx, "home", ["twitter"], (resolve, shell) => {
+    const config = resolve<HomeServiceConfig | undefined>("config");
+    const configured = options.follows ?? config?.home?.follows ?? [];
+    if (configured.length > HOME_MAX_FOLLOWS) {
+      ctx.logger.warn(
+        `home: ${configured.length} follows configured, using the first ${HOME_MAX_FOLLOWS}`,
+      );
+    }
+    const follows = normalizeFollows(configured);
+    const chunkSize = options.chunkSize ?? config?.home?.chunkSize ?? HOME_DEFAULT_CHUNK_SIZE;
+    const cacheSeconds =
+      options.cacheSeconds ?? config?.home?.cacheSeconds ?? HOME_DEFAULT_CACHE_SECONDS;
 
-  const configured = options.follows ?? config?.home?.follows ?? [];
-  if (configured.length > HOME_MAX_FOLLOWS) {
-    ctx.logger.warn(
-      `home: ${configured.length} follows configured, using the first ${HOME_MAX_FOLLOWS}`,
-    );
-  }
-  const follows = normalizeFollows(configured);
-  const chunkSize = options.chunkSize ?? config?.home?.chunkSize ?? HOME_DEFAULT_CHUNK_SIZE;
-  const cacheSeconds =
-    options.cacheSeconds ?? config?.home?.cacheSeconds ?? HOME_DEFAULT_CACHE_SECONDS;
-
-  const disposeRoutes = registerHomeRoutes({
-    server,
-    twitter,
-    render,
-    prefs,
-    follows,
-    chunkSize,
-    cacheSeconds,
-    getCache: () => ctx.get("cache" as never) as Cache | undefined,
+    return registerHomeRoutes({
+      twitter: resolve<TwitterApi>("twitter"),
+      render: resolve<Render>("render"),
+      shell,
+      follows,
+      chunkSize,
+      cacheSeconds,
+      getCache: () => resolve<Cache | undefined>("cache"),
+    });
   });
-  const disposeEffect = ctx.effect(() => () => {
-    disposeRoutes();
-  });
-  return () => {
-    disposeRoutes();
-    void disposeEffect();
-  };
 }
 
 homePlugin.inject = ["server", "twitter", "render", "prefs"];
