@@ -1,18 +1,15 @@
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
 import type { Rss } from "@tseer/types";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it, vi } from "vitest";
 import { default as rssPlugin } from "../src/rss.ts";
 import { default as statusPlugin } from "../src/status.ts";
 import { default as timelinePlugin } from "../src/timeline.ts";
 import { default as unsupportedPlugin } from "../src/unsupported.ts";
 import { makeConversation } from "./status.spec.ts";
+import { createTestApp } from "./support.ts";
 import { makeTimeline, makeTweet, makeUser, stubTwitter } from "./timeline.spec.ts";
 
 function stubAllTwitter(): TwitterApi {
@@ -38,19 +35,11 @@ function stubAllTwitter(): TwitterApi {
 
 describe("cross-plugin routing", () => {
   it("serves assets from static while every family keeps its routes", async () => {
-    const ctx = new Context();
-    await ctx.plugin(serverPlugin, { port: 0 });
-    await ctx.plugin(prefsPlugin, {});
-    await ctx.plugin(renderPlugin, {
+    const ctx = await createTestApp(stubAllTwitter(), {
       title: "nitter",
       hostname: "localhost",
       useHttps: false,
-      picUrl: (url) => `/pic/${url}`,
-      origPicUrl: (url) => `/pic/orig/${url}`,
-      vidUrl: (url) => `/video/sig/${url}`,
     });
-    ctx.provide("twitter", stubAllTwitter());
-    ctx.provide("config", { title: "nitter", hostname: "localhost", useHttps: false });
     const fibers = await Promise.all([
       ctx.plugin(timelinePlugin),
       ctx.plugin(statusPlugin),

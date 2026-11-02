@@ -2,12 +2,8 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { cachePlugin } from "@tseer/cache";
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
 import { QueryKind, RateLimitError, type TimelineResult, type Tweet } from "@tseer/types";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it, vi } from "vitest";
 import {
   chunkList,
@@ -18,6 +14,7 @@ import {
   normalizeFollows,
 } from "../src/home.ts";
 import { emptyTimeline } from "../src/timeline.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 import { makeTweet } from "./timeline.spec.ts";
 
 function tweet(id: string): Tweet {
@@ -42,28 +39,20 @@ function stubHomeTwitter(
   } as unknown as TwitterApi;
 }
 
-async function boot(
+const boot = (
   twitter: TwitterApi,
   home: Record<string, unknown> = {},
   useCache = false,
-): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
+): Promise<BootedRoute> =>
+  bootRoute(homePlugin, {
+    twitter,
+    config: { home },
+    setup: useCache
+      ? async (ctx) => {
+          await ctx.plugin(cachePlugin, { provider: "memory" });
+        }
+      : undefined,
   });
-  if (useCache) await ctx.plugin(cachePlugin, { provider: "memory" });
-  ctx.provide("twitter", twitter);
-  ctx.provide("config", { title: "nitter", hostname: "localhost", useHttps: false, home });
-  const fiber = await ctx.plugin(homePlugin);
-  return { ctx, unload: () => fiber.dispose() };
-}
 
 describe("home helpers", () => {
   it("chunks lists", () => {

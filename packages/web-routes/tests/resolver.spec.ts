@@ -1,10 +1,7 @@
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it, vi } from "vitest";
 import { cardUrl, default as resolverPlugin, tcoUrl } from "../src/resolver.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 import { makeTimeline, makeTweet, makeUser, stubTwitter } from "./timeline.spec.ts";
 
 function stubResolverTwitter(resolve: (url: string) => Promise<string>): TwitterApi {
@@ -13,23 +10,8 @@ function stubResolverTwitter(resolve: (url: string) => Promise<string>): Twitter
   });
 }
 
-async function boot(twitter: TwitterApi): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
-  });
-  ctx.provide("twitter", twitter);
-  ctx.provide("config", { title: "nitter", hostname: "localhost", useHttps: false });
-  const fiber = await ctx.plugin(resolverPlugin);
-  return { ctx, unload: () => fiber.dispose() };
-}
+const boot = (twitter: TwitterApi): Promise<BootedRoute> =>
+  bootRoute(resolverPlugin, { twitter, config: {} });
 
 describe("resolverPlugin", () => {
   it("resolves card links to the location header", async () => {

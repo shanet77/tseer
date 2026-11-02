@@ -1,15 +1,13 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
 import type { Json, ProfileTweets, TwitterApi } from "@tseer/twitter-api";
 import { parseGraphTimeline } from "@tseer/twitter-parser";
 import { QueryKind, type Result, type Tweet, type User, VerifiedType } from "@tseer/types";
-import { emptyAccountInfo, renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
+import { emptyAccountInfo } from "@tseer/views";
 import { describe, expect, it, vi } from "vitest";
 import { emptyTimeline, emptyUser, default as timelinePlugin } from "../src/timeline.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 
 export function makeUser(overrides: Partial<User> = {}): User {
   return {
@@ -113,24 +111,7 @@ export function stubTwitter(
   } as unknown as TwitterApi;
 }
 
-export async function boot(
-  twitter: TwitterApi,
-): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
-  });
-  ctx.provide("twitter", twitter);
-  const fiber = await ctx.plugin(timelinePlugin);
-  return { ctx, unload: () => fiber.dispose() };
-}
+const boot = (twitter: TwitterApi): Promise<BootedRoute> => bootRoute(timelinePlugin, { twitter });
 
 describe("timelinePlugin", () => {
   it("renders a profile timeline end to end", async () => {

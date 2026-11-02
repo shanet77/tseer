@@ -1,5 +1,3 @@
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
 import {
   type Chain,
@@ -8,10 +6,9 @@ import {
   QueryKind,
   RankingMode,
 } from "@tseer/types";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it, vi } from "vitest";
 import { isValidTweetId, parseSortMode, default as statusPlugin } from "../src/status.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 import { makeTweet, makeUser } from "./timeline.spec.ts";
 
 function emptyChain(overrides: Partial<Chain> = {}): Chain {
@@ -62,22 +59,7 @@ function stubStatusTwitter(
   } as unknown as TwitterApi;
 }
 
-async function boot(twitter: TwitterApi): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
-  });
-  ctx.provide("twitter", twitter);
-  const fiber = await ctx.plugin(statusPlugin);
-  return { ctx, unload: () => fiber.dispose() };
-}
+const boot = (twitter: TwitterApi): Promise<BootedRoute> => bootRoute(statusPlugin, { twitter });
 
 describe("statusPlugin", () => {
   it("validates tweet ids and sort modes", () => {

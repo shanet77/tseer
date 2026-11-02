@@ -1,5 +1,3 @@
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
 import {
   QueryKind,
@@ -8,11 +6,10 @@ import {
   type TimelineResult,
   type User,
 } from "@tseer/types";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it, vi } from "vitest";
 import { default as listPlugin, listQuery, listTitle } from "../src/list.ts";
 import { emptyTimeline } from "../src/timeline.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 import { makeTimeline, makeTweet, makeUser, stubTwitter } from "./timeline.spec.ts";
 
 function makeList() {
@@ -48,26 +45,8 @@ function stubListTwitter(extra: Partial<TwitterApi> = {}): TwitterApi {
   } as unknown as TwitterApi;
 }
 
-async function boot(
-  twitter: TwitterApi,
-  config: Record<string, unknown> = {},
-): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
-  });
-  ctx.provide("twitter", twitter);
-  ctx.provide("config", { title: "nitter", hostname: "localhost", useHttps: false, ...config });
-  const fiber = await ctx.plugin(listPlugin);
-  return { ctx, unload: () => fiber.dispose() };
-}
+const boot = (twitter: TwitterApi, config: Record<string, unknown> = {}): Promise<BootedRoute> =>
+  bootRoute(listPlugin, { twitter, config });
 
 describe("listPlugin", () => {
   it("renders the list timeline with header, tabs, banner, and rss link", async () => {

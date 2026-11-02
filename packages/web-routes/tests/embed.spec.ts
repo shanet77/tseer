@@ -1,11 +1,8 @@
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
 import { type Media, MediaKind, type Tweet, VideoType } from "@tseer/types";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it, vi } from "vitest";
 import { default as embedPlugin, parseTweetPath, parseTweetUrl } from "../src/embed.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 import { makeTweet, makeUser, stubTwitter } from "./timeline.spec.ts";
 
 function videoMedia(): Media {
@@ -49,23 +46,8 @@ function stubEmbedTwitter(tweet: Tweet | undefined): TwitterApi {
   );
 }
 
-async function boot(twitter: TwitterApi): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
-  });
-  ctx.provide("twitter", twitter);
-  ctx.provide("config", { title: "nitter", hostname: "localhost", useHttps: false });
-  const fiber = await ctx.plugin(embedPlugin);
-  return { ctx, unload: () => fiber.dispose() };
-}
+const boot = (twitter: TwitterApi): Promise<BootedRoute> =>
+  bootRoute(embedPlugin, { twitter, config: {} });
 
 describe("embedPlugin", () => {
   it("renders the video embed with og:video pointing at the tweet video route", async () => {

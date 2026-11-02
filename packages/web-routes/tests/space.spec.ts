@@ -1,15 +1,12 @@
 import { Buffer } from "node:buffer";
 import type { MediaFetcher, MediaFetchResponse } from "@tseer/media";
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
 import type { AudioSpace } from "@tseer/types";
 import { RateLimitError, VerifiedType } from "@tseer/types";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it, vi } from "vitest";
 import type { SpacePluginOptions } from "../src/space.ts";
 import { default as spacePlugin } from "../src/space.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 
 const M3U8 = "https://video.twimg.com/spaces/main.m3u8";
 
@@ -84,30 +81,13 @@ function stubSpaceTwitter(space: AudioSpace | undefined, extra = {}): TwitterApi
   } as unknown as TwitterApi;
 }
 
-async function boot(
-  twitter: TwitterApi,
-  options: SpacePluginOptions = {},
-): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
-  });
-  ctx.provide("twitter", twitter);
-  const fiber = await ctx.plugin(spacePlugin, options);
-  return { ctx, unload: () => fiber.dispose() };
-}
+const boot = (twitter: TwitterApi, options: SpacePluginOptions = {}): Promise<BootedRoute> =>
+  bootRoute(spacePlugin, { twitter, pluginOptions: options });
 
 function bootStream(
   space: AudioSpace | undefined,
   manifest: { status: number; body?: string },
-): Promise<{ ctx: Context; unload: () => Promise<void> }> {
+): Promise<BootedRoute> {
   return boot(stubSpaceTwitter(space), {
     fetcher: stubManifestFetcher({ [M3U8]: manifest }),
   });

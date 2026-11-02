@@ -1,12 +1,9 @@
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it } from "vitest";
 import { default as preferencesPlugin } from "../src/preferences.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 
 async function makeStaticDir(): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "tseer-prefs-"));
@@ -17,27 +14,12 @@ async function makeStaticDir(): Promise<string> {
   return dir;
 }
 
-async function boot(
+const boot = (
   config: { hostname?: string; useHttps?: boolean; staticDir?: string } = {},
-): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
+): Promise<BootedRoute> =>
+  bootRoute(preferencesPlugin, {
+    pluginOptions: { hostname: "nitter.example", useHttps: false, ...config },
   });
-  const fiber = await ctx.plugin(preferencesPlugin, {
-    hostname: "nitter.example",
-    useHttps: false,
-    ...config,
-  });
-  return { ctx, unload: () => fiber.dispose() };
-}
 
 function cookiesHeader(res: { headers: Record<string, string> }): string {
   return res.headers["set-cookie"] ?? "";

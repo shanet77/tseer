@@ -1,11 +1,8 @@
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
 import { type Article, QueryKind, RateLimitError, type Tweet, type User } from "@tseer/types";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it, vi } from "vitest";
 import { default as articlePlugin } from "../src/article.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 import { makeTweet, makeUser, stubTwitter } from "./timeline.spec.ts";
 
 function makeArticle(user: User, overrides: Partial<Article> = {}): Article {
@@ -70,22 +67,7 @@ function stubArticleTwitter(extra: Partial<TwitterApi> = {}): TwitterApi {
   } as unknown as TwitterApi;
 }
 
-async function boot(twitter: TwitterApi): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
-  });
-  ctx.provide("twitter", twitter);
-  const fiber = await ctx.plugin(articlePlugin);
-  return { ctx, unload: () => fiber.dispose() };
-}
+const boot = (twitter: TwitterApi): Promise<BootedRoute> => bootRoute(articlePlugin, { twitter });
 
 describe("articlePlugin", () => {
   it("renders the article page with the shell, cover, and embedded tweet", async () => {

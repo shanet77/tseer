@@ -1,25 +1,8 @@
-import { prefsPlugin } from "@tseer/prefs";
-import { serverPlugin } from "@tseer/server";
-import { renderPlugin } from "@tseer/views";
-import { Context } from "cordis";
 import { describe, expect, it } from "vitest";
 import { default as unsupportedPlugin } from "../src/unsupported.ts";
+import { type BootedRoute, bootRoute } from "./support.ts";
 
-async function boot(): Promise<{ ctx: Context; unload: () => Promise<void> }> {
-  const ctx = new Context();
-  await ctx.plugin(serverPlugin, { port: 0 });
-  await ctx.plugin(prefsPlugin, {});
-  await ctx.plugin(renderPlugin, {
-    title: "nitter",
-    hostname: "localhost",
-    useHttps: false,
-    picUrl: (url) => `/pic/${url}`,
-    origPicUrl: (url) => `/pic/orig/${url}`,
-    vidUrl: (url) => `/video/sig/${url}`,
-  });
-  const fiber = await ctx.plugin(unsupportedPlugin);
-  return { ctx, unload: () => fiber.dispose() };
-}
+const boot = (): Promise<BootedRoute> => bootRoute(unsupportedPlugin);
 
 describe("unsupportedPlugin", () => {
   it("renders the feature panel for every unsupported path", async () => {
