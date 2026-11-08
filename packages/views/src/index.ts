@@ -59,6 +59,7 @@ export { renderPreferences } from "./preferences.tsx";
 export {
   emptyAccountInfo,
   renderBanner,
+  renderFollowButton,
   renderFollowTabs,
   renderPhotoRail,
   renderProfile,

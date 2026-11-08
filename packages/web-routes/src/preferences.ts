@@ -1,7 +1,11 @@
 import {
+  addFollow,
   applyPrefCookies,
+  followsCookieWrite,
+  isValidUsername,
   type PrefsService,
   parsePrefsParam,
+  removeFollow,
   resetPrefCookies,
   updatePrefCookies,
 } from "@tseer/prefs";
@@ -114,6 +118,28 @@ export function registerPreferencesRoutes(deps: PreferencesRouteDeps): () => voi
         headers: { "set-cookie": [setCookieHeader("mp4Playback", "on", false)] },
       }),
   });
+
+  // Follow/unfollow snapshot the visitor's full list into the cookie. The list
+  // starts from the instance default ([Home] follows) when no cookie is set.
+  // Query-param overrides are ignored so `?follows=` can't leak into the cookie.
+  for (const [action, apply] of [
+    ["follow", addFollow],
+    ["unfollow", removeFollow],
+  ] as const) {
+    raw({
+      method: "POST",
+      path: `/${action}/:name`,
+      handler: (req, reply) => {
+        const name = req.params["name"] ?? "";
+        if (!isValidUsername(name)) return reply.text("Invalid username", { status: 400 });
+        const current = prefs.parse(req.cookies).follows;
+        const write = followsCookieWrite(apply(current, name), prefs.defaults);
+        return reply.redirect(refPath(req), {
+          headers: { "set-cookie": cookieHeaders([write], req) },
+        });
+      },
+    });
+  }
 
   hook((req, reply) => {
     if (req.path.includes(".") && req.path !== "/embed/Tweet.html") return;

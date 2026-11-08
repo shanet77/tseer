@@ -1,4 +1,4 @@
-import type { TseerPreferences } from "@tseer/prefs";
+import { isFollowing, type TseerPreferences } from "@tseer/prefs";
 import { type AccountInfo, type Profile, type Result, type User, VerifiedType } from "@tseer/types";
 import type { VNode } from "preact";
 import {
@@ -12,7 +12,7 @@ import {
   titleize,
 } from "./formatters.ts";
 import { getPicUrl } from "./media.ts";
-import { genImg, icon, linkUser, verifiedIcon } from "./renderutils.tsx";
+import { genImg, icon, linkUser, refererField, verifiedIcon } from "./renderutils.tsx";
 import { renderTweetSearch } from "./search.tsx";
 import { renderTimelineUsers } from "./timeline.tsx";
 
@@ -57,7 +57,27 @@ export function renderStatLink(num: number, className: string, href: string): VN
   );
 }
 
-export function renderUserCard(user: User, prefs: TseerPreferences, info: AccountInfo): VNode {
+export function renderFollowButton(user: User, prefs: TseerPreferences, path: string): VNode {
+  const following = isFollowing(prefs.follows, user.username);
+  const action = following ? "unfollow" : "follow";
+  return (
+    <form
+      method="post"
+      action={`/${action}/${user.username}`}
+      class={`profile-card-follow${following ? " following" : ""}`}
+    >
+      {refererField(path.length > 0 ? path : `/${user.username}`)}
+      <button type="submit">{following ? "Unfollow" : "Follow"}</button>
+    </form>
+  );
+}
+
+export function renderUserCard(
+  user: User,
+  prefs: TseerPreferences,
+  info: AccountInfo,
+  path = "",
+): VNode {
   const avatarUrl = getPicUrl(getUserPic(user.userPic));
   const size = prefs.autoplayGifs && user.userPic.endsWith("gif") ? "" : "_400x400";
 
@@ -72,6 +92,7 @@ export function renderUserCard(user: User, prefs: TseerPreferences, info: Accoun
           {verifiedIcon(user)}
           {linkUser(user, "profile-card-username")}
         </div>
+        {user.username.length > 0 && renderFollowButton(user, prefs, path)}
       </div>
       <div class="profile-card-extra">
         {user.bio.length > 0 && (
@@ -191,7 +212,7 @@ export function renderProfile(profile: Profile, prefs: TseerPreferences, path: s
       )}
       {!isGalleryView && (
         <div class={`profile-tab${prefs.stickyProfile ? " sticky" : ""}`}>
-          {renderUserCard(profile.user, prefs, profile.accountInfo)}
+          {renderUserCard(profile.user, prefs, profile.accountInfo, path)}
           {profile.photoRail.length > 0 && renderPhotoRail(profile)}
         </div>
       )}
@@ -233,7 +254,7 @@ export function renderUserList(
     <div class="profile-tabs">
       {!prefs.hideBanner && <div class="profile-banner">{renderBanner(user.banner)}</div>}
       <div class={`profile-tab${prefs.stickyProfile ? " sticky" : ""}`}>
-        {renderUserCard(user, prefs, emptyAccountInfo())}
+        {renderUserCard(user, prefs, emptyAccountInfo(), path)}
       </div>
       <div class="timeline-container">
         {renderFollowTabs(user, activeTab)}

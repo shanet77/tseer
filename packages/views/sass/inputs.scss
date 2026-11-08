@@ -202,6 +202,27 @@ input::-webkit-datetime-edit-year-field:focus {
     float: left;
   }
 
+  .pref-follows {
+    margin-bottom: 6px;
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    textarea {
+      @include input-colors;
+      box-sizing: border-box;
+      width: 100%;
+      background-color: var(--bg_elements);
+      color: var(--fg_color);
+      border: 1px solid var(--accent_border);
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+    }
+  }
+
   .prefs-code {
     background-color: var(--bg_elements);
     border: 1px solid var(--accent_border);

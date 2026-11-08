@@ -33,6 +33,20 @@ export function renderPreferences(
               <Fragment key={pref.name}>{renderPref(pref, prefs, themes)}</Fragment>
             )),
           ])}
+          <legend>Following</legend>
+          <div class="pref-group pref-follows" title="follows">
+            <label for="follows">
+              Accounts shown on the home timeline, one per line. Until you change this list, the
+              instance's default list is used.
+            </label>
+            <textarea
+              id="follows"
+              name="follows"
+              rows={6}
+              spellcheck={false}
+              value={prefs.follows.join("\n")}
+            />
+          </div>
           <legend>Bookmark</legend>
           <p class="bookmark-note">
             Save this URL to restore your preferences (?prefs works on all pages)

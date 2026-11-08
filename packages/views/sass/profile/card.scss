@@ -18,6 +18,22 @@
     max-width: 100%;
 }
 
+.profile-card-follow {
+    margin: 6px 0;
+    overflow: hidden;
+
+    button {
+        float: none;
+        width: 100%;
+        padding: 4px 6px;
+        font-weight: bold;
+    }
+
+    &.following button {
+        font-weight: normal;
+    }
+}
+
 .profile-card-username {
     @include breakable;
     color: var(--fg_color);
