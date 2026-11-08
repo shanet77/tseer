@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { cachePlugin } from "@tseer/cache";
+import { preferencesSchema } from "@tseer/prefs";
 import type { TwitterApi } from "@tseer/twitter-api";
 import { QueryKind, RateLimitError, type TimelineResult, type Tweet } from "@tseer/types";
 import { describe, expect, it, vi } from "vitest";
@@ -47,6 +48,13 @@ const boot = (
   bootRoute(homePlugin, {
     twitter,
     config: { home },
+    // Mirrors entries.ts: [Home] follows becomes the `follows` pref default.
+    prefs: {
+      preferences: {
+        ...preferencesSchema.parse({}),
+        follows: (home["follows"] as string[] | undefined) ?? [],
+      },
+    },
     setup: useCache
       ? async (ctx) => {
           await ctx.plugin(cachePlugin, { provider: "memory" });
@@ -139,7 +147,7 @@ describe("homePlugin", () => {
 
     const res = await ctx.server.inject({ url: "/" });
     expect(res.status).toBe(200);
-    expect(res.body).toContain("No followed accounts configured");
+    expect(res.body).toContain("You aren't following anyone yet");
     expect(res.body).toContain("TSEER_HOME_FOLLOWS");
     expect(twitter.search).not.toHaveBeenCalled();
   });
@@ -199,6 +207,29 @@ describe("homePlugin", () => {
     expect(second.status).toBe(200);
     expect(second.body).toBe(first.body);
     expect(twitter.search).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses the visitor's follows cookie instead of the instance default", async () => {
+    const twitter = stubHomeTwitter({ a: [tweet("100")], b: [tweet("200")], c: [tweet("300")] });
+    const { ctx } = await boot(twitter, { follows: ["a"], chunkSize: 12 });
+
+    const res = await ctx.server.inject({ url: "/", headers: { cookie: "follows=b.c" } });
+    expect(res.status).toBe(200);
+    expect(res.body).toContain("tw-200");
+    expect(res.body).toContain("tw-300");
+    expect(res.body).not.toContain("tw-100");
+    const calls = (twitter.search as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls[0]![0].fromUser).toEqual(["b", "c"]);
+  });
+
+  it("treats an empty follows cookie as following nobody", async () => {
+    const twitter = stubHomeTwitter({ a: [tweet("100")] });
+    const { ctx } = await boot(twitter, { follows: ["a"] });
+
+    const res = await ctx.server.inject({ url: "/", headers: { cookie: "follows=" } });
+    expect(res.status).toBe(200);
+    expect(res.body).toContain("You aren't following anyone yet");
+    expect(twitter.search).not.toHaveBeenCalled();
   });
 
   it("keeps the root route ahead of the static wildcard", async () => {

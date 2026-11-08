@@ -1,5 +1,5 @@
 import { type Cache, fnv1a32, namespaces } from "@tseer/cache";
-import type { TseerPreferences } from "@tseer/prefs";
+import { MAX_FOLLOWS, normalizeFollows, type TseerPreferences } from "@tseer/prefs";
 import type { AppReply, AppRequest } from "@tseer/server";
 import type { TwitterApi } from "@tseer/twitter-api";
 import { type Query, QueryKind, type TimelineResult, type Tweet } from "@tseer/types";
@@ -9,7 +9,8 @@ import type { Context } from "cordis";
 import { mountRoutes, type RouteShell } from "./shell.ts";
 import { getCursor, getPath } from "./timeline.ts";
 
-export const HOME_MAX_FOLLOWS = 150;
+export const HOME_MAX_FOLLOWS = MAX_FOLLOWS;
+export { normalizeFollows };
 export const HOME_DEFAULT_CHUNK_SIZE = 12;
 export const HOME_DEFAULT_CACHE_SECONDS = 120;
 
@@ -24,7 +25,6 @@ interface HomeServiceConfig {
 }
 
 export interface HomePluginOptions {
-  follows?: string[] | undefined;
   chunkSize?: number | undefined;
   cacheSeconds?: number | undefined;
 }
@@ -104,43 +104,29 @@ export async function fetchHomeFeed(
   };
 }
 
-export function normalizeFollows(list: string[]): string[] {
-  const seen = new Set<string>();
-  const follows: string[] = [];
-  for (const raw of list) {
-    const name = raw.trim();
-    if (name.length === 0) continue;
-    const key = name.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    follows.push(name);
-  }
-  return follows.slice(0, HOME_MAX_FOLLOWS);
-}
-
 export interface HomeRouteDeps {
   twitter: TwitterApi;
   render: Render;
   shell: RouteShell;
-  follows: string[];
   chunkSize: number;
   cacheSeconds: number;
   getCache: () => Cache | undefined;
 }
 
 export function registerHomeRoutes(deps: HomeRouteDeps): () => void {
-  const { twitter, render, shell, follows, chunkSize, cacheSeconds } = deps;
+  const { twitter, render, shell, chunkSize, cacheSeconds } = deps;
   const { route } = shell;
 
-  function homeCacheKey(cursor: string): string {
-    return `${fnv1a32(follows.join(","))}:${cursor}`;
+  function homeCacheKey(follows: string[], cursor: string): string {
+    const key = follows.map((name) => name.toLowerCase()).join(",");
+    return `${fnv1a32(key)}:${cursor}`;
   }
 
-  async function homeTimeline(cursor: string): Promise<TimelineResult> {
+  async function homeTimeline(follows: string[], cursor: string): Promise<TimelineResult> {
     const fetch = (): Promise<TimelineResult> => fetchHomeFeed(twitter, follows, cursor, chunkSize);
     const cache = deps.getCache();
     if (cache === undefined || cacheSeconds <= 0) return fetch();
-    return cache.cached(namespaces.home, homeCacheKey(cursor), cacheSeconds, fetch);
+    return cache.cached(namespaces.home, homeCacheKey(follows, cursor), cacheSeconds, fetch);
   }
 
   async function showHome(
@@ -149,6 +135,8 @@ export function registerHomeRoutes(deps: HomeRouteDeps): () => void {
     requestPrefs: TseerPreferences,
   ): Promise<void> {
     const path = getPath(req);
+    // The visitor's cookie list, or the instance's [Home] follows by default.
+    const follows = requestPrefs.follows;
     if (follows.length === 0) {
       await reply.html(
         await render.page({
@@ -162,7 +150,7 @@ export function registerHomeRoutes(deps: HomeRouteDeps): () => void {
     }
 
     const cursor = getCursor(req);
-    const timeline = await homeTimeline(cursor);
+    const timeline = await homeTimeline(follows, cursor);
 
     if (req.query["scroll"] !== undefined) {
       if (timeline.content.length === 0) {
@@ -196,13 +184,14 @@ export function registerHomeRoutes(deps: HomeRouteDeps): () => void {
 export default function homePlugin(ctx: Context, options: HomePluginOptions = {}): () => void {
   return mountRoutes(ctx, "home", ["twitter"], (resolve, shell) => {
     const config = resolve<HomeServiceConfig | undefined>("config");
-    const configured = options.follows ?? config?.home?.follows ?? [];
+    // The instance follow list is the `follows` pref default (wired into
+    // prefsPlugin); it's only read here to warn about the cap.
+    const configured = config?.home?.follows ?? [];
     if (configured.length > HOME_MAX_FOLLOWS) {
       ctx.logger.warn(
         `home: ${configured.length} follows configured, using the first ${HOME_MAX_FOLLOWS}`,
       );
     }
-    const follows = normalizeFollows(configured);
     const chunkSize = options.chunkSize ?? config?.home?.chunkSize ?? HOME_DEFAULT_CHUNK_SIZE;
     const cacheSeconds =
       options.cacheSeconds ?? config?.home?.cacheSeconds ?? HOME_DEFAULT_CACHE_SECONDS;
@@ -211,7 +200,6 @@ export default function homePlugin(ctx: Context, options: HomePluginOptions = {}
       twitter: resolve<TwitterApi>("twitter"),
       render: resolve<Render>("render"),
       shell,
-      follows,
       chunkSize,
       cacheSeconds,
       getCache: () => resolve<Cache | undefined>("cache"),

@@ -18,10 +18,12 @@ export function renderHomeEmpty(): VNode {
       <div class="timeline-header">Home</div>
       <div class="timeline-item">
         <div class="tweet-content media-body" dir="auto">
-          No followed accounts configured for this instance.
+          You aren't following anyone yet.
           <br />
-          Set the TSEER_HOME_FOLLOWS environment variable or the [Home] follows key in the
-          configuration file to a comma-separated list of usernames.
+          Use the Follow button on a profile, or add usernames under Following in{" "}
+          <a href="/settings">preferences</a>. Instance admins can set a default list with the
+          TSEER_HOME_FOLLOWS environment variable or the [Home] follows key in the configuration
+          file.
         </div>
       </div>
     </div>

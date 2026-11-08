@@ -82,7 +82,11 @@ export const profileEntries: ProfileEntry[] = [
   {
     name: "prefs",
     plugin: prefsPlugin,
-    options: (ctx) => ({ preferences: ctx.config.preferences }),
+    // [Home] follows (or TSEER_HOME_FOLLOWS) is the default follow list each
+    // visitor starts from; their own list lives in the `follows` cookie.
+    options: (ctx) => ({
+      preferences: { ...ctx.config.preferences, follows: ctx.config.home.follows },
+    }),
   },
   {
     name: "render",
