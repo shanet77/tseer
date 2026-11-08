@@ -25,8 +25,11 @@ describe("updatePrefCookies", () => {
   });
 
   it("emits one write per pref in the schema", () => {
+    // follows is only written when the form carries it (see follows.spec.ts).
     const writes = updatePrefCookies({}, defaults);
-    expect(writes.map((w) => w.name).sort()).toEqual(allNames);
+    expect(writes.map((w) => w.name).sort()).toEqual(allNames.filter((n) => n !== "follows"));
+    const withFollows = updatePrefCookies({ follows: "" }, defaults);
+    expect(withFollows.map((w) => w.name).sort()).toEqual(allNames);
   });
 
   it("sets a default-off checkbox that the form turned on", () => {

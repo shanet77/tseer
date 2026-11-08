@@ -13,9 +13,9 @@ import {
 const defaults: TseerPreferences = preferencesSchema.parse({});
 
 describe("prefList metadata", () => {
-  it("matches the zod schema key-for-key", () => {
+  it("matches the zod schema key-for-key (follows is handled separately)", () => {
     expect(new Set(allPrefs.map((p) => p.name))).toEqual(
-      new Set(Object.keys(preferencesSchema.shape)),
+      new Set(Object.keys(preferencesSchema.shape).filter((k) => k !== "follows")),
     );
   });
 

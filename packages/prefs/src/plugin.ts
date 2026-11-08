@@ -1,4 +1,5 @@
 import type { Context } from "cordis";
+import { normalizeFollows } from "./follows.ts";
 import { encodePrefs, parsePrefs } from "./parse.ts";
 import { preferencesSchema, type TseerPreferences } from "./schema.ts";
 
@@ -19,7 +20,8 @@ export interface PrefsPluginOptions {
 }
 
 export default function prefsPlugin(ctx: Context, options: PrefsPluginOptions = {}): () => void {
-  const defaults = options.preferences ?? preferencesSchema.parse({});
+  const base = options.preferences ?? preferencesSchema.parse({});
+  const defaults: TseerPreferences = { ...base, follows: normalizeFollows(base.follows) };
   const service: PrefsService = {
     defaults,
     parse: (cookies, params) => parsePrefs(defaults, cookies, params),

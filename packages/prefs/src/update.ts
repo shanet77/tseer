@@ -1,3 +1,4 @@
+import { encodeFollows, FOLLOWS_PREF, parseFollowsInput, sameFollows } from "./follows.ts";
 import { allPrefs, type PrefMeta } from "./prefs.ts";
 import type { TseerPreferences } from "./schema.ts";
 
@@ -23,7 +24,27 @@ export function updatePrefCookies(
       writes.push({ name, value: val, expire: false });
     }
   }
+  // Only touch follows when the form carried the field, so a form without it
+  // can never wipe a visitor's list.
+  const followsField = fields[FOLLOWS_PREF];
+  if (followsField !== undefined) {
+    writes.push(followsCookieWrite(parseFollowsInput(followsField), defaults));
+  }
   return writes;
+}
+
+/**
+ * The cookie write for a visitor's full follow list: expired when it matches
+ * the instance default, otherwise the whole list (possibly empty) is stored.
+ */
+export function followsCookieWrite(
+  follows: readonly string[],
+  defaults: TseerPreferences,
+): PrefCookieWrite {
+  if (sameFollows(follows, defaults.follows)) {
+    return { name: FOLLOWS_PREF, value: "", expire: true };
+  }
+  return { name: FOLLOWS_PREF, value: encodeFollows(follows), expire: false };
 }
 
 function isPrefDefault(pref: PrefMeta, val: string, def: boolean | string): boolean {
@@ -37,6 +58,7 @@ export function resetPrefCookies(): PrefCookieWrite[] {
   for (const pref of allPrefs) {
     writes.push({ name: pref.name, value: "", expire: true });
   }
+  writes.push({ name: FOLLOWS_PREF, value: "", expire: true });
   return writes;
 }
 
@@ -49,6 +71,12 @@ export function applyPrefCookies(params: Record<string, string>): PrefCookieWrit
       writes.push({ name: pref.name, value: "", expire: true });
     }
   }
+  const follows = params[FOLLOWS_PREF];
+  writes.push(
+    follows !== undefined
+      ? { name: FOLLOWS_PREF, value: encodeFollows(parseFollowsInput(follows)), expire: false }
+      : { name: FOLLOWS_PREF, value: "", expire: true },
+  );
   return writes;
 }
 

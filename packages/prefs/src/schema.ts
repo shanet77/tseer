@@ -28,6 +28,8 @@ export const preferencesSchema = z.object({
   replaceTwitter: z.string().default(""),
   replaceYouTube: z.string().default(""),
   replaceReddit: z.string().default(""),
+  // Not in prefList: edited via its own settings field and the follow buttons.
+  follows: z.array(z.string()).default([]),
 });
 
 export type TseerPreferences = z.infer<typeof preferencesSchema>;

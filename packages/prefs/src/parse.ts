@@ -1,3 +1,4 @@
+import { decodeFollows, encodeFollows, FOLLOWS_PREF, sameFollows } from "./follows.ts";
 import { allPrefs, type PrefMeta } from "./prefs.ts";
 import { preferencesSchema, type TseerPreferences } from "./schema.ts";
 
@@ -16,6 +17,9 @@ export function parsePrefs(
         prefs[pref.name] = value === "on" || value === "true" || value === "1";
       else if (pref.options?.includes(value)) prefs[pref.name] = value;
     }
+    // A present-but-empty value means "follows nobody", distinct from "no cookie".
+    const follows = source[FOLLOWS_PREF];
+    if (follows !== undefined) prefs[FOLLOWS_PREF] = decodeFollows(follows);
   }
   return preferencesSchema.parse(prefs);
 }
@@ -31,6 +35,9 @@ export function encodePrefs(defaults: TseerPreferences, prefs: TseerPreferences)
         ? `${pref.name}=${values[pref.name] ? "on" : ""}`
         : `${pref.name}=${String(values[pref.name])}`,
     );
+  }
+  if (!sameFollows(prefs.follows, defaults.follows)) {
+    pairs.push(`${FOLLOWS_PREF}=${encodeFollows(prefs.follows)}`);
   }
   return pairs.join(",");
 }
