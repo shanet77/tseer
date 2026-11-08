@@ -135,6 +135,25 @@ describe("video routes", () => {
     expect(res.body).toBe("BYTES");
   });
 
+  it.each([
+    ["percent", signer, false],
+    ["enc", encSigner, true],
+  ] as const)(
+    "proxies a real-length (>100 char) segment URL via %s links",
+    async (_, s, base64Media) => {
+      const longSegment =
+        "https://video.twimg.com/ext_tw_video/1585341912877146112/pu/vid/0/3000/1920x1080/ItLeiKcQA0dAFe-k.m4s";
+      expect(longSegment.length).toBeGreaterThan(100);
+      const fetcher = new StubFetcher({
+        responses: { [longSegment]: { headers: { "content-type": "video/mp4" }, body: "BYTES" } },
+      });
+      const { ctx } = await mount({ fetcher, base64Media });
+      const res = await ctx.server.inject({ url: s.vidUrl(longSegment) });
+      expect(res.status).toBe(200);
+      expect(res.body).toBe("BYTES");
+    },
+  );
+
   it("403s a bad signature", async () => {
     const fetcher = new StubFetcher({
       responses: { [SEGMENT]: { body: "BYTES" } },

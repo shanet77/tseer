@@ -63,6 +63,9 @@ export class UndiciMediaFetcher implements MediaFetcher {
       abort() {
         if (aborted) return;
         aborted = true;
+        // undici emits RequestAbortedError on destroy(); without a listener that's an
+        // uncaught 'error' event that takes the whole process down.
+        response.body.on("error", () => {});
         response.body.destroy();
       },
     };

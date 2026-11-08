@@ -19,6 +19,11 @@ import type {
 
 export { httpMethods, normalizeMethod } from "./request.ts";
 
+// find-my-way defaults to 100 chars per path param and answers 414 past that. The /pic and
+// /video routes carry a whole upstream URL in one param, and real video.twimg.com segment
+// URLs routinely exceed 100 chars, so the default silently broke video playback.
+const MAX_PARAM_LENGTH = 2048;
+
 type HttpServerStatic = {
   (prefix: string, dir: string): () => void;
   (spec: StaticSpec): () => void;
@@ -37,7 +42,12 @@ export class FastifyHttpServer {
   private startPromise: Promise<ServerAddress> | undefined;
 
   constructor(fastify?: FastifyInstance) {
-    this.fastify = fastify ?? Fastify({ trustProxy: false });
+    this.fastify =
+      fastify ??
+      Fastify({
+        trustProxy: false,
+        routerOptions: { maxParamLength: MAX_PARAM_LENGTH },
+      });
     this.fastify.setNotFoundHandler((_request, reply) => {
       notFound(reply);
     });
